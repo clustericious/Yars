@@ -1,0 +1,9 @@
+% my $s = $self->stash;
+% my $e = $self->stash('exception');
+% delete $s->{inner_template};
+% delete $s->{exception};
+% my $dump = dumper $s;
+% $s->{exception} = $e;
+% use Mojo::ByteStream qw/b/;
+ERROR:
+<%= b($e); %>

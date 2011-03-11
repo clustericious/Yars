@@ -1,0 +1,16 @@
+#!/usr/bin/env perl
+
+use File::Basename 'dirname';
+use File::Spec;
+
+use lib join '/', File::Spec->splitdir(dirname(__FILE__)), 'lib';
+use lib join '/', File::Spec->splitdir(dirname(__FILE__)), '..', 'lib';
+
+use Clustericious::Commands;
+
+use strict;
+use warnings;
+
+$ENV{MOJO_APP} ||= 'RESTAS::Yars';
+
+Clustericious::Commands->start;
