@@ -1,0 +1,26 @@
+RESTAS-Yarc (Yet Another RESTAS Server)
+
+Lightweight version built on the Clustericious framework.  This is currently just a developer tool and shouldn't be used for serious production work.  Use RESTAS-Server instead.
+
+Install the package:
+
+	perl Build.PL
+	./Build
+	./Build test
+	./Build install
+
+
+Create a config file (~/etc/RESTAS.conf) that looks something like this:
+
+---
+data_dir : /tmp/restas
+url : http://localhost:9050
+port : 9050
+host : localhost
+
+
+Make this symbolic link:
+
+ln -s ~/etc/RESTAS.conf ~/etc/RESTAS\:\:Yars.conf
+
+This is a workaround to allow RESTAS::Yars to use the Clustericious system of config files, while keeping it out of the main namespace of RESTAS.  Note that RESTAS::Yarc also uses RESTAS.conf, but needs no symbolic link.

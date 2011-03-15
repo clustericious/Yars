@@ -1,14 +1,19 @@
+bin/yars
 Build.PL
-MANIFEST
-bin/restas::yars
-db/patches/0010_start.sql
 eg/RESTAS::Yars.conf
-lib/RESTAS::Yars.pm
-lib/RESTAS::Yars/App.pm
-lib/RESTAS::Yars/DB.pm
-lib/RESTAS::Yars/Objects.pm
-lib/RESTAS::Yars/Routes.pm
+lib/RESTAS.pod
+lib/RESTAS/Yars.pm
+lib/RESTAS/Yars/Routes.pm
+MANIFEST			This list of files
+MANIFEST.SKIP
+README
 t/001_basic.t
 t/999_pod.t
 t/999_pod_coverage.t
 t/999_stop_db.t
+t/write/001_roundtrip.t
+templates/exception.html.ep
+templates/layouts/default.html.ep
+templates/not_found.html.ep
+Makefile.PL
+META.yml
