@@ -14,6 +14,7 @@ the API for RESTAS::Yars.
 use strict;
 use warnings;
 use Clustericious::RouteBuilder;
+use Clustericious::Config;
 use Mojo::Asset::File;
 use Mojo::ByteStream qw/b/;
 use Log::Log4perl qw/:easy/;
@@ -23,8 +24,7 @@ use File::Temp;
 
 # Workaround here.  Had some namespace issues using Clustericious::Config
 # because the code is not in RESTAS.pm
-my $config   = LoadFile("$ENV{CLUSTERICIOUS_CONF_DIR}/RESTAS.conf");
-my $data_dir = $config->{data_dir};
+my $data_dir = Clustericious::Config->new('RESTAS')->data_dir;
 
 sub _dir {
 

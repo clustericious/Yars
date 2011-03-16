@@ -5,6 +5,11 @@ use warnings;
 
 use Test::More;
 use Test::Mojo;
+use File::Basename qw/dirname/;
+
+BEGIN {
+    $ENV{CLUSTERICIOUS_CONF_DIR} = dirname(__FILE__) . '/conf';
+}
 
 use_ok('RESTAS::Yars');
 

@@ -6,15 +6,11 @@ WriteMakefile
           'VERSION_FROM' => 'lib/RESTAS/Yars.pm',
           'PREREQ_PM' => {
                            'Clustericious' => '0.04',
-                           'DBD::Pg' => 0,
-                           'Rose' => 0,
-                           'Rose::Planter' => '0.04',
                            'Test::More' => 0,
                            'Test::Pod::Coverage' => 0
                          },
           'INSTALLDIRS' => 'site',
           'EXE_FILES' => [
-                           'bin/.yars.swp',
                            'bin/yars'
                          ],
           'PL_FILES' => {}
