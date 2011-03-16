@@ -5,16 +5,16 @@ use warnings;
 use Module::Build;
 
 my $builder = Module::Build->new(
-    module_name         => 'RESTAS::Yars',
+    module_name         => 'Yars',
     license             => 'perl',
-    dist_abstract       => "RESTAS::Yars server",
-    dist_version_from   => 'lib/RESTAS/Yars.pm',
+    dist_abstract       => "Yars Server",
+    dist_version_from   => 'lib/Yars.pm',
     build_requires => {
         'Test::More'          => 0,
         'Clustericious'       => '0.04',
         'Test::Pod::Coverage' => 0,
     },
-    add_to_cleanup      => [ 'RESTAS::Yars-*' ],
+    add_to_cleanup      => [ 'Yars-*' ],
     create_makefile_pl => 'traditional',
 );
 

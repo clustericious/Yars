@@ -11,9 +11,9 @@ BEGIN {
     $ENV{CLUSTERICIOUS_CONF_DIR} = dirname(__FILE__) . '/conf';
 }
 
-use_ok('RESTAS::Yars');
+use_ok('Yars');
 
-my $t = Test::Mojo->new(app => 'RESTAS::Yars');
+my $t = Test::Mojo->new(app => 'Yars');
 
 $t->get_ok('/')->status_is(200)->content_type_like('/text\/html/')
   ->content_like(qr/welcome/i);

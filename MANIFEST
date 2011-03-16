@@ -1,9 +1,7 @@
 bin/yars
 Build.PL
-eg/RESTAS::Yars.conf
-lib/RESTAS.pod
-lib/RESTAS/Yars.pm
-lib/RESTAS/Yars/Routes.pm
+lib/Yars.pm
+lib/Yars/Routes.pm
 Makefile.PL
 MANIFEST			This list of files
 MANIFEST.SKIP
@@ -12,7 +10,7 @@ README
 t/001_basic.t
 t/999_pod.t
 t/999_pod_coverage.t
-t/conf/RESTAS.conf
+t/conf/Yars.conf
 t/write/001_roundtrip.t
 templates/exception.html.ep
 templates/layouts/default.html.ep

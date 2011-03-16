@@ -8,9 +8,9 @@ use Test::Mojo;
 use Mojo::ByteStream qw/b/;
 use FindBin qw/$Bin/;
 
-use_ok('RESTAS::Yars');
+use_ok('Yars');
 
-my $t = Test::Mojo->new(app => 'RESTAS::Yars');
+my $t = Test::Mojo->new(app => 'Yars');
 
 
 my $content = 'Yabba Dabba Dooo!';

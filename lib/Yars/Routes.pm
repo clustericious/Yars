@@ -1,13 +1,13 @@
-package RESTAS::Yars::Routes;
+package Yars::Routes;
 
 =head1 NAME
 
-RESTAS::Yars::Routes -- set up the routes for RESTAS::Yars.
+Yars::Routes -- set up the routes for Yars.
 
 =head1 DESCRIPTION
 
 This package creates all the routes, and thus defines
-the API for RESTAS::Yars.
+the API for Yars.
 
 =cut
 
@@ -22,9 +22,7 @@ use YAML::XS qw/LoadFile/;
 use File::Path qw/mkpath/;
 use File::Temp;
 
-# Workaround here.  Had some namespace issues using Clustericious::Config
-# because the code is not in RESTAS.pm
-my $data_dir = Clustericious::Config->new('RESTAS')->data_dir;
+my $data_dir = Clustericious::Config->new('Yars')->data_dir;
 
 sub _dir {
 
@@ -35,7 +33,7 @@ sub _dir {
     return join "/", $data_dir, @clumps;
 }
 
-get '/' => sub { shift->render_text("welcome to RESTAS::Yars") };
+get '/' => sub { shift->render_text("welcome to Yars") };
 
 get '/file/:filename/:md5' => sub {
 

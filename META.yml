@@ -1,5 +1,5 @@
 ---
-abstract: 'RESTAS::Yars server'
+abstract: 'Yars Server'
 author: []
 build_requires:
   Clustericious: 0.04
@@ -12,13 +12,13 @@ license: perl
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
   version: 1.4
-name: RESTAS-Yars
+name: Yars
 provides:
-  RESTAS::Yars:
-    file: lib/RESTAS/Yars.pm
+  Yars:
+    file: lib/Yars.pm
     version: 0.03
-  RESTAS::Yars::Routes:
-    file: lib/RESTAS/Yars/Routes.pm
+  Yars::Routes:
+    file: lib/Yars/Routes.pm
 resources:
   license: http://dev.perl.org/licenses/
 version: 0.03

@@ -1,12 +1,12 @@
-package RESTAS::Yars;
+package Yars;
 
 =head1 NAME
 
-RESTAS::Yars (Yet Another RESTAS Server)
+Yars (Yet Another RESTAS Server)
 
 =head1 SYNOPSIS
 
-RESTAS::Yars
+Yars
 
 =head1 DESCRIPTION
 
@@ -15,7 +15,7 @@ RESTAS::Yars
 use strict;
 use warnings;
 use base 'Clustericious::App';
-use RESTAS::Yars::Routes;
+use Yars::Routes;
 our $VERSION = '0.03';
 
 __PACKAGE__->attr( secret => q[rQJzFpwh,ZY;+9dq293.xj6tc?1.oa+a4r/90tCAV] );

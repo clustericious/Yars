@@ -2,8 +2,8 @@
 use ExtUtils::MakeMaker;
 WriteMakefile
 (
-          'NAME' => 'RESTAS::Yars',
-          'VERSION_FROM' => 'lib/RESTAS/Yars.pm',
+          'NAME' => 'Yars',
+          'VERSION_FROM' => 'lib/Yars.pm',
           'PREREQ_PM' => {
                            'Clustericious' => '0.04',
                            'Test::More' => 0,

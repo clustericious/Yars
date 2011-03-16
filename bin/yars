@@ -7,12 +7,12 @@ use Log::Log4perl qw/:easy/;
 use lib join '/', File::Spec->splitdir(dirname(__FILE__)), 'lib';
 use lib join '/', File::Spec->splitdir(dirname(__FILE__)), '..', 'lib';
 
-use RESTAS::Yars;
+use Yars;
 use Clustericious::Commands;
 
 use strict;
 use warnings;
 
-$ENV{MOJO_APP} ||= 'RESTAS::Yars';
+$ENV{MOJO_APP} ||= 'Yars';
 
 Clustericious::Commands->start;
