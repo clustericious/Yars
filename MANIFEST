@@ -8,7 +8,8 @@ MANIFEST.SKIP
 META.yml
 README
 t/001_basic.t
+t/002_roundtrip.t
+t/003_digest.t
 t/999_pod.t
 t/999_pod_coverage.t
 t/conf/Yars.conf
-t/write/001_roundtrip.t
