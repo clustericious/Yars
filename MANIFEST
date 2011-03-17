@@ -7,11 +7,9 @@ MANIFEST			This list of files
 MANIFEST.SKIP
 META.yml
 README
+t/00-load.t
 t/001_basic.t
 t/999_pod.t
 t/999_pod_coverage.t
 t/conf/Yars.conf
 t/write/001_roundtrip.t
-templates/exception.html.ep
-templates/layouts/default.html.ep
-templates/not_found.html.ep
