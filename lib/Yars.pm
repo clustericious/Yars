@@ -16,7 +16,7 @@ use strict;
 use warnings;
 use base 'Clustericious::App';
 use Yars::Routes;
-our $VERSION = '0.05';
+our $VERSION = '0.06';
 
 __PACKAGE__->attr( secret => q[rQJzFpwh,ZY;+9dq293.xj6tc?1.oa+a4r/90tCAV] );
 
