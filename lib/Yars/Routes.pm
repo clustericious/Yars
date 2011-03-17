@@ -42,7 +42,7 @@ sub _dir {
 
 get '/' => sub { shift->render_text("welcome to Yars") };
 
-get '/file/:filename/:md5' => sub {
+get '/file/(.filename)/:md5' => sub {
 
     # get a file
 
@@ -65,7 +65,7 @@ get '/file/:filename/:md5' => sub {
     }
 };
 
-any [qw/put/] => '/file/:filename/:md5' => {md5 => 'none'} => sub {
+any [qw/put/] => '/file/(.filename)/:md5' => {md5 => 'none'} => sub {
 
     # put a file 
 
