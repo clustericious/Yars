@@ -101,7 +101,7 @@ any [qw/put/] => '/file/(.filename)/:md5' => {md5 => 'none'} => sub {
 
 };
 
-any [qw/delete/] => '/file/:filename/:md5' => sub {
+any [qw/delete/] => '/file/(.filename)/:md5' => sub {
 
     # delete a file
 

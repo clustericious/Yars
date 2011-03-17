@@ -13,15 +13,15 @@ my $t = Test::Mojo->new(app => 'Yars');
 
 
 my $content = 'Yabba Dabba Dooo!';
-
-$t->put_ok('/file/fred', {}, $content)->status_is(201);
 my $digest = b($content)->md5_sum->to_string;
 
 
-$t->get_ok("/file/fred/$digest")->status_is(200)->content_like(qr/Yabba/);
+my $file = 'fred.txt';
+$t->put_ok("/file/$file", {}, $content)->status_is(201);
+$t->get_ok("/file/$file/$digest")->status_is(200)->content_like(qr/Yabba/);
+$t->delete_ok("/file/$file/$digest")->status_is(200);
+    
 
-
-$t->delete_ok("/file/fred/$digest")->status_is(200);
 
 
 done_testing();
