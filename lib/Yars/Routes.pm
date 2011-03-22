@@ -16,11 +16,12 @@ use warnings;
 use Clustericious::RouteBuilder;
 use Clustericious::Config;
 use Mojo::Asset::File;
-use Mojo::ByteStream qw/b/;
+use Digest::MD5 qw(md5_hex);
 use Log::Log4perl qw/:easy/;
 use YAML::XS qw/LoadFile/;
 use File::Path qw/mkpath/;
 use File::Temp;
+
 
 my $data_dir;
 if ( $ENV{HARNESS_ACTIVE} ) {
@@ -40,7 +41,7 @@ sub _dir {
     return join "/", $data_dir, @clumps;
 }
 
-get '/' => sub { shift->render_text("welcome to Yars") };
+get '/' => sub { shift->render_text("welcome to Yars") } => 'index';
 
 get '/file/(.filename)/:md5' => sub {
 
@@ -53,15 +54,30 @@ get '/file/(.filename)/:md5' => sub {
     my $dir      = _dir($digest);
     my $filepath = "$dir/$filename";
 
-    if ( -r $filepath ) {
-        my $asset = Mojo::Asset::File->new( path => $filepath );
-        my $content = $asset->slurp;
-        $c->render_text($content);
-    }
-    else {
+    # return not_found if the file doesn't exist
+    unless ( -r $filepath ) {
         $c->stash( 'message' => "Not found" );
         $c->res->code('404');
         $c->render('not_found');
+    }
+
+
+    my $asset = Mojo::Asset::File->new( path => $filepath );
+    my $content = $asset->slurp;
+    if ( -B $filepath ) {
+        # a binary file
+        TRACE "sending a binary file";
+        $c->res->code(200); 
+        $c->res->fix_headers;
+        $c->stash->{'mojo.rendered'} = 1;
+        my $bi_content = Mojo::ByteStream->new($content);
+        $c->res->body($bi_content);
+        $c->rendered;
+    }
+    else {
+        # a text file
+        TRACE "sending a text file";
+        $c->render_text($content);
     }
 };
 
@@ -73,16 +89,16 @@ any [qw/put/] => '/file/(.filename)/:md5' => {md5 => 'none'} => sub {
     my $filename = $c->stash('filename');
 
     my $content  = $c->req->body;
+    my $digest = md5_hex($content);
+    TRACE "md5: $digest";
 
-    my $asset  = Mojo::Asset::File->new;
-    my $digest = b( $asset->add_chunk($content)->slurp )->md5_sum->to_string;
-
+    # return an error if a digest doesn't match the content
     if ( $c->stash('md5') ne 'none' and $digest ne $c->stash('md5') ) {
         $c->res->code(400);  # RC_BAD_REQUEST
+        $c->res->message('incorrect digest');
         $c->rendered;
         return;
     }
-
 
     my $dir    = _dir($digest);
     mkpath $dir;
@@ -98,7 +114,6 @@ any [qw/put/] => '/file/(.filename)/:md5' => {md5 => 'none'} => sub {
     $c->res->code(201);    # CREATED
     $c->res->headers->location($location);
     $c->rendered;
-
 };
 
 any [qw/delete/] => '/file/(.filename)/:md5' => sub {
