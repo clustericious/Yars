@@ -22,6 +22,8 @@ use YAML::XS qw/LoadFile/;
 use File::Path qw/mkpath/;
 use File::Temp;
 
+# max downloads of 1 GB
+$ENV{MOJO_MAX_MESSAGE_SIZE} = 1073741824;
 
 my $data_dir;
 if ( $ENV{HARNESS_ACTIVE} ) {
