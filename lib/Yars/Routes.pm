@@ -61,26 +61,18 @@ get '/file/(.filename)/:md5' => sub {
         $c->stash( 'message' => "Not found" );
         $c->res->code('404');
         $c->render('not_found');
+        TRACE "$filepath was not found";
+        return;
     }
-
 
     my $asset = Mojo::Asset::File->new( path => $filepath );
     my $content = $asset->slurp;
-    if ( -B $filepath ) {
-        # a binary file
-        TRACE "sending a binary file";
-        $c->res->code(200); 
-        $c->res->fix_headers;
-        $c->stash->{'mojo.rendered'} = 1;
-        my $bi_content = Mojo::ByteStream->new($content);
-        $c->res->body($bi_content);
-        $c->rendered;
-    }
-    else {
-        # a text file
-        TRACE "sending a text file";
-        $c->render_text($content);
-    }
+    $c->res->code(200); 
+    $c->res->fix_headers;
+    $c->stash->{'mojo.rendered'} = 1;
+    my $byte_content = Mojo::ByteStream->new($content);
+    $c->res->body($byte_content);
+    $c->rendered;
 };
 
 any [qw/put/] => '/file/(.filename)/:md5' => {md5 => 'none'} => sub {
@@ -133,6 +125,7 @@ any [qw/delete/] => '/file/(.filename)/:md5' => sub {
     if ( !-e $filepath ) {
         $c->res->code(404);    # NOT FOUND
         $c->rendered;
+        return;
     }
 
     my $rv = unlink $filepath;

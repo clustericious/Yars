@@ -6,7 +6,6 @@ use warnings;
 use Test::More;
 use Test::Mojo;
 use Mojo::ByteStream qw/b/;
-use FindBin qw/$Bin/;
 use Yars;
 
 my $t = Test::Mojo->new(app => 'Yars');
