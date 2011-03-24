@@ -37,7 +37,9 @@ sub _dir {
 
 get '/' => sub { shift->render_text("welcome to Yars") } => 'index';
 
-get '/file/(.filename)/:md5' => sub {
+get '/file/(.filename)/:md5' => [ md5 => qr/[a-z0-9]{32}/ ] => \&_get;
+get '/file/:md5/(.filename)' => [ md5 => qr/[a-z0-9]{32}/ ] => \&_get;
+sub _get {
     my $c        = shift;
     my $dir      = _dir( $c->stash("md5") );
     my $filename = $c->stash("filename");
