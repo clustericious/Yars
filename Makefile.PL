@@ -5,7 +5,7 @@ WriteMakefile
           'NAME' => 'Yars',
           'VERSION_FROM' => 'lib/Yars.pm',
           'PREREQ_PM' => {
-                           'Clustericious' => '0.04',
+                           'Clustericious' => '0.40',
                            'Test::More' => 0,
                            'Test::Pod::Coverage' => 0
                          },

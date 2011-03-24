@@ -2,7 +2,7 @@
 abstract: 'Yars Server'
 author: []
 build_requires:
-  Clustericious: 0.04
+  Clustericious: 0.40
   Test::More: 0
   Test::Pod::Coverage: 0
 configure_requires:
@@ -16,9 +16,9 @@ name: Yars
 provides:
   Yars:
     file: lib/Yars.pm
-    version: 0.12
+    version: 0.13
   Yars::Routes:
     file: lib/Yars/Routes.pm
 resources:
   license: http://dev.perl.org/licenses/
-version: 0.12
+version: 0.13
