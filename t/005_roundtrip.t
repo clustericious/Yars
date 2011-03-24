@@ -18,10 +18,11 @@ my $digest = b($content)->md5_sum->to_string;
 
 my $file = 'fred.txt';
 $t->put_ok("/file/$file", {}, $content)->status_is(201);
-$t->get_ok("/file/$file/$digest")->status_is(200)->content_like(qr/Yabba/);
+my $location = $t->tx->res->headers->location;
+$t->get_ok("/file/$file/$digest")->status_is(200)->content_is($content);
+$t->get_ok("/file/$digest/$file")->status_is(200)->content_is($content);
+$t->get_ok($location)->status_is(200)->content_is($content);
 $t->delete_ok("/file/$file/$digest")->status_is(200);
-    
-
 
 
 done_testing();
