@@ -43,7 +43,7 @@ sub _get {
     my $c        = shift;
     my $dir      = _dir( $c->stash("md5") );
     my $filename = $c->stash("filename");
-    return $c->render_not_found unless -r ("$dir/$filename");
+    return $c->render_not_found unless -r "$dir/$filename";
     $c->app->static->root($dir)->serve($c,$filename);
     $c->rendered;
 };
@@ -77,7 +77,7 @@ any [qw/put/] => '/file/(.filename)/:md5' => { md5 => 'none' } => sub {
     rename "$tmp", "$dir/$filename" or die "rename failed: $!";
 
     # send the URL back in the header
-    my $location = $c->url_for('index')->to_abs . "file/$filename/$digest";
+    my $location = $c->url_for('index')->to_abs . "file/$digest/$filename";
     $c->res->code(201);    # CREATED
     $c->res->headers->location($location);
     $c->rendered;
