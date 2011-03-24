@@ -13,60 +13,37 @@ the API for Yars.
 
 use strict;
 use warnings;
-use Clustericious::RouteBuilder;
-use Clustericious::Config;
-use Mojo::Asset::File;
-use Mojo::ByteStream 'b';
-use Digest::MD5 qw(md5_hex);
+use Mojo::ByteStream qw/b/;
 use Log::Log4perl qw/:easy/;
-use YAML::XS qw/LoadFile/;
 use File::Path qw/mkpath/;
 use File::Temp;
+use Clustericious::RouteBuilder;
+use Clustericious::Config;
 
 # max downloads of 1 GB
 $ENV{MOJO_MAX_MESSAGE_SIZE} = 1073741824;
 
-my $data_dir;
-if ( $ENV{HARNESS_ACTIVE} ) {
-    $data_dir = File::Temp->newdir( UNLINK => 1 );
-}
-else {
-    $data_dir = Clustericious::Config->new('Yars')->data_dir;
-}
+our $DataDir;
+$DataDir = File::Temp->newdir( UNLINK => 1 ) if $ENV{HARNESS_ACTIVE};
 
+ladder sub { $DataDir ||= shift->config->data_dir; };
+
+# Calculate the location of a file on disk.
 sub _dir {
-
-    # Calculate the location of a file on disk.
-
     my $digest = shift;
     my @clumps = ( grep length, split /(...)/, $digest );
-    return join "/", $data_dir, @clumps;
+    return join "/", $DataDir, @clumps;
 }
 
 get '/' => sub { shift->render_text("welcome to Yars") } => 'index';
 
 get '/file/(.filename)/:md5' => sub {
-
-    # get a file
-
     my $c        = shift;
-    my $filename = $c->stash('filename');
-    my $digest   = $c->stash('md5');
-
-    my $dir      = _dir($digest);
-    my $filepath = "$dir/$filename";
-
-    # return not_found if the file doesn't exist
-    unless ( -r $filepath ) {
-        $c->render_not_found;
-        TRACE "$filepath was not found";
-        return;
-    }
-
-    my $asset = Mojo::Asset::File->new( path => $filepath );
-    my $content = $asset->slurp;
-    $c->render_data( b($content)->to_string );
-
+    my $dir      = _dir( $c->stash("md5") );
+    my $filename = $c->stash("filename");
+    return $c->render_not_found unless -r ("$dir/$filename");
+    $c->app->static->root($dir)->serve($c,$filename);
+    $c->rendered;
 };
 
 any [qw/put/] => '/file/(.filename)/:md5' => { md5 => 'none' } => sub {
@@ -76,8 +53,8 @@ any [qw/put/] => '/file/(.filename)/:md5' => { md5 => 'none' } => sub {
     my $c        = shift;
     my $filename = $c->stash('filename');
 
-    my $content = $c->req->body;
-    my $digest  = md5_hex($content);
+    my $content  = $c->req->body;
+    my $digest = b($content)->md5_sum->to_string;
     TRACE "md5: $digest";
 
     # return an error if a digest doesn't match the content
