@@ -16,6 +16,7 @@ use warnings;
 use Clustericious::RouteBuilder;
 use Clustericious::Config;
 use Mojo::Asset::File;
+use Mojo::ByteStream 'b';
 use Digest::MD5 qw(md5_hex);
 use Log::Log4perl qw/:easy/;
 use YAML::XS qw/LoadFile/;
@@ -32,7 +33,6 @@ if ( $ENV{HARNESS_ACTIVE} ) {
 else {
     $data_dir = Clustericious::Config->new('Yars')->data_dir;
 }
-
 
 sub _dir {
 
@@ -58,43 +58,37 @@ get '/file/(.filename)/:md5' => sub {
 
     # return not_found if the file doesn't exist
     unless ( -r $filepath ) {
-        $c->stash( 'message' => "Not found" );
-        $c->res->code('404');
-        $c->render('not_found');
+        $c->render_not_found;
         TRACE "$filepath was not found";
         return;
     }
 
     my $asset = Mojo::Asset::File->new( path => $filepath );
     my $content = $asset->slurp;
-    $c->res->code(200); 
-    $c->res->fix_headers;
-    $c->stash->{'mojo.rendered'} = 1;
-    my $byte_content = Mojo::ByteStream->new($content);
-    $c->res->body($byte_content);
-    $c->rendered;
+    $c->render_data( b($content)->to_string );
+
 };
 
-any [qw/put/] => '/file/(.filename)/:md5' => {md5 => 'none'} => sub {
+any [qw/put/] => '/file/(.filename)/:md5' => { md5 => 'none' } => sub {
 
-    # put a file 
+    # put a file
 
     my $c        = shift;
     my $filename = $c->stash('filename');
 
-    my $content  = $c->req->body;
-    my $digest = md5_hex($content);
+    my $content = $c->req->body;
+    my $digest  = md5_hex($content);
     TRACE "md5: $digest";
 
     # return an error if a digest doesn't match the content
     if ( $c->stash('md5') ne 'none' and $digest ne $c->stash('md5') ) {
-        $c->res->code(400);  # RC_BAD_REQUEST
+        $c->res->code(400);    # RC_BAD_REQUEST
         $c->res->message('incorrect digest');
         $c->rendered;
         return;
     }
 
-    my $dir    = _dir($digest);
+    my $dir = _dir($digest);
     mkpath $dir;
 
     # use a temp file for atomicity
@@ -129,12 +123,7 @@ any [qw/delete/] => '/file/(.filename)/:md5' => sub {
     }
 
     my $rv = unlink $filepath;
-    if ($rv) {
-        $c->res->code(200);    # OK
-    }
-    else {
-        $c->res->code(500);    # ERROR
-    }
+    $rv ? $c->res->code(200) : $c->res->code(500);
     $c->rendered;
 };
 
