@@ -17,7 +17,6 @@ my $digest = b($content)->md5_sum->to_string;
 
 $t->put_ok("/file/my_bin_file", {}, $content)->status_is(201);
 $t->get_ok("/file/my_bin_file/$digest")->content_is($content)->status_is(200);
-sleep 1000;
 $t->delete_ok("/file/my_bin_file/$digest")->status_is(200);
 
 done_testing();
