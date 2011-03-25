@@ -18,7 +18,6 @@ use Log::Log4perl qw/:easy/;
 use File::Path qw/mkpath/;
 use File::Temp;
 use Clustericious::RouteBuilder;
-use Clustericious::Config;
 
 # max downloads of 1 GB
 $ENV{MOJO_MAX_MESSAGE_SIZE} = 1073741824;
@@ -38,7 +37,7 @@ sub _dir {
 get '/' => sub { shift->render_text("welcome to Yars") } => 'index';
 
 get '/file/(.filename)/:md5' => [ md5 => qr/[a-z0-9]{32}/ ] => \&_get;
-get '/file/:md5/(.filename)' => [ md5 => qr/[a-z0-9]{32}/ ] => \&_get;
+get '/file/:md5/(.filename)' => [ md5 => qr/[a-z0-9]{32}/ ] => \&_get => "file";
 sub _get {
     my $c        = shift;
     my $dir      = _dir( $c->stash("md5") );
@@ -48,24 +47,15 @@ sub _get {
     $c->rendered;
 };
 
-any [qw/put/] => '/file/(.filename)/:md5' => { md5 => 'none' } => sub {
-
-    # put a file
-
+put '/file/(.filename)/:md5' => { md5 => 'none' } => sub {
     my $c        = shift;
     my $filename = $c->stash('filename');
-
+    my $md5      = $c->stash('md5');
     my $content  = $c->req->body;
     my $digest = b($content)->md5_sum->to_string;
-    TRACE "md5: $digest";
 
-    # return an error if a digest doesn't match the content
-    if ( $c->stash('md5') ne 'none' and $digest ne $c->stash('md5') ) {
-        $c->res->code(400);    # RC_BAD_REQUEST
-        $c->res->message('incorrect digest');
-        $c->rendered;
-        return;
-    }
+    return $c->render(text => "incorrect digest, $md5!=$digest", status => 400)
+        if ( $md5 ne 'none' and $digest ne $md5 );
 
     my $dir = _dir($digest);
     mkpath $dir;
@@ -77,33 +67,19 @@ any [qw/put/] => '/file/(.filename)/:md5' => { md5 => 'none' } => sub {
     rename "$tmp", "$dir/$filename" or die "rename failed: $!";
 
     # send the URL back in the header
-    my $location = $c->url_for('index')->to_abs . "file/$digest/$filename";
-    $c->res->code(201);    # CREATED
+    my $location = $c->url_for("file", md5 => $digest, filename => $filename)->to_abs;
     $c->res->headers->location($location);
-    $c->rendered;
+    $c->render(status => 201, text => 'ok'); # CREATED
 };
 
-any [qw/delete/] => '/file/(.filename)/:md5' => sub {
 
-    # delete a file
-
+Delete '/file/(.filename)/:md5' => [ md5 => qr/[a-z0-9]{32}/ ] => sub {
     my $c        = shift;
+    my $dir      = _dir( $c->stash("md5") );
     my $filename = $c->stash('filename');
-    my $digest   = $c->stash('md5');
-    my $dir      = _dir($digest);
 
-    my $filepath = "$dir/$filename";
-    TRACE "filepath: $filepath";
-
-    if ( !-e $filepath ) {
-        $c->res->code(404);    # NOT FOUND
-        $c->rendered;
-        return;
-    }
-
-    my $rv = unlink $filepath;
-    $rv ? $c->res->code(200) : $c->res->code(500);
-    $c->rendered;
+    return $c->render_not_found unless -r "$dir/$filename";
+    unlink "$dir/$filename" ? $c->render(status => 200, text =>'ok') : $c->render_exception;
 };
 
 1;
