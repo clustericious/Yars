@@ -18,9 +18,9 @@ name: Yars
 provides:
   Yars:
     file: lib/Yars.pm
-    version: 0.19
+    version: 0.20
   Yars::Routes:
     file: lib/Yars/Routes.pm
 resources:
   license: http://dev.perl.org/licenses/
-version: 0.19
+version: 0.20
