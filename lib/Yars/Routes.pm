@@ -79,7 +79,12 @@ Delete '/file/(.filename)/:md5' => [ md5 => qr/[a-z0-9]{32}/ ] => sub {
     my $filename = $c->stash('filename');
 
     return $c->render_not_found unless -r "$dir/$filename";
-    unlink "$dir/$filename" ? $c->render(status => 200, text =>'ok') : $c->render_exception;
+    if ( unlink "$dir/$filename" ) {
+        $c->render(status => 200, text =>'ok'); 
+    }
+    else {
+        $c->render_exception;
+    }
 };
 
 1;
