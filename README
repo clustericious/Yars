@@ -15,9 +15,6 @@ Create a config file (~/etc/Yars.conf) that looks something like this:
 ---
 data_dir : /tmp/yars
 url : http://localhost:9050
-port : 9050
-host : localhost
-
 
 Create the directory listed for data_dir.
 
