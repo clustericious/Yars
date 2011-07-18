@@ -16,10 +16,8 @@ use Yars;
 
 my $t = Test::Mojo->new(app => 'Yars');
 
-
 my $content = 'Yabba Dabba Dooo!';
 my $digest = b($content)->md5_sum->to_string;
-
 
 my $file = 'fred.txt';
 
@@ -30,6 +28,5 @@ $t->get_ok("/file/$digest/$file")->status_is(200)->content_is($content);
 $t->get_ok($location)->status_is(200)->content_is($content);
 
 $t->delete_ok("/file/$file/$digest")->status_is(200);
-
 
 done_testing();
