@@ -16,22 +16,40 @@ use warnings;
 use Mojo::ByteStream qw/b/;
 use Log::Log4perl qw/:easy/;
 use File::Path qw/mkpath/;
+use List::MoreUtils qw/uniq/;
 use File::Temp;
 use Clustericious::RouteBuilder;
 
 # max downloads of 1 GB
 $ENV{MOJO_MAX_MESSAGE_SIZE} = 1073741824;
 
-our $DataDir;
-$DataDir = File::Temp->newdir( UNLINK => 1 ) if $ENV{HARNESS_ACTIVE};
-
-ladder sub { $DataDir ||= shift->config->data_dir; };
+our %OurBuckets;  # indicates which buckets are on this server
+our %Bucket2Root; # map buckets to disk roots
+ladder sub {
+ my $c = shift;
+ return 1 if keys %OurBuckets > 0;
+ my @buckets = map @{ $_->{buckets} },
+      grep { $_->{url} eq $c->config->url } $c->config->servers;
+ LOGDIE "No buckets assigned." unless @buckets > 0;
+ %OurBuckets = map { $_ => 1 } @buckets;
+ for my $disk ($c->config->disks) {
+    for my $bucket (@{ $disk->{buckets} }) {
+        next unless $OurBuckets{$bucket};
+        $Bucket2Root{$bucket} = $disk->{root};
+    }
+ }
+ TRACE "Our buckets : @buckets";
+ TRACE "Our disks : ".join ' ', uniq values %Bucket2Root;
+ return 1;
+};
 
 # Calculate the location of a file on disk.
 sub _dir {
     my $digest = shift;
+    my ($key) = grep { $digest =~ /^$_/i } keys %Bucket2Root;
+    my $root = $Bucket2Root{$key} or LOGDIE "no dir for $digest on this server";
     my @clumps = ( grep length, split /(...)/, $digest );
-    return join "/", $DataDir, @clumps;
+    return join "/", $root, @clumps;
 }
 
 get '/' => sub { shift->render_text("welcome to Yars") } => 'index';
@@ -65,6 +83,7 @@ put '/file/(.filename)/:md5' => { md5 => 'none' } => sub {
     print $tmp $content;
     $tmp->close;
     rename "$tmp", "$dir/$filename" or die "rename failed: $!";
+    TRACE "Wrote $dir/$filename";
 
     # send the URL back in the header
     my $location = $c->url_for("file", md5 => $digest, filename => $filename)->to_abs;
