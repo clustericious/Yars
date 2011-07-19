@@ -128,7 +128,7 @@ put '/file/(.filename)/:md5' => { md5 => 'none' } => sub {
 };
 
 
-Delete '/file/(.filename)/:md5' => [ md5 => qr/[a-z0-9]{32}/ ] => sub {
+del '/file/(.filename)/:md5' => [ md5 => qr/[a-z0-9]{32}/ ] => sub {
     my $c        = shift;
     my $dir      = _dir( $c->stash("md5") );
     my $filename = $c->stash('filename');
