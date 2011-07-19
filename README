@@ -1,20 +1,27 @@
 Yars (Yet Another RESTAS Server)
 
-Lightweight version built on the Clustericious framework.  This is currently just a developer tool and shouldn't be used for serious production work.  Use RESTAS-Server instead.
+A REST file server built on the
+Clustericious framework.
 
-Install the package:
+Installation on a server is as follows :
 
 	perl Build.PL
 	./Build
 	./Build test
 	./Build install
 
+See eg/ for sample configurations.
 
-Create a config file (~/etc/Yars.conf) that looks something like this:
+The simplest configuration places all
+of the md5 prefixes on one disk
+on one server :
 
 ---
-data_dir : /tmp/yars
 url : http://localhost:9050
-
-Create the directory listed for data_dir.
+servers : 
+    - url : http://localhost:9050
+      buckets : [0,1,2,3,4,5,6,7,8,9,A,B,C,D,E,F]
+disks :
+    - root : /some/place/to/put/the/files
+      buckets : [0,1,2,3,4,5,6,7,8,9,A,B,C,D,E,F]
 
