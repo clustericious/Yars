@@ -39,14 +39,12 @@ ladder sub {
  return 1 if defined($OurUrl);
  $OurUrl = $c->config->url;
  for my $server ($c->config->servers) {
-    for my $bucket (@{ $server->{buckets} }) {
-        $Bucket2Url{$bucket} = $server->{url};
-    }
- }
- for my $disk ($c->config->disks) {
-    for my $bucket (@{ $disk->{buckets} }) {
-        next unless $Bucket2Url{$bucket} eq $OurUrl;
-        $Bucket2Root{$bucket} = $disk->{root};
+    for my $disk (@{ $server->{disks} }) {
+        for my $bucket (@{ $disk->{buckets} }) {
+            $Bucket2Url{$bucket} = $server->{url};
+            next unless $server->{url} eq $OurUrl;
+            $Bucket2Root{$bucket} = $disk->{root};
+        }
     }
  }
  TRACE "bucket map : ".Dumper(\%Bucket2Url);

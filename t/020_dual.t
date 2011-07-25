@@ -20,12 +20,12 @@ sub _sys {
     system($cmd)==0 or die "Error running $cmd : $!";
 }
 
-_sys("HARNESS_ACTIVE=1 LOG_FILE=/tmp/yars_test.log YARS_WHICH=1 yars start");
-_sys("HARNESS_ACTIVE=1 LOG_FILE=/tmp/yars_test.log YARS_WHICH=2 yars start");
+_sys("LOG_FILE=/tmp/yars_test.log YARS_WHICH=1 yars start");
+_sys("LOG_FILE=/tmp/yars_test.log YARS_WHICH=2 yars start");
 
 my $ua = Mojo::UserAgent->new();
-is $ua->get($urls[0].'/status')->res->json->{server_url}, $urls[0];
-is $ua->get($urls[1].'/status')->res->json->{server_url}, $urls[1];
+is $ua->get($urls[0].'/status')->res->json->{server_url}, $urls[0], "started first server at $urls[0]";
+is $ua->get($urls[1].'/status')->res->json->{server_url}, $urls[1], "started second server at $urls[1]";
 
 my $i = 0;
 my @contents = <DATA>;

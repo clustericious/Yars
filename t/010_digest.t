@@ -13,7 +13,7 @@ use Test::Mojo;
 use Mojo::ByteStream qw/b/;
 use Yars;
 
-my $t = Test::Mojo->new(app => 'Yars');
+my $t = Test::Mojo->new('Yars');
 
 my $content = 'Yabba Dabba Dooo!';
 my $digest = b($content)->md5_sum->to_string;
