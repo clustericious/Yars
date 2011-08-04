@@ -13,6 +13,7 @@ $ENV{CLUSTERICIOUS_CONF_DIR} = dirname(__FILE__).'/conf2';
 $ENV{CLUSTERICIOUS_TEST_CONF_DIR} = $ENV{CLUSTERICIOUS_CONF_DIR};
 $ENV{PERL5LIB} = join ':', @INC;
 $ENV{PATH} = dirname(__FILE__)."/../blib/script:$ENV{PATH}";
+my $root = $ENV{YARS_TMP_ROOT} = File::Temp->newdir(CLEANUP => 1);
 #$ENV{LOG_LEVEL} = "TRACE";
 
 sub _sys {
