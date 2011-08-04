@@ -14,6 +14,7 @@ my $builder = Module::Build->new(
         'Clustericious'               => '0.59',
         'Clustericious::Config'       => 0,
         'Clustericious::RouteBuilder' => 0,
+        'Try::Tiny'                   => 0,
         'Test::Pod::Coverage'         => 0,
     },
     add_to_cleanup      => [ 'Yars-*' ],

@@ -9,12 +9,12 @@ use Yars;
 
 my @urls = ("http://localhost:9051","http://localhost:9052");
 
-$ENV{CLUSTERICIOUS_CONF_DIR} = dirname(__FILE__).'/conf2';
+$ENV{CLUSTERICIOUS_CONF_DIR} = dirname(__FILE__).'/conf3';
 $ENV{CLUSTERICIOUS_TEST_CONF_DIR} = $ENV{CLUSTERICIOUS_CONF_DIR};
 $ENV{PERL5LIB} = join ':', @INC;
 $ENV{PATH} = dirname(__FILE__)."/../blib/script:$ENV{PATH}";
-my $root = $ENV{YARS_TMP_ROOT} = File::Temp->newdir(CLEANUP => 1);
 #$ENV{LOG_LEVEL} = "TRACE";
+my $root = $ENV{YARS_TMP_ROOT} = File::Temp->newdir(CLEANUP => 1);
 
 sub _sys {
     my $cmd = shift;
@@ -35,6 +35,7 @@ for my $which (qw/1 2/) {
     }
     _sys("LOG_FILE=/tmp/yars_test.log YARS_WHICH=$which yars start");
 }
+
 my $ua = Mojo::UserAgent->new();
 is $ua->get($urls[0].'/status')->res->json->{server_url}, $urls[0], "started first server at $urls[0]";
 is $ua->get($urls[1].'/status')->res->json->{server_url}, $urls[1], "started second server at $urls[1]";
@@ -48,8 +49,12 @@ for my $content (@contents) {
     my $tx = $ua->put("$urls[1]/file/$filename", {}, $content);
     my $location = $tx->res->headers->location;
     ok $location, "Got location header";
-    ok $tx->success, "put $filename to $urls[1]/file/filename";
+    ok $tx->success, "put $filename to $urls[1]/file/$filename";
     push @locations, $location;
+    if ($i==20) {
+        # Make a disk unwriteable :
+        ok ( (chmod 0555, "$root/three"), "chmod 0555, $root/three");
+    }
 }
 
 for my $url (@locations) {
@@ -58,7 +63,8 @@ for my $url (@locations) {
     my $tx = $ua->get($url);
     my $res;
     ok $res = $tx->success, "got $url";
-    is $res->body, $want, "content match";
+    my $body = $res ? $res->body : '';
+    is $body, $want, "content match";
 }
 
 _sys("YARS_WHICH=1 yars stop");
@@ -67,13 +73,104 @@ _sys("YARS_WHICH=2 yars stop");
 done_testing();
 
 __DATA__
-this is one file
-this is another file
-this is a third file
-these files are all different
-no two are the same
-and some of them have md5s that make them go to
-the first server, while others go to the
-second server.
-Every file is one line long.
-buh bye
+head -100 /usr/share/dict/words
+1080
+10-point
+10th
+11-point
+12-point
+16-point
+18-point
+1st
+2
+20-point
+2,4,5-t
+2,4-d
+2D
+2nd
+30-30
+3-D
+3-d
+3D
+3M
+3rd
+48-point
+4-D
+4GL
+4H
+4th
+5-point
+5-T
+5th
+6-point
+6th
+7-point
+7th
+8-point
+8th
+9-point
+9th
+-a
+A
+A.
+a
+a'
+a-
+a.
+A-1
+A1
+a1
+A4
+A5
+AA
+aa
+A.A.A.
+AAA
+aaa
+AAAA
+AAAAAA
+AAAL
+AAAS
+Aaberg
+Aachen
+AAE
+AAEE
+AAF
+AAG
+aah
+aahed
+aahing
+aahs
+AAII
+aal
+Aalborg
+Aalesund
+aalii
+aaliis
+aals
+Aalst
+Aalto
+AAM
+aam
+AAMSI
+Aandahl
+A-and-R
+Aani
+AAO
+AAP
+AAPSS
+Aaqbiye
+Aar
+Aara
+Aarau
+AARC
+aardvark
+aardvarks
+aardwolf
+aardwolves
+Aaren
+Aargau
+aargh
+Aarhus
+Aarika
+Aaron
