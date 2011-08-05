@@ -69,7 +69,7 @@ sub _dir {
     # Calculate the location of a file on disk.
     # Optionally pass a second parameter to force it onto a particular disk.
     my $digest = shift;
-    my $root = shift || _disk_root($digest) || LOGDIE "No disk root";
+    my $root = shift || _disk_root($digest) || LOGCONFESS "No disk root for $digest";
     return join "/", $root, ( grep length, split /(..)/, $digest );
 }
 
@@ -125,53 +125,56 @@ sub _get_from_remote_stash {
 }
 
 
-put '/file/(.filename)/:md5' => { md5 => 'not_given' } => sub {
+put '/file/(.filename)/:md5' => { md5 => 'calculate' } => sub {
     my $c        = shift;
     my $filename = $c->stash('filename');
     my $md5      = $c->stash('md5');
     my $content  = $c->req->body;
     my $digest   = b($content)->md5_sum->to_string;
+    $md5 = $digest if $md5 eq 'calculate';
 
-    unless ($md5 eq 'not_given') {
-        return $c->render(text => "incorrect digest, $md5!=$digest", status => 400)
+    return $c->render(text => "incorrect digest, $md5!=$digest", status => 400)
             if $digest ne $md5;
-    }
-    $md5 = $digest;
 
     my ($bucket) = grep { $digest =~ /^$_/i } keys %Bucket2Url;
     my $dest = $Bucket2Url{$bucket};
-    unless ($dest eq $OurUrl) {
-        DEBUG "Proxying file $filename with md5 $digest (bucket $bucket) to $dest/file/$filename/$digest";
-        my $tx = $c->ua->put( "$dest/file/$filename/$digest", {}, $content );
-        if (my $res = $tx->success) {
-            $c->res->headers->location($tx->res->headers->location);
-            $c->render(status => $tx->res->code, text => 'ok');
-            return;
-        }
-        my ($message, $code) = $tx->error;
-        ERROR "failed to proxy : $message".($code ? " code $code" : "");
-        if (_stash_locally($filename,$content,$md5)) {
-            my $location = $c->url_for("file", md5 => $digest, filename => $filename)->to_abs;
-            $c->res->headers->location($location);
-            # TODO, return stash location or permanent location?
-            # stash location, but a "301 moved permanently" header later should be noted by the client
-            $c->render(status => 201, text => 'ok'); # CREATED
-            TRACE "Stashed locally";
-        }
-        return;
+    unless ( $dest eq $OurUrl ) {
+        return _proxy_to( $c, $dest, $filename, $digest, $content )
+              || _stash_locally( $c, $filename, $digest, $content )
+              || $c->render_exception("could not proxy or stash");
     }
-    DEBUG "Accepting $filename in bucket $bucket to $dest";
+    DEBUG "Received $filename in bucket $bucket on $dest";
 
-    _atomic_write( _dir($digest), $filename, $content )
-      or _stash_locally( $filename, $content, $md5 )
-      or _stash_remotely( $filename, $content, $md5 )
-      or $c->render( status => 500, text => 'failed : all disks and hosts are down, come back tomorrow.' );
+    if (_atomic_write( _dir($digest), $filename, $content ) ) {
+        # Normal situation.
+        my $location = $c->url_for("file", md5 => $digest, filename => $filename)->to_abs;
+        $c->res->headers->location($location);
+        return $c->render(status => 201, text => 'ok'); # CREATED
+    }
 
-    # send the URL back in the header
-    my $location = $c->url_for("file", md5 => $digest, filename => $filename)->to_abs;
-    $c->res->headers->location($location);
-    $c->render(status => 201, text => 'ok'); # CREATED
+    # Local designated disk is down.
+    _stash_locally( $c, $filename, $digest, $content )
+      or _stash_remotely( $c, $filename, $digest, $content )
+      or $c->render_exception("could not store or stash remotely");
 };
+
+sub _proxy_to {
+    my ($c, $url,$filename,$digest,$content) = @_;
+    # Proxy a file to another url.
+    # On success, render the response and return true.
+    # On failure, return false.
+   my $res;
+   DEBUG "Proxying file $filename with md5 $digest to $url/file/$filename/$digest";
+   my $tx = $c->ua->put( "$url/file/$filename/$digest", {}, $content );
+   if ($res = $tx->success) {
+       $c->res->headers->location($tx->res->headers->location);
+       $c->render(status => $tx->res->code, text => 'ok');
+       return 1;
+   }
+   my ($message, $code) = $tx->error;
+   ERROR "failed to proxy : $message".($code ? " code $code" : "");
+   return 0;
+}
 
 sub _atomic_write {
     my ($dir, $filename, $content) = @_;
@@ -194,26 +197,30 @@ sub _atomic_write {
 }
 
 sub _stash_locally {
-    my ($filename,$content,$md5) = @_;
-    # Stash this file someplace because its disk is unwriteable.
+    my ($c, $filename,$digest, $content) = @_;
+    # Stash this file on a local disk.
     # Returns false or renders the response.
-    my $assigned_root = _disk_root($md5);
+    my $assigned_root = _disk_root($digest);
     DEBUG "Disk $assigned_root is unwriteable, stashing $filename somewhere else." if $assigned_root;
     my $wrote;
     for my $root ( shuffle keys %DiskIsLocal ) {
         next if $assigned_root && ($root eq $assigned_root);
-        my $dir = _dir( $md5, $root );
+        my $dir = _dir( $digest, $root );
         _atomic_write( $dir, $filename, $content ) and do {
             $wrote = $root;
             last;
         };
     }
     return 0 unless $wrote;
-    DEBUG "Stashed $filename ($md5) on $wrote";
+    my $location = $c->url_for("file", md5 => $digest, filename => $filename)->to_abs;
+    $c->res->headers->location($location);
+    $c->render(status => 201, text => 'ok'); # CREATED
+    DEBUG "Stashed $filename ($digest) locally on $wrote";
     return 1;
 }
 
 sub _stash_remotely {
+    my ($c, $filename,$digest,$content) = @_;
     # TODO
     LOGDIE "not implemented : stash_remotely";
     return 0;
