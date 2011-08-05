@@ -96,10 +96,7 @@ sub _get {
     if ($url ne $OurUrl) {
         TRACE "$md5 should be on $url";
         # but check our local stash first, just in case.
-        if (_get_from_local_stash($c,$filename,$md5)) {
-            TRACE "..but its not, so not redirecting.";
-            return;
-        }
+        _get_from_local_stash($c,$filename,$md5) and return;
         return $c->redirect_to("$url/file/$md5/$filename");
     }
 
@@ -107,15 +104,13 @@ sub _get {
     -r "$dir/$filename" or do {
         return
              _get_from_local_stash( $c, $filename, $md5 )
-          || _get_from_remote_stash( $c, $filename, $md5 )
+          || _redirect_to_remote_stash( $c, $filename, $md5 )
           || $c->render_not_found;
     };
     $c->app->static->root($dir)->serve($c,$filename);
     $c->rendered;
 };
 
-#head '/file/(.filename)/:md5' => [ md5 => qr/[a-z0-9]{32}/ ] => \&_head;
-#head '/file/:md5/(.filename)' => [ md5 => qr/[a-z0-9]{32}/ ] => \&_head;
 sub _head {
     my $c        = shift;
     my $filename = $c->stash("filename");
@@ -129,8 +124,24 @@ sub _head {
     }
 
     # Otherwise mimick GET, but just check for existence.
-    # TODO
-    LOGDIE "head not implemented";
+    my $url = _server_for($md5);
+    if ($url ne $OurUrl) {
+        TRACE "$md5 should be on $url";
+        # but check our local stash first, just in case.
+        if (_local_stashed_dir($filename,$md5)) {
+            return $c->render(status => 200, text => 'found');
+        }
+        return $c->redirect_to("$url/file/$md5/$filename");
+    }
+
+    my $dir = _dir($md5);
+
+    if ( -r "$dir/$filename"
+        or _local_stashed_dir($filename,$md5)
+        or _remote_stashed_server($c, $filename,$md5)) {
+            return $c->render(status => 200, text => 'found');
+    }
+    $c->render_not_found;
 }
 
 sub _local_stashed_dir {
@@ -153,12 +164,12 @@ sub _get_from_local_stash {
     return 1;
 }
 
-sub _get_from_remote_stash {
+sub _remote_stashed_server {
     my ($c,$filename,$digest) = @_;
-    DEBUG "Checking remote stashes";
+    # Find a server which is stashing this file, if one exists.
 
-    # TODO broadcast these requests all at once
     my $assigned_server = _server_for($digest);
+    # TODO broadcast these requests all at once
     for my $server (shuffle keys %Servers) {
         next if $server eq $OurUrl;
         next if $server eq $assigned_server;
@@ -166,9 +177,18 @@ sub _get_from_remote_stash {
         my $tx = $c->ua->head( "$server/file/$filename/$digest", { "X-Yars-Check-Stash" => 1 } );
         if (my $res = $tx->success) {
             # Found it!
-            return $c->redirect_to("$server/file/$digest/$filename");
+            return $server;
         }
     }
+    return '';
+}
+
+sub _redirect_to_remote_stash {
+    my ($c,$filename,$digest) = @_;
+    DEBUG "Checking remote stashes";
+    if (my $server = _remote_stashed_server($c,$filename,$digest)) {
+        return $c->redirect_to("$server/file/$digest/$filename");
+    };
     return 0;
 }
 

@@ -27,6 +27,8 @@ $t->get_ok("/file/$file/$digest")->status_is(200)->content_is($content);
 $t->get_ok("/file/$digest/$file")->status_is(200)->content_is($content);
 $t->get_ok($location)->status_is(200)->content_is($content);
 
+$t->head_ok($location)->status_is(200);
+
 $t->delete_ok("/file/$file/$digest")->status_is(200);
 
 done_testing();
