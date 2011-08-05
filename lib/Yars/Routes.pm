@@ -36,12 +36,14 @@ our %Bucket2Url;  # map buckets to server urls
 our %Bucket2Root; # map buckets to disk roots
 our $OurUrl;      # Our server url
 our %DiskIsLocal; # Our disk roots (values are just 1)
+our %Servers;     # All servers
 # These could be optimized by using Data::Trie
 ladder sub {
  my $c = shift;
  return 1 if defined($OurUrl);
  $OurUrl = $c->config->url;
  for my $server ($c->config->servers) {
+    $Servers{$server->{url}} = 1;
     for my $disk (@{ $server->{disks} }) {
         for my $bucket (@{ $disk->{buckets} }) {
             $Bucket2Url{$bucket} = $server->{url};
@@ -56,20 +58,26 @@ ladder sub {
  return 1;
 };
 
-sub _disk_root {
+sub _disk_for {
     # Given an md5 digest, calculate the root directory of this file.
-    # An empty string is returned if this file does not belong on the current host.
+    # Undef is returned if this file does not belong on the current host.
     my $digest = shift;
     my ($bucket) = grep { $digest =~ /^$_/i } keys %Bucket2Root;
-    my $root = $Bucket2Root{$bucket} or return undef;
-    return $root;
+    return $Bucket2Root{$bucket};
+}
+
+sub _server_for {
+    # Given an md5, return the url for the server for this file.
+    my $digest = shift;
+    my ($bucket) = grep { $digest =~ /^$_/i } keys %Bucket2Url;
+    return $Bucket2Url{$bucket};
 }
 
 sub _dir {
     # Calculate the location of a file on disk.
     # Optionally pass a second parameter to force it onto a particular disk.
     my $digest = shift;
-    my $root = shift || _disk_root($digest) || LOGCONFESS "No disk root for $digest";
+    my $root = shift || _disk_for($digest) || LOGCONFESS "No local disk for $digest";
     return join "/", $root, ( grep length, split /(..)/, $digest );
 }
 
@@ -82,8 +90,7 @@ sub _get {
     my $filename = $c->stash("filename");
     my $md5      = $c->stash("md5");
 
-    my ($bucket) = grep { $md5 =~ /^$_/i } keys %Bucket2Url;
-    my $url = $Bucket2Url{$bucket};
+    my $url = _server_for($md5);
     unless ($url eq $OurUrl) {
         TRACE "$md5 should be on $url";
         # but check our local stash first, just in case.
@@ -136,14 +143,22 @@ put '/file/(.filename)/:md5' => { md5 => 'calculate' } => sub {
     return $c->render(text => "incorrect digest, $md5!=$digest", status => 400)
             if $digest ne $md5;
 
-    my ($bucket) = grep { $digest =~ /^$_/i } keys %Bucket2Url;
-    my $dest = $Bucket2Url{$bucket};
-    unless ( $dest eq $OurUrl ) {
-        return _proxy_to( $c, $dest, $filename, $digest, $content )
+    if ($c->req->headers->header('X-Yars-Stash')) {
+        DEBUG "Stashing a file that is not ours here on $OurUrl : $digest $filename";
+        _stash_locally($c, $filename, $digest, $content) and return;
+        return $c->render_exception("Cannot stash $filename locally");
+    }
+
+    my $assigned_server = _server_for($digest);
+
+    if ( $assigned_server ne $OurUrl ) {
+        return _proxy_to( $c, $assigned_server, $filename, $digest, $content )
               || _stash_locally( $c, $filename, $digest, $content )
+              || _stash_remotely( $c, $filename, $digest, $content )
               || $c->render_exception("could not proxy or stash");
     }
-    DEBUG "Received $filename in bucket $bucket on $dest";
+
+    DEBUG "Received $filename on $OurUrl";
 
     if (_atomic_write( _dir($digest), $filename, $content ) ) {
         # Normal situation.
@@ -159,20 +174,23 @@ put '/file/(.filename)/:md5' => { md5 => 'calculate' } => sub {
 };
 
 sub _proxy_to {
-    my ($c, $url,$filename,$digest,$content) = @_;
+    my ($c, $url,$filename,$digest,$content,$temporary) = @_;
     # Proxy a file to another url.
     # On success, render the response and return true.
     # On failure, return false.
    my $res;
-   DEBUG "Proxying file $filename with md5 $digest to $url/file/$filename/$digest";
-   my $tx = $c->ua->put( "$url/file/$filename/$digest", {}, $content );
+   DEBUG "Proxying file $filename with md5 $digest to $url/file/$filename/$digest"
+      . ( $temporary ? " temporarily" : "" );
+   my $headers = $temporary ? { 'X-Yars-Stash' => 1 } : {};
+   $headers->{Connection} = "Close";
+   my $tx = $c->ua->put( "$url/file/$filename/$digest", $headers, $content );
    if ($res = $tx->success) {
        $c->res->headers->location($tx->res->headers->location);
        $c->render(status => $tx->res->code, text => 'ok');
        return 1;
    }
    my ($message, $code) = $tx->error;
-   ERROR "failed to proxy : $message".($code ? " code $code" : "");
+   ERROR "failed to proxy $filename to $url : $message".($code ? " code $code" : "");
    return 0;
 }
 
@@ -200,8 +218,8 @@ sub _stash_locally {
     my ($c, $filename,$digest, $content) = @_;
     # Stash this file on a local disk.
     # Returns false or renders the response.
-    my $assigned_root = _disk_root($digest);
-    DEBUG "Disk $assigned_root is unwriteable, stashing $filename somewhere else." if $assigned_root;
+    DEBUG "Stashing $filename locally";
+    my $assigned_root = _disk_for($digest);
     my $wrote;
     for my $root ( shuffle keys %DiskIsLocal ) {
         next if $assigned_root && ($root eq $assigned_root);
@@ -211,6 +229,8 @@ sub _stash_locally {
             last;
         };
     }
+    WARN "Help, all my disks are unwriteable!" unless $wrote;
+    # I'm not dead yet!  It's only a flesh wound!
     return 0 unless $wrote;
     my $location = $c->url_for("file", md5 => $digest, filename => $filename)->to_abs;
     $c->res->headers->location($location);
@@ -221,8 +241,15 @@ sub _stash_locally {
 
 sub _stash_remotely {
     my ($c, $filename,$digest,$content) = @_;
-    # TODO
-    LOGDIE "not implemented : stash_remotely";
+    # Stash this file on a remote disk.
+    # Returns false or renders the response.
+    DEBUG "Stashing $filename remotely.";
+    my $assigned_server = _server_for($digest);
+    for my $server (shuffle keys %Servers) {
+        next if $server eq $OurUrl;
+        next if $server eq $assigned_server;
+        _proxy_to( $c, $server, $filename, $digest, $content, 1 ) and return 1;
+    }
     return 0;
 }
 
