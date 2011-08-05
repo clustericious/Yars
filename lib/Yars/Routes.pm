@@ -83,18 +83,24 @@ sub _dir {
 
 get '/' => sub { shift->render_text("welcome to Yars") } => 'index';
 
-get '/file/(.filename)/:md5' => [ md5 => qr/[a-z0-9]{32}/ ] => \&_get;
-get '/file/:md5/(.filename)' => [ md5 => qr/[a-z0-9]{32}/ ] => \&_get => "file";
+get  '/file/(.filename)/:md5' => [ md5 => qr/[a-z0-9]{32}/ ] => \&_get;
+get  '/file/:md5/(.filename)' => [ md5 => qr/[a-z0-9]{32}/ ] => \&_get => "file";
 sub _get {
     my $c        = shift;
     my $filename = $c->stash("filename");
     my $md5      = $c->stash("md5");
 
+    return _head($c, @_) if $c->req->method eq 'HEAD';
+
     my $url = _server_for($md5);
-    unless ($url eq $OurUrl) {
+    if ($url ne $OurUrl) {
         TRACE "$md5 should be on $url";
         # but check our local stash first, just in case.
-        return _get_from_local_stash($c,$filename,$md5) || $c->redirect_to($url);
+        if (_get_from_local_stash($c,$filename,$md5)) {
+            TRACE "..but its not, so not redirecting.";
+            return;
+        }
+        return $c->redirect_to("$url/file/$md5/$filename");
     }
 
     my $dir = _dir($md5);
@@ -108,27 +114,62 @@ sub _get {
     $c->rendered;
 };
 
-sub _get_from_local_stash {
-    my ($c,$filename,$md5) = @_;
-    # If this is stashed locally, render it and return.
-    # Otherwise return false.
+#head '/file/(.filename)/:md5' => [ md5 => qr/[a-z0-9]{32}/ ] => \&_head;
+#head '/file/:md5/(.filename)' => [ md5 => qr/[a-z0-9]{32}/ ] => \&_head;
+sub _head {
+    my $c        = shift;
+    my $filename = $c->stash("filename");
+    my $md5      = $c->stash("md5");
+
+    if ($c->req->headers->header("X-Yars-Check-Stash")) {
+        if (_local_stashed_dir($filename,$md5)) {
+            return $c->render(status => 200, text => 'found');
+        }
+        return $c->render_not_found;
+    }
+
+    # Otherwise mimick GET, but just check for existence.
+    # TODO
+    LOGDIE "head not implemented";
+}
+
+sub _local_stashed_dir {
+    my ($filename,$md5) = @_;
     for my $root ( shuffle keys %DiskIsLocal ) {
         my $dir = _dir($md5,$root);
         TRACE "Checking for $dir/$filename";
-        next unless -r "$dir/$filename";
-        TRACE "Found $dir/$filename";
-        $c->app->static->root($dir)->serve($c,$filename);
-        $c->rendered;
-        return 1;
+        return $dir if -r "$dir/$filename";
     }
-    return 0;
+    return '';
+}
+
+sub _get_from_local_stash {
+    my ($c,$filename,$md5) = @_;
+    # If this is stashed locally, serve it and return true.
+    # Otherwise return false.
+    my $dir = _local_stashed_dir($filename,$md5) or return 0;
+    $c->app->static->root($dir)->serve($c,$filename);
+    $c->rendered;
+    return 1;
 }
 
 sub _get_from_remote_stash {
-    # If this is stored somewhere else return a redirect header.
-    # broadcast a HEAD
-    # TODO
-    LOGDIE "not implemented : get from remote stash";
+    my ($c,$filename,$digest) = @_;
+    DEBUG "Checking remote stashes";
+
+    # TODO broadcast these requests all at once
+    my $assigned_server = _server_for($digest);
+    for my $server (shuffle keys %Servers) {
+        next if $server eq $OurUrl;
+        next if $server eq $assigned_server;
+        DEBUG "Checking remote $server for $filename";
+        my $tx = $c->ua->head( "$server/file/$filename/$digest", { "X-Yars-Check-Stash" => 1 } );
+        if (my $res = $tx->success) {
+            # Found it!
+            return $c->redirect_to("$server/file/$digest/$filename");
+        }
+    }
+    return 0;
 }
 
 

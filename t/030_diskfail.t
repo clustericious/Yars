@@ -14,7 +14,7 @@ $ENV{CLUSTERICIOUS_CONF_DIR} = dirname(__FILE__).'/conf3';
 $ENV{CLUSTERICIOUS_TEST_CONF_DIR} = $ENV{CLUSTERICIOUS_CONF_DIR};
 $ENV{PERL5LIB} = join ':', @INC;
 $ENV{PATH} = dirname(__FILE__)."/../blib/script:$ENV{PATH}";
-$ENV{LOG_LEVEL} = "TRACE";
+#$ENV{LOG_LEVEL} = "TRACE";
 my $root = $ENV{YARS_TMP_ROOT} = File::Temp->newdir(CLEANUP => 1);
 
 sub _sys {
@@ -38,6 +38,7 @@ for my $which (qw/1 2/) {
 }
 
 my $ua = Mojo::UserAgent->new();
+$ua->max_redirects(3);
 is $ua->get($urls[0].'/status')->res->json->{server_url}, $urls[0], "started first server at $urls[0]";
 is $ua->get($urls[1].'/status')->res->json->{server_url}, $urls[1], "started second server at $urls[1]";
 
@@ -77,7 +78,7 @@ for my $url (@locations) {
         my $res;
         ok $res = $tx->success, "got $attempt";
         my $body = $res ? $res->body : '';
-        is $body, $want, "content match";
+        is $body, $want, "content match for $filename at $attempt";
     }
 
 }
