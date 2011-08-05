@@ -5,6 +5,7 @@ use warnings;
 
 use File::Basename qw/dirname/;
 use Test::More;
+use Mojo::ByteStream qw/b/;
 use Yars;
 
 my @urls = ("http://localhost:9051","http://localhost:9052");
@@ -36,15 +37,20 @@ for my $which (qw/1 2/) {
     _sys("LOG_FILE=/tmp/yars_test.log YARS_WHICH=$which yars start");
 }
 my $ua = Mojo::UserAgent->new();
+$ua->max_redirects(3);
 is $ua->get($urls[0].'/status')->res->json->{server_url}, $urls[0], "started first server at $urls[0]";
 is $ua->get($urls[1].'/status')->res->json->{server_url}, $urls[1], "started second server at $urls[1]";
 
 my $i = 0;
 my @contents = <DATA>;
 my @locations;
+my @digests;
+my @filenames;
 for my $content (@contents) {
     $i++;
     my $filename = "file_numero_$i";
+    push @filenames, $filename;
+    push @digests, b($content)->md5_sum;
     my $tx = $ua->put("$urls[1]/file/$filename", {}, $content);
     my $location = $tx->res->headers->location;
     ok $location, "Got location header";
@@ -53,12 +59,31 @@ for my $content (@contents) {
 }
 
 for my $url (@locations) {
-    my $want = shift @contents;
-    next unless $url;
-    my $tx = $ua->get($url);
-    my $res;
-    ok $res = $tx->success, "got $url";
-    is $res->body, $want, "content match";
+    my $content = shift @contents;
+    my $filename = shift @filenames;
+    my $md5 = shift @digests;
+    next unless $url; # error will occur above
+    {
+        my $tx = $ua->get($url);
+        my $res;
+        ok $res = $tx->success, "got $url";
+        is $res->body, $content, "content match";
+    }
+    {
+        my $tx = $ua->head("$urls[0]/file/$md5/$filename");
+        ok $tx->success, "head $urls[0]/file/$md5/$filename";
+    }
+    {
+        my $tx = $ua->delete("$urls[0]/file/$md5/$filename");
+        ok $tx->success, "delete $urls[0]/file/$md5/$filename";
+        diag join ',',$tx->error if $tx->error;
+    }
+    {
+        my $tx = $ua->get("$urls[0]/file/$md5/$filename");
+        is $tx->res->code, 404, "Not found after deleting";
+        $tx = $ua->get("$urls[1]/file/$md5/$filename");
+        is $tx->res->code, 404, "Not found after deleting";
+    }
 }
 
 _sys("YARS_WHICH=1 yars stop");

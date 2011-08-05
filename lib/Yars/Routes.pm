@@ -314,15 +314,43 @@ sub _stash_remotely {
     return 0;
 }
 
-del '/file/(.filename)/:md5' => [ md5 => qr/[a-z0-9]{32}/ ] => sub {
+del '/file/(.filename)/:md5' => [ md5 => qr/[a-z0-9]{32}/ ] => \&_del;
+del '/file/:md5/(.filename)' => [ md5 => qr/[a-z0-9]{32}/ ] => \&_del;
+
+sub _del {
     my $c        = shift;
-    my $dir      = _dir( $c->stash("md5") );
+    my $md5      = $c->stash("md5");
     my $filename = $c->stash('filename');
+    TRACE "Delete request for $filename, $md5";
 
-    -r "$dir/$filename" or return $c->render_not_found;
-    unlink "$dir/$filename" or return $c->render_exception($!);
+    # Delete locally or proxy the delete if it is stashed somewhere else.
 
-    $c->render(status => 200, text =>'ok');
+    my $server = _server_for($md5);
+    if ($server eq $OurUrl) {
+        DEBUG "This is our file, we will delete it.";
+        my $dir  = _dir( $md5 );
+        if (-r "$dir/$filename") {
+            unlink "$dir/$filename" or return $c->render_exception($!);
+            return $c->render(status => 200, text =>'ok');
+        }
+        if (my $sdir = _local_stashed_dir($c,$md5,$filename)) {
+            unlink "$sdir/$filename" or return $c->render_exception($!);
+            return $c->render(status => 200, text =>'ok');
+        }
+
+        $server = _remote_stashed_server($c,$md5,$filename);
+        return $c->render_not_found unless $server;
+        # otherwise fall through...
+    }
+
+    DEBUG "Proxying delete to $server";
+    my $tx = $c->ua->delete("$server/file/$md5/$filename");
+    if (my $res = $tx->success) {
+        return $c->render(status => 200, text => "ok");
+    } else  {
+        my ($msg,$code) = $tx->error;
+        return $c->render_exception("Error deleting from $server ".$tx->error);
+    }
 };
 
 1;
