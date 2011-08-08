@@ -6,14 +6,14 @@ Yars::Routes -- set up the routes for Yars.
 
 =head1 DESCRIPTION
 
-This package creates all the routes, and thus defines
-the API for Yars.
+This package defines the API for Yars.
 
 =head1 TODO
 
 Optimize lookups.  Currently we match prefixes
 so that a heterogenous set of prefixes can be
-supported (e.g. "1", "2", "30", "31"..)
+supported (e.g. "1", "2", "30", "31"..), Data::Trie
+may be useful.
 
 =cut
 
@@ -37,7 +37,6 @@ our %Bucket2Root; # map buckets to disk roots
 our $OurUrl;      # Our server url
 our %DiskIsLocal; # Our disk roots (values are just 1)
 our %Servers;     # All servers
-# These could be optimized by using Data::Trie
 ladder sub {
  my $c = shift;
  return 1 if defined($OurUrl);
