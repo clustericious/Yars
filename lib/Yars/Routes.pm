@@ -81,6 +81,20 @@ sub _dir {
     return join "/", $root, ( grep length, split /(..)/, $digest );
 }
 
+sub _dir_is_empty {
+    # stolen from File::Find::Rule::DirectoryEmpty
+    my $dir = shift;
+    opendir( DIR, $dir ) or return;
+    for ( readdir DIR ) {
+        if ( !/^\.\.?$/ ) {
+            closedir DIR;
+            return 0;
+        }
+    }
+    closedir DIR;
+    return 1;
+}
+
 get '/' => sub { shift->render_text("welcome to Yars") } => 'index';
 
 get  '/file/(.filename)/:md5' => [ md5 => qr/[a-z0-9]{32}/ ] => \&_get;
@@ -329,12 +343,13 @@ sub _del {
     if ($server eq $OurUrl) {
         DEBUG "This is our file, we will delete it.";
         my $dir  = _dir( $md5 );
-        if (-r "$dir/$filename") {
+        if (-r "$dir/$filename" || ($dir = _local_stashed_dir($c,$md5,$filename))) {
             unlink "$dir/$filename" or return $c->render_exception($!);
-            return $c->render(status => 200, text =>'ok');
-        }
-        if (my $sdir = _local_stashed_dir($c,$md5,$filename)) {
-            unlink "$sdir/$filename" or return $c->render_exception($!);
+            while (_dir_is_empty($dir)) {
+                last if $DiskIsLocal{$dir};
+                rmdir $dir or do { warn "cannot rmdir $dir : $!"; last; };
+                $dir =~ s[/[^/]+$][];
+            }
             return $c->render(status => 200, text =>'ok');
         }
 
