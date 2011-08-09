@@ -13,6 +13,7 @@ BEGIN {
     use File::Temp;
     $ENV{CLUSTERICIOUS_CONF_DIR} = dirname(__FILE__).'/conf4';
     $ENV{YARS_TMP_ROOT} = $root = File::Temp->newdir(CLEANUP => 0);
+    $ENV{LOG_LEVEL} = 'FATAL';
 }
 
 use Test::More;

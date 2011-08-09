@@ -80,8 +80,8 @@ sub _tidy_stashed_files {
         close $fh;
         return;
     };
-    if (my $destination_disk = Yars::Routes::disk_for($md5_being_moved)) {
-        my $destination_dir = Yars::Routes::storage_path($md5_being_moved, $destination_disk);
+    if (my $destination_disk = Yars::Tools->disk_for($md5_being_moved)) {
+        my $destination_dir = Yars::Tools->storage_path($md5_being_moved, $destination_disk);
         LOGDIE "internal error, already on $destination_disk " if $file_being_moved =~ /^$destination_disk/;
         Mojo::IOLoop->timer( 0 => sub {
             TRACE "Moving $file_being_moved to $destination_disk";
@@ -92,7 +92,7 @@ sub _tidy_stashed_files {
             } catch {
                 ERROR "Could not move $file_being_moved to $destination_dir : $_";
                 -f "$destination_dir/$file_being_moved" and unlink "$destination_dir/$file_being_moved";
-                -d $destination_dir and cleanup_tree($destination_dir);
+                -d $destination_dir and Yars::Tools->cleanup_tree($destination_dir);
                 flock $fh, LOCK_UN;
                 $failed = 1;
             };
