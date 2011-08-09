@@ -101,6 +101,14 @@ sub _tidy_stashed_files {
             undef $md5_being_moved;
             return if $failed;
         });
+        return;
+    }
+
+    # Otherwise it's a remote file.
+    if (my $destination_server = Yars::Tools->server_for($md5_being_moved)) {
+        WARN "Not implemented -- balancing stashes to other servers";
+        # TODO
+        return;
     }
 }
 
