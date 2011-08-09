@@ -12,6 +12,8 @@ Yars::Balancer
 Improve the algorithm to handle buckets with more than
 two digits.  Maybe use File::Find or Tree::Trie.
 
+=over
+
 =cut
 
 package Yars::Balancer;
