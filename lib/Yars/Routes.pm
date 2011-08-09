@@ -57,7 +57,8 @@ ladder sub {
  return 1;
 };
 
-sub _disk_for {
+# TODO move this elsewhere
+sub disk_for {
     # Given an md5 digest, calculate the root directory of this file.
     # Undef is returned if this file does not belong on the current host.
     my $digest = shift;
@@ -72,11 +73,11 @@ sub _server_for {
     return $Bucket2Url{$bucket};
 }
 
-sub _dir {
+sub storage_path {
     # Calculate the location of a file on disk.
     # Optionally pass a second parameter to force it onto a particular disk.
     my $digest = shift;
-    my $root = shift || _disk_for($digest) || LOGCONFESS "No local disk for $digest";
+    my $root = shift || disk_for($digest) || LOGCONFESS "No local disk for $digest";
     return join "/", $root, ( grep length, split /(..)/, $digest );
 }
 
@@ -113,7 +114,7 @@ sub _get {
         return $c->redirect_to("$url/file/$md5/$filename");
     }
 
-    my $dir = _dir($md5);
+    my $dir = storage_path($md5);
     -r "$dir/$filename" or do {
         return
              _get_from_local_stash( $c, $filename, $md5 )
@@ -147,7 +148,7 @@ sub _head {
         return $c->redirect_to("$url/file/$md5/$filename");
     }
 
-    my $dir = _dir($md5);
+    my $dir = storage_path($md5);
 
     if ( -r "$dir/$filename"
         or _local_stashed_dir($filename,$md5)
@@ -160,7 +161,7 @@ sub _head {
 sub _local_stashed_dir {
     my ($filename,$md5) = @_;
     for my $root ( shuffle keys %DiskIsLocal ) {
-        my $dir = _dir($md5,$root);
+        my $dir = storage_path($md5,$root);
         TRACE "Checking for $dir/$filename";
         return $dir if -r "$dir/$filename";
     }
@@ -234,7 +235,7 @@ put '/file/(.filename)/:md5' => { md5 => 'calculate' } => sub {
 
     DEBUG "Received $filename on $OurUrl";
 
-    if (_atomic_write( _dir($digest), $filename, $content ) ) {
+    if (_atomic_write( storage_path($digest), $filename, $content ) ) {
         # Normal situation.
         my $location = $c->url_for("file", md5 => $digest, filename => $filename)->to_abs;
         $c->res->headers->location($location);
@@ -280,7 +281,7 @@ sub _atomic_write {
         $tmp->close or LOGDIE "cannot close tempfile";
         rename "$tmp", "$dir/$filename" or LOGDIE "rename failed: $!";
     } catch {
-        ERROR "Could not write $dir/$filename : $_";
+        WARN "Could not write $dir/$filename : $_";
         $failed = 1;
     };
     return 0 if $failed;
@@ -293,11 +294,11 @@ sub _stash_locally {
     # Stash this file on a local disk.
     # Returns false or renders the response.
     DEBUG "Stashing $filename locally";
-    my $assigned_root = _disk_for($digest);
+    my $assigned_root = disk_for($digest);
     my $wrote;
     for my $root ( shuffle keys %DiskIsLocal ) {
         next if $assigned_root && ($root eq $assigned_root);
-        my $dir = _dir( $digest, $root );
+        my $dir = storage_path( $digest, $root );
         _atomic_write( $dir, $filename, $content ) and do {
             $wrote = $root;
             last;
@@ -330,6 +331,15 @@ sub _stash_remotely {
 del '/file/(.filename)/:md5' => [ md5 => qr/[a-z0-9]{32}/ ] => \&_del;
 del '/file/:md5/(.filename)' => [ md5 => qr/[a-z0-9]{32}/ ] => \&_del;
 
+sub cleanup_tree {
+    my ($dir) = @_;
+    while (_dir_is_empty($dir)) {
+        last if $DiskIsLocal{$dir};
+        rmdir $dir or do { warn "cannot rmdir $dir : $!"; last; };
+        $dir =~ s[/[^/]+$][];
+     }
+}
+
 sub _del {
     my $c        = shift;
     my $md5      = $c->stash("md5");
@@ -341,14 +351,10 @@ sub _del {
     my $server = _server_for($md5);
     if ($server eq $OurUrl) {
         DEBUG "This is our file, we will delete it.";
-        my $dir  = _dir( $md5 );
+        my $dir  = storage_path( $md5 );
         if (-r "$dir/$filename" || ($dir = _local_stashed_dir($c,$md5,$filename))) {
             unlink "$dir/$filename" or return $c->render_exception($!);
-            while (_dir_is_empty($dir)) {
-                last if $DiskIsLocal{$dir};
-                rmdir $dir or do { warn "cannot rmdir $dir : $!"; last; };
-                $dir =~ s[/[^/]+$][];
-            }
+            cleanup_tree($dir);
             return $c->render(status => 200, text =>'ok');
         }
 
