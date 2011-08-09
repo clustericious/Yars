@@ -111,6 +111,12 @@ sub _balance {
     _tidy_stashed_files($_) for @disks;
 }
 
+=item init_and_start
+
+Initialize and start the balancer.
+
+=cut
+
 sub init_and_start {
     my $self = shift;
     my $config = $self->app->config;

@@ -6,6 +6,10 @@ Yars::Tools -- various utility functions dealing with servers, hosts, etc
 
 Just some useful functions here.
 
+=head1 FUNCTIONS
+
+=over
+
 =cut
 
 package Yars::Tools;
@@ -21,6 +25,12 @@ our %Bucket2Root; # map buckets to disk roots
 our $OurUrl;      # Our server url
 our %DiskIsLocal; # Our disk roots (values are just 1)
 our %Servers;     # All servers
+
+=item refresh_config
+
+Refresh the configuration data cached in memory.
+
+=cut
 
 sub refresh_config {
  my $class = shift;
@@ -55,38 +65,62 @@ sub _dir_is_empty {
     return 1;
 }
 
+=item disk_for
+
+Given an md5 digest, calculate the root directory of this file.
+Undef is returned if this file does not belong on the current host.
+
+=cut
+
 sub disk_for {
     my $class = shift;
-    # Given an md5 digest, calculate the root directory of this file.
-    # Undef is returned if this file does not belong on the current host.
     my $digest = shift;
     my ($bucket) = grep { $digest =~ /^$_/i } keys %Bucket2Root;
-    WARN "Could not find disk for $digest in ".(keys %Bucket2Root) unless $bucket;
-    return unless $bucket;
+    WARN "Could not find disk for $digest in ".(join ' ', keys %Bucket2Root) unless defined($bucket);
+    return unless defined($bucket);
     return $Bucket2Root{$bucket};
 }
 
+=item server_for
+
+Given an md5, return the url for the server for this file.
+
+=cut
+
 sub server_for {
     my $class = shift;
-    # Given an md5, return the url for the server for this file.
     my $digest = shift;
     my ($bucket) = grep { $digest =~ /^$_/i } keys %Bucket2Url;
     return $Bucket2Url{$bucket};
 }
 
+=item storage_path
+
+Calculate the directory of an md5 on disk.
+Optionally pass a second parameter to force it onto a particular disk.
+
+=cut
+
 sub storage_path {
     my $class = shift;
-    # Calculate the location of a file on disk.
-    # Optionally pass a second parameter to force it onto a particular disk.
     my $digest = shift;
     my $root = shift || $class->disk_for($digest) || LOGCONFESS "No local disk for $digest";
     return join "/", $root, ( grep length, split /(..)/, $digest );
 }
 
+=item remote_stashed_server
+
+Find a server which is stashing this file, if one exists.
+Parameters :
+    $c - controller
+    $filename - filename
+    $digest - digest
+
+=cut
+
 sub remote_stashed_server {
     my $class = shift;
     my ($c,$filename,$digest) = @_;
-    # Find a server which is stashing this file, if one exists.
 
     my $assigned_server = Yars::Tools->server_for($digest);
     # TODO broadcast these requests all at once
@@ -103,6 +137,16 @@ sub remote_stashed_server {
     return '';
 }
 
+=item local_stashed_dir
+
+Find a local directory stashing this file, if one exists.
+Parameters :
+    $filename - filename
+    $digest - digest
+
+
+=cut
+
 sub local_stashed_dir {
     my $class = shift;
     my ($filename,$md5) = @_;
@@ -114,17 +158,43 @@ sub local_stashed_dir {
     return '';
 }
 
+=item server_url
+
+Returns the url of the current server.
+
+=cut
+
 sub server_url {
     return $OurUrl;
 }
+
+=item shuffled_disk_roots
+
+Return all the local directory roots, in a random order.
+
+=cut
 
 sub shuffled_disk_roots {
     return shuffle keys %DiskIsLocal;
 }
 
+=item shuffled_server_urls
+
+Return all the other urls, in a random order.
+
+=cut
+
 sub shuffled_server_urls {
     return shuffle keys %Servers;
 }
+
+=item cleanup_tree
+
+Given a direcory, traverse upwards until encountering
+a local disk root or a non-empty directory, and remove
+all empty dirs.
+
+=cut
 
 sub cleanup_tree {
     my $class = shift;

@@ -146,7 +146,7 @@ put '/file/(.filename)/:md5' => { md5 => 'calculate' } => sub {
               || $c->render_exception("could not proxy or stash");
     }
 
-    DEBUG "Received $filename";
+    DEBUG "Received $filename assigned to $assigned_server, and we are ".Yars::Tools->server_url;
 
     if (_atomic_write( Yars::Tools->storage_path($digest), $filename, $content ) ) {
         # Normal situation.

@@ -15,6 +15,14 @@ our $VERSION = '0.21';
 
 __PACKAGE__->attr( secret => q[rQJzFpwh,ZY;+9dq293.xj6tc?1.oa+a4r/90tCAV] );
 
+=over
+
+=item startup
+
+Start up the balancer, too
+
+=cut
+
 sub startup {
     my $self = shift;
     $self->SUPER::startup(@_);
