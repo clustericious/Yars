@@ -28,13 +28,16 @@ use Try::Tiny;
 use Data::Dumper;
 use Yars::Tools;
 use Filesys::Df qw/df/;
+use List::Util qw/shuffle/;
 
 # max downloads of 1 GB
 $ENV{MOJO_MAX_MESSAGE_SIZE} = 1073741824;
 
+our $balancer;
 ladder sub {
  my $c = shift;
  Yars::Tools->refresh_config($c->config);
+ $balancer ||= Yars::Balancer->new(app => $c->app)->init_and_start;
  return 1;
 };
 
@@ -210,7 +213,7 @@ sub _stash_locally {
     DEBUG "Stashing $filename locally";
     my $assigned_root = Yars::Tools->disk_for($digest);
     my $wrote;
-    for my $root ( Yars::Tools->shuffled_disk_roots ) {
+    for my $root ( shuffle Yars::Tools->disk_roots ) {
         next if $assigned_root && ($root eq $assigned_root);
         my $dir = Yars::Tools->storage_path( $digest, $root );
         _atomic_write( $dir, $filename, $content ) and do {
@@ -234,7 +237,7 @@ sub _stash_remotely {
     # Returns false or renders the response.
     DEBUG "Stashing $filename remotely.";
     my $assigned_server = Yars::Tools->server_for($digest);
-    for my $server (Yars::Tools->shuffled_server_urls) {
+    for my $server (shuffle Yars::Tools->server_urls) {
         next if $server eq Yars::Tools->server_url;
         next if $server eq $assigned_server;
         _proxy_to( $c, $server, $filename, $digest, $content, 1 ) and return 1;
@@ -281,7 +284,7 @@ sub _del {
 get '/stats/files_by_disk' => sub {
     my $c = shift;
     my %r;
-    for my $disk (Yars::Tools->shuffled_disk_roots) {
+    for my $disk (Yars::Tools->disk_roots) {
         $r{$disk} = { df => df($disk) } unless defined($c->param("df")) && $c->param("df") eq '0';
         $r{$disk}{count} = Yars::Tools->count_files($disk) if $c->param("count");
     }

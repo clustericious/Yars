@@ -146,18 +146,20 @@ sub init_and_start {
     my $self = shift;
     my $config = $self->app->config;
     my $max_balancers = $config->max_balancers(default => 1);
-    my $balancer_file = $config->balancer_file(default => "/tmp/yars_balancers");
+    my $test = $ENV{HARNESS_ACTIVE} ? ".test" : "";
+    my $balancer_file = $config->balancer_file(default => "/tmp/yars_balancers$test");
     $self->_add_pid_to_balancers($max_balancers,$balancer_file) or do {
         # TODO add an iowatcher which watches the $balancer_file, and
         # starts a balancer when another pid exits, or just a recurring check
         # every hour or so.
-        return;
+        return $self;
     };
     DEBUG "Starting balancer ($$)";
     $IAmABalancer = $balancer_file;
     my $balance_delay = $config->balance_delay(default => 10);
     my $ioloop = Mojo::IOLoop->singleton;
     $ioloop->recurring($balance_delay => sub {  _balance($config) });
+    return $self;
 }
 
 sub DESTROY {
@@ -185,20 +187,21 @@ sub _add_pid_to_balancers {
     # see perldoc -q lock
     sysopen my $fh, $filename, O_RDWR|O_CREAT or LOGDIE "can't open $filename: $!";
     flock $fh, LOCK_EX                        or LOGDIE "can't flock $filename: $!";
-    my $content = do { local $\; <$fh>; };
+    my $content = join '', <$fh>;
     my $pids = {};
     $pids = $j->decode($content) if $content;
     _sanity_check_balancer_file($pids);
-    if ( (keys %$pids) > $max_balancers) {
-        DEBUG "Balancer count is ".(keys %$pids)." not starting a new one.";
+    if ( (keys %$pids) >= $max_balancers) {
+        TRACE "Balancer count is ".(keys %$pids)." not starting a new one.";
         close $fh or LOGDIE "can't close $filename: $!";
         return 0;
     }
     $pids->{$$} = time;
-    seek $fh, 0, 0                 or LOGDIE "can't rewind $filename: $!";
-    truncate $fh, 0                or LOGDIE "can't truncate $filename: $!";
-    (print $fh $j->encode($pids))  or LOGDIE "can't write $filename: $!";
-    close $fh                      or LOGDIE "can't close $filename: $!";
+    my $out = $j->encode($pids);
+    seek $fh, 0, 0    or LOGDIE "can't rewind $filename: $!";
+    truncate $fh, 0   or LOGDIE "can't truncate $filename: $!";
+    (print $fh $out)  or LOGDIE "can't write $filename: $!";
+    close $fh         or LOGDIE "can't close $filename: $!";
     return 1;
 }
 

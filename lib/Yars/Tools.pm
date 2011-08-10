@@ -170,24 +170,24 @@ sub server_url {
     return $OurUrl;
 }
 
-=item shuffled_disk_roots
+=item disk_roots
 
 Return all the local directory roots, in a random order.
 
 =cut
 
-sub shuffled_disk_roots {
-    return shuffle keys %DiskIsLocal;
+sub disk_roots {
+    return keys %DiskIsLocal;
 }
 
-=item shuffled_server_urls
+=item server_urls
 
 Return all the other urls, in a random order.
 
 =cut
 
-sub shuffled_server_urls {
-    return shuffle keys %Servers;
+sub server_urls {
+    return keys %Servers;
 }
 
 =item cleanup_tree
