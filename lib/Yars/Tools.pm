@@ -16,6 +16,7 @@ package Yars::Tools;
 use List::Util qw/shuffle/;
 use List::MoreUtils qw/uniq/;
 use Log::Log4perl qw/:easy/;
+use File::Find::Rule;
 use Data::Dumper;
 use strict;
 use warnings;
@@ -206,6 +207,20 @@ sub cleanup_tree {
         $dir =~ s[/[^/]+$][];
      }
 }
+
+=item count_files
+
+Count the number of files in a directory tree.
+
+=cut
+
+sub count_files {
+    my $class = shift;
+    my $dir = shift;
+    my @list = File::Find::Rule->file->in($dir);
+    return scalar @list;
+}
+
 
 1;
 

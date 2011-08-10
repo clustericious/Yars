@@ -27,6 +27,7 @@ use Clustericious::RouteBuilder;
 use Try::Tiny;
 use Data::Dumper;
 use Yars::Tools;
+use Filesys::Df qw/df/;
 
 # max downloads of 1 GB
 $ENV{MOJO_MAX_MESSAGE_SIZE} = 1073741824;
@@ -119,7 +120,6 @@ sub _redirect_to_remote_stash {
     return 0;
 }
 
-
 put '/file/(.filename)/:md5' => { md5 => 'calculate' } => sub {
     my $c        = shift;
     my $filename = $c->stash('filename');
@@ -202,6 +202,7 @@ sub _atomic_write {
     return 1;
 }
 
+
 sub _stash_locally {
     my ($c, $filename,$digest, $content) = @_;
     # Stash this file on a local disk.
@@ -276,5 +277,16 @@ sub _del {
         return $c->render_exception("Error deleting from $server ".$tx->error);
     }
 };
+
+get '/stats/files_by_disk' => sub {
+    my $c = shift;
+    my %r;
+    for my $disk (Yars::Tools->shuffled_disk_roots) {
+        $r{$disk} = { df => df($disk) } unless defined($c->param("df")) && $c->param("df") eq '0';
+        $r{$disk}{count} = Yars::Tools->count_files($disk) if $c->param("count");
+    }
+    $c->render_json(\%r);
+};
+
 
 1;

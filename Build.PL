@@ -18,6 +18,7 @@ my $builder = Module::Build->new(
         'List::MoreUtils'             => 0,
         'List::Util'                  => 0,
         'File::Find'                  => 0,
+        'File::Find::Rule'            => 0,
         'File::Copy'                  => 0,
         'Filesys::Df'                 => 0,
     },

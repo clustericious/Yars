@@ -30,7 +30,7 @@ my $location = $t->tx->res->headers->location;
 $t->get_ok("/file/$file/$digest")->status_is(200)->content_is($content);
 $t->get_ok("/file/$digest/$file")->status_is(200)->content_is($content);
 $t->get_ok($location)->status_is(200)->content_is($content);
-#$t->get_ok("/stats/files_by_disk?count=1&df=0")->status_is(200)->json_content_is({$root => 1});
+$t->get_ok("/stats/files_by_disk?count=1&df=0")->status_is(200)->json_content_is({$root => {count => 1}});
 
 $t->head_ok($location)->status_is(200);
 
