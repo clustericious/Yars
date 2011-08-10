@@ -19,6 +19,7 @@ my $builder = Module::Build->new(
         'List::Util'                  => 0,
         'File::Find'                  => 0,
         'File::Copy'                  => 0,
+        'Filesys::Df'                 => 0,
     },
     add_to_cleanup      => [ 'Yars-*' ],
     create_makefile_pl => 'traditional',

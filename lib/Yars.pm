@@ -23,10 +23,13 @@ Start up the balancer, too
 
 =cut
 
+our $balancer;
+
 sub startup {
     my $self = shift;
     $self->SUPER::startup(@_);
-    Yars::Balancer->new(app => $self)->init_and_start;
+    $balancer = Yars::Balancer->new(app => $self);
+    $balancer->init_and_start;
 }
 
 1;

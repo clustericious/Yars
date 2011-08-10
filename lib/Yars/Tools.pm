@@ -44,6 +44,7 @@ sub refresh_config {
             $Bucket2Url{$bucket} = $server->{url};
             next unless $server->{url} eq $OurUrl;
             $Bucket2Root{$bucket} = $disk->{root};
+            LOGDIE "Disk root not given" unless defined($disk->{root});
             $DiskIsLocal{$disk->{root}} = 1;
         }
     }

@@ -4,8 +4,26 @@ Yars::Balancer
 
 =head1 DESCRIPTION
 
-1. Locally move any files that are on the wrong disk.
-2. Send away any files that should not be on this host.
+This starts an asynchronous balancer that is responsible for
+sending any stashed files onto their correct host/disk.
+The two jobs are :
+    1. Locally move any files that are on the wrong disk.
+    2. Send away any files that should not be on this host.
+
+The following configuration parameters affect balancers :
+
+balance_delay (10) : the interval (in seconds) between which
+a balancer will check for stashed files.  Files will not
+be transferred more frequently than this interval.
+
+max_balancers (1): The maximum number of daemons to run as
+balancers.  e.g. under hypnotoad + nginx there may be
+multiple daemons handling requests.  This parameter
+restricts the number that will also balance stashed files.
+
+balancer_file (/tmp/yars_balancers) : A file used by the
+balancers when starting/exiting in order to keep the maximum
+number <= max_balancers.
 
 =head1 TODO
 
@@ -24,7 +42,7 @@ use Mojo::IOLoop;
 use File::Find qw/find/;
 use Try::Tiny;
 use File::Path qw/mkpath/;
-use Fcntl qw(:flock);
+use Fcntl qw(:DEFAULT :flock);
 use File::Copy qw/move/;
 
 has 'app';
@@ -123,12 +141,84 @@ Initialize and start the balancer.
 
 =cut
 
+our $IAmABalancer = 0;
 sub init_and_start {
     my $self = shift;
     my $config = $self->app->config;
-    my $balance_delay = $config->balance_delay(default => 60*10);
+    my $max_balancers = $config->max_balancers(default => 1);
+    my $balancer_file = $config->balancer_file(default => "/tmp/yars_balancers");
+    $self->_add_pid_to_balancers($max_balancers,$balancer_file) or do {
+        # TODO add an iowatcher which watches the $balancer_file, and
+        # starts a balancer when another pid exits, or just a recurring check
+        # every hour or so.
+        return;
+    };
+    DEBUG "Starting balancer ($$)";
+    $IAmABalancer = $balancer_file;
+    my $balance_delay = $config->balance_delay(default => 10);
     my $ioloop = Mojo::IOLoop->singleton;
     $ioloop->recurring($balance_delay => sub {  _balance($config) });
+}
+
+sub DESTROY {
+    my $self = shift;
+    # remove self from balancer file
+    $self->_remove_pid_from_balancers($IAmABalancer) if $IAmABalancer;
+    undef $IAmABalancer;
+    $self->SUPER::DESTROY if $self->can("SUPER::DESTROY");
+}
+
+sub _sanity_check_balancer_file {
+    my $pids = shift;
+    for ( keys %$pids ) {
+        kill 0, $_ or do {
+            WARN "balancer $_ is not running, removing from list.";
+            delete $pids->{$_};
+          }
+    }
+}
+
+sub _add_pid_to_balancers {
+    my $self = shift;
+    my ($max_balancers,$filename) = @_;
+    my $j = Mojo::JSON->new();
+    # see perldoc -q lock
+    sysopen my $fh, $filename, O_RDWR|O_CREAT or LOGDIE "can't open $filename: $!";
+    flock $fh, LOCK_EX                        or LOGDIE "can't flock $filename: $!";
+    my $content = do { local $\; <$fh>; };
+    my $pids = {};
+    $pids = $j->decode($content) if $content;
+    _sanity_check_balancer_file($pids);
+    if ( (keys %$pids) > $max_balancers) {
+        DEBUG "Balancer count is ".(keys %$pids)." not starting a new one.";
+        close $fh or LOGDIE "can't close $filename: $!";
+        return 0;
+    }
+    $pids->{$$} = time;
+    seek $fh, 0, 0                 or LOGDIE "can't rewind $filename: $!";
+    truncate $fh, 0                or LOGDIE "can't truncate $filename: $!";
+    (print $fh $j->encode($pids))  or LOGDIE "can't write $filename: $!";
+    close $fh                      or LOGDIE "can't close $filename: $!";
+    return 1;
+}
+
+sub _remove_pid_from_balancers {
+    my $self = shift;
+    my ($filename) = @_;
+    my $j = Mojo::JSON->new();
+    # see perldoc -q lock
+    sysopen my $fh, $filename, O_RDWR or do { WARN "can't open $filename: $!"; return 0; };
+    flock $fh, LOCK_EX                or do { WARN "can't flock $filename: $!"; return 0; };
+    my $content = do { local $\; <$fh>; };
+    my $pids = {};
+    $pids = $j->decode($content) if $content;
+    _sanity_check_balancer_file($pids);
+    delete $pids->{$$}             or WARN "PID $$ was not in balancer file";
+    seek $fh, 0, 0                 or do { WARN "can't rewind $filename: $!";   return 0; };
+    truncate $fh, 0                or do { WARN "can't truncate $filename: $!"; return 0; };
+    (print $fh $j->encode($pids))  or do { WARN "can't write $filename: $!";    return 0; };
+    close $fh                      or do { WARN "can't close $filename: $!";    return 0; };
+    return 1;
 }
 
 1;
