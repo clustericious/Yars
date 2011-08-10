@@ -46,6 +46,7 @@ use Fcntl qw(:DEFAULT :flock);
 use File::Copy qw/move/;
 
 has 'app';
+has 'balancer_file'; # stores the list of balancers
 
 # Move a maximum of one file at time per unix process.
 my $file_being_moved;
@@ -147,15 +148,24 @@ sub init_and_start {
     my $config = $self->app->config;
     my $max_balancers = $config->max_balancers(default => 1);
     my $test = $ENV{HARNESS_ACTIVE} ? ".test" : "";
-    my $balancer_file = $config->balancer_file(default => "/tmp/yars_balancers$test");
-    $self->_add_pid_to_balancers($max_balancers,$balancer_file) or do {
-        # TODO add an iowatcher which watches the $balancer_file, and
-        # starts a balancer when another pid exits, or just a recurring check
-        # every hour or so.
+    $self->balancer_file($config->balancer_file(default => "/tmp/yars_balancers$test"));
+    $self->_add_pid_to_balancers($max_balancers) or do {
+        Mojo::IOLoop->recurring(60*60*24 => sub {
+            $self->_add_pid_to_balancers or return;
+            $self->_start;
+        });
+
         return $self;
     };
+    return $self;
+}
+
+sub _start {
+    my $self = shift;
+    return $self if $IAmABalancer;
     DEBUG "Starting balancer ($$)";
-    $IAmABalancer = $balancer_file;
+    $IAmABalancer = 1;
+    my $config = $self->app->config;
     my $balance_delay = $config->balance_delay(default => 10);
     my $ioloop = Mojo::IOLoop->singleton;
     $ioloop->recurring($balance_delay => sub {  _balance($config) });
@@ -165,8 +175,8 @@ sub init_and_start {
 sub DESTROY {
     my $self = shift;
     # remove self from balancer file
-    $self->_remove_pid_from_balancers($IAmABalancer) if $IAmABalancer;
-    undef $IAmABalancer;
+    $self->_remove_pid_from_balancers if $IAmABalancer;
+    $IAmABalancer = 0;
     $self->SUPER::DESTROY if $self->can("SUPER::DESTROY");
 }
 
@@ -182,7 +192,8 @@ sub _sanity_check_balancer_file {
 
 sub _add_pid_to_balancers {
     my $self = shift;
-    my ($max_balancers,$filename) = @_;
+    my ($max_balancers) = @_;
+    my $filename = $self->balancer_file;
     my $j = Mojo::JSON->new();
     # see perldoc -q lock
     sysopen my $fh, $filename, O_RDWR|O_CREAT or LOGDIE "can't open $filename: $!";
@@ -207,7 +218,7 @@ sub _add_pid_to_balancers {
 
 sub _remove_pid_from_balancers {
     my $self = shift;
-    my ($filename) = @_;
+    my $filename = $self->balancer_file;
     my $j = Mojo::JSON->new();
     # see perldoc -q lock
     sysopen my $fh, $filename, O_RDWR or do { WARN "can't open $filename: $!"; return 0; };
