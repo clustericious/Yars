@@ -29,13 +29,9 @@ use File::Copy qw/move/;
 
 has 'app';
 
+# Move a maximum of one file at time per unix process.
 my $file_being_moved;
 my $md5_being_moved;
-# Move one file at time.
-# This could be per (worker) process if
-# we add a check for flock in wanted().
-# But would the balancer then affect
-# peformance of the web server?
 
 sub _tidy_stashed_files {
     my $disk = shift;
