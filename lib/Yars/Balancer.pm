@@ -9,8 +9,8 @@ Yars::Balancer
 
 =head1 TODO
 
-Improve the algorithm to handle buckets with more than
-two digits.  Maybe use File::Find or Tree::Trie.
+Maybe use inotify instead of periodically checking
+with File::Find.
 
 =over
 
