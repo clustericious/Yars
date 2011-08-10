@@ -127,6 +127,8 @@ sub _tidy_stashed_files {
         # TODO
         return;
     }
+
+    WARN "I don't know where $md5_being_moved belongs, neither local nor remote";
 }
 
 sub _balance {
@@ -149,10 +151,10 @@ sub init_and_start {
     my $max_balancers = $config->max_balancers(default => 1);
     my $test = $ENV{HARNESS_ACTIVE} ? ".test" : "";
     $self->balancer_file($config->balancer_file(default => "/tmp/yars_balancers$test"));
-    $self->_add_pid_to_balancers($max_balancers) or do {
-        Mojo::IOLoop->recurring(60*60*24 => sub {
-            $self->_add_pid_to_balancers or return;
-            $self->_start;
+    $self->maybe_start or do {
+        Mojo::IOLoop->recurring((60*60*24 + int rand 6000) => sub {
+            # Stagger delay to avoid race conditions
+            $self->maybe_start;
         });
 
         return $self;
@@ -160,16 +162,25 @@ sub init_and_start {
     return $self;
 }
 
-sub _start {
+=item maybe_start
+
+Start this balancer only if it is not running and the
+number of running balancers is <= the max balancer setting.
+
+=cut
+
+sub maybe_start {
     my $self = shift;
-    return $self if $IAmABalancer;
+    my $config = $self->app->config;
+    my $max_balancers = $config->max_balancers(default => 1);
+    $self->_add_pid_to_balancers($max_balancers) or return 0;
+    return 0 if $IAmABalancer;
     DEBUG "Starting balancer ($$)";
     $IAmABalancer = 1;
-    my $config = $self->app->config;
     my $balance_delay = $config->balance_delay(default => 10);
     my $ioloop = Mojo::IOLoop->singleton;
     $ioloop->recurring($balance_delay => sub {  _balance($config) });
-    return $self;
+    return 1;
 }
 
 sub DESTROY {
