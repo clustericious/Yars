@@ -78,7 +78,7 @@ sub disk_for {
     my $class = shift;
     my $digest = shift;
     my ($bucket) = grep { $digest =~ /^$_/i } keys %Bucket2Root;
-    WARN "Could not find disk for $digest in ".(join ' ', keys %Bucket2Root) unless defined($bucket);
+    TRACE "no local disk for $digest in ".(join ' ', keys %Bucket2Root) unless defined($bucket);
     return unless defined($bucket);
     return $Bucket2Root{$bucket};
 }
