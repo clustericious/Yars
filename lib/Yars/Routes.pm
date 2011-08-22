@@ -118,7 +118,10 @@ sub _redirect_to_remote_stash {
     my ($c,$filename,$digest) = @_;
     DEBUG "Checking remote stashes";
     if (my $server = Yars::Tools->remote_stashed_server($c,$filename,$digest)) {
-        return $c->redirect_to("$server/file/$digest/$filename");
+        $c->res->headers->location("$server/file/$digest/$filename");
+        $c->res->headers->content_length(0);
+        $c->rendered(307);
+        return 1;
     };
     return 0;
 }
