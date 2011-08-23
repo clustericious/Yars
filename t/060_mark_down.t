@@ -27,7 +27,6 @@ $conf->servers( default => [{
         }
     ]);
 $conf->{url} = "http://localhost:9050"; # TODO provide a better config api
-diag "url set to ".$conf->url;
 
 $t->get_ok('/'."got /");
 
