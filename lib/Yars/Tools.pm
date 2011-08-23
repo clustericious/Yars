@@ -37,7 +37,8 @@ sub refresh_config {
  my $class = shift;
  my $config = shift;
  return 1 if defined($OurUrl);
- $OurUrl = $config->url;
+ $OurUrl = $config->url or WARN "No url found in config file";
+ TRACE "Our url is $OurUrl";
  for my $server ($config->servers) {
     $Servers{$server->{url}} = 1;
     for my $disk (@{ $server->{disks} }) {
@@ -50,7 +51,7 @@ sub refresh_config {
         }
     }
  }
- TRACE "bucket map : ".Dumper(\%Bucket2Url);
+ TRACE "bucket2url : ".Dumper(\%Bucket2Url);
 }
 
 sub _dir_is_empty {
@@ -81,6 +82,33 @@ sub disk_for {
     TRACE "no local disk for $digest in ".(join ' ', keys %Bucket2Root) unless defined($bucket);
     return unless defined($bucket);
     return $Bucket2Root{$bucket};
+}
+
+=item disk_is_up
+
+Given a disk root, return true unless the disk is marked down.
+A disk may be marked down in several ways.  If the root is
+/mnt/archive/f0002 then any of the following will indicate
+that the disk is down and should not be written to :
+
+    1. /mnt/archive/f0002 is not writeable.
+    2. The file /mnt/archive/f0002.is_down exists.
+    3. The file /mnt/archive/f0002/is_down exists.
+
+The ability to mark it down in several ways is designed
+to allow one to mark it as down without using a central
+mechanism, and without relying on being able to write
+to the disk.
+
+=cut
+
+sub disk_is_up {
+    my $class = shift;
+    my $root = shift;
+    return 0 if (-d $root && ! -w $root);
+    return 0 if -e "$root.is_down";
+    return 0 if -e "$root/is_down";
+    return 1;
 }
 
 =item server_for
@@ -217,7 +245,8 @@ Count the number of files in a directory tree.
 sub count_files {
     my $class = shift;
     my $dir = shift;
-    my @list = File::Find::Rule->file->in($dir);
+    -d $dir or return 0;
+    my @list = File::Find::Rule->file->not_name("is_down")->in($dir);
     return scalar @list;
 }
 

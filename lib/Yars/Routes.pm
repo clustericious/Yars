@@ -152,9 +152,12 @@ put '/file/(.filename)/:md5' => { md5 => 'calculate' } => sub {
               || $c->render_exception("could not proxy or stash");
     }
 
-    DEBUG "Received $filename assigned to $assigned_server, and we are ".Yars::Tools->server_url;
+    my $assigned_disk = Yars::Tools->disk_for($digest);
 
-    if (_atomic_write( Yars::Tools->storage_path($digest), $filename, $content ) ) {
+    DEBUG "Received $filename assigned to $assigned_server ($assigned_disk)";
+
+    if ( Yars::Tools->disk_is_up($assigned_disk) &&
+         _atomic_write( Yars::Tools->storage_path($digest, $assigned_disk), $filename, $content ) ) {
         # Normal situation.
         my $location = $c->url_for("file", md5 => $digest, filename => $filename)->to_abs;
         $c->res->headers->location($location);
@@ -190,6 +193,7 @@ sub _proxy_to {
 
 sub _atomic_write {
     my ($dir, $filename, $content) = @_;
+    TRACE "Writing $dir/$filename";
     # Write a file atomically.  Return 1 on success, 0 on failure.
     my $failed;
     try {
@@ -217,6 +221,7 @@ sub _stash_locally {
     my $wrote;
     for my $root ( shuffle Yars::Tools->disk_roots ) {
         next if $assigned_root && ($root eq $assigned_root);
+        next unless Yars::Tools->disk_is_up($root);
         my $dir = Yars::Tools->storage_path( $digest, $root );
         _atomic_write( $dir, $filename, $content ) and do {
             $wrote = $root;
