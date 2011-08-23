@@ -208,7 +208,6 @@ sub _atomic_write {
     return 1;
 }
 
-
 sub _stash_locally {
     my ($c, $filename,$digest, $content) = @_;
     # Stash this file on a local disk.
