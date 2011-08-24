@@ -37,6 +37,7 @@ $conf->servers( default => [{
         }
     ]);
 $conf->{url} = "http://localhost:9050"; # TODO provide a better config api
+$conf->{balance_delay} = 1;
 
 $t->get_ok('/'."got /");
 
@@ -51,14 +52,39 @@ $t->post_ok("/disk/status$root/five",
            ->status_is(200)
            ->content_like(qr/ok/);
 
+
+my ($one,$two) = (0,0);
 for my $i (1..$test_files) {
     my $content = "content $i";
     $t->put_ok("/file/filename_$i", {}, $content)->status_is(201);
+    for (b($content)->md5_sum) {
+         /^[0-3]/i and $one++;
+         /^[4-7]/i and $two++;
+     }
 }
 
 $t->get_ok("/stats/files_by_disk?count=1&df=0")->status_is(200)
   ->json_content_is( { "$root/one"   => { count => $test_files },
                        "$root/two"   => { count => 0 },
+                       "$root/three" => { count => 0 },
+                       "$root/four"  => { count => 0 },
+                       "$root/five"  => { count => 0 },
+                       });
+
+# Now mark two up and let things balance
+$t->post_ok("/disk/status$root/two",
+    { "Content-Type" => "application/json" },
+    Mojo::JSON->new->encode( { "state" => "up" }))
+           ->status_is(200)
+           ->content_like(qr/ok/);
+
+Mojo::IOLoop->timer(5 => sub { Mojo::IOLoop->stop; });
+Mojo::IOLoop->singleton->start;
+
+my $remaining = int($test_files - $two);
+$t->get_ok("/stats/files_by_disk?count=1&df=0")->status_is(200)
+  ->json_content_is( { "$root/one"   => { count => $remaining },
+                       "$root/two"   => { count => $two },
                        "$root/three" => { count => 0 },
                        "$root/four"  => { count => 0 },
                        "$root/five"  => { count => 0 },

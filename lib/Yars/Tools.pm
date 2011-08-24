@@ -108,7 +108,7 @@ to the disk.
 sub disk_is_up {
     my $class = shift;
     my $root = shift;
-    return 0 if (-d $root && ! -w $root);
+    return 0 if ( -d $root && ! -w $root);
     return 0 if -e "$root.is_down";
     return 0 if -e "$root/is_down";
     return 1;
@@ -162,7 +162,7 @@ sub mark_disk_down {
     return 1 if $class->disk_is_down($root);
     _touch("$root.is_down") and return 1;
     _touch("$root/is_down") and return 1;
-    chmod 0555, $root and return 1;
+    -d $root and do { chmod 0555, $root and return 1; };
     ERROR "Could not mark disk $root down";
     return 0;
 }
@@ -171,7 +171,7 @@ sub mark_disk_up {
     my $class = shift;
     my $root = shift;
     return 1 if $class->disk_is_up($root);
-    not -w "$root" and do {
+    -d $root and ! -w $root and do {
         chmod 0775, $root or WARN "chmod $root failed : $!";
     };
     -e "$root.is_down" and do { unlink "$root.is_down" or WARN "unlink $root.is_down failed : $!"; };

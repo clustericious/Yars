@@ -11,6 +11,7 @@ my $builder = Module::Build->new(
     dist_version_from   => 'lib/Yars.pm',
     build_requires => {
         'Test::More'                  => 0,
+        'Mojolicious'                 => '1.89',
         'Clustericious'               => '0.62',
         'Clustericious::Config'       => 0,
         'Try::Tiny'                   => 0,

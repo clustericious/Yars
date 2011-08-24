@@ -55,6 +55,7 @@ my $md5_being_moved;
 sub _tidy_stashed_files {
     my $disk = shift;
     return if $file_being_moved;
+    -d $disk->{root} or return;
     my @belong = @{ $disk->{buckets} };
     DEBUG "Checking disk ".$disk->{root};
     DEBUG "belong : @belong";
@@ -66,17 +67,24 @@ sub _tidy_stashed_files {
             {
                 no_chdir => 1,
                 wanted   => sub {
+                    return if /\/is_down$/;
                     my $dir = $File::Find::dir;
                     $dir =~ s/$disk->{root}//;
                     $dir =~ s[/][]g;
+                    my $md5 = $dir;
                     if (grep { $dir =~ /^$_/i } @belong) {
                         $File::Find::prune = 1;
                         return;
                     }
                     return unless -f;
+                    if (Yars::Tools->server_for($md5) eq Yars::Tools->server_url and
+                        Yars::Tools->disk_is_down(Yars::Tools->disk_for($md5))) {
+                            # Skip local down disk
+                            return;
+                    }
                     TRACE "Found first hit $_";
                     $file_being_moved = $_;
-                    $md5_being_moved = $dir;
+                    $md5_being_moved = $md5;
                     die "found\n";
                   }
             },
@@ -84,6 +92,7 @@ sub _tidy_stashed_files {
         );
     } catch {
         $file_being_moved = '' unless $_ eq "found\n";
+        WARN $_ unless $_ eq "found\n";
     };
     return unless $file_being_moved;
     DEBUG "Ready to move $file_being_moved ($md5_being_moved)";
