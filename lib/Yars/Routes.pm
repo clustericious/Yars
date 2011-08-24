@@ -298,5 +298,19 @@ get '/stats/files_by_disk' => sub {
     $c->render_json(\%r);
 };
 
+post '/disk/status/*root' => sub {
+    my $c = shift;
+    my $root = '/' . $c->stash("root");
+    $c->app->plugins->run_hook('parse_autodata',$c);
+    my $got = $c->stash('autodata');
+    my $state = $got->{state} or return $c->render_exception("no state found in request");
+    Yars::Tools->disk_is_local($root) or return $c->render_exception("Disk $root is not on this server.");
+    my $success;
+    for ($state) {
+        /down/ and $success = Yars::Tools->mark_disk_down($root);
+        /up/   and $success = Yars::Tools->mark_disk_up($root);
+    }
+    $c->render_text($success ? "ok" : "failed" );
+};
 
 1;

@@ -17,7 +17,10 @@ use List::Util qw/shuffle/;
 use List::MoreUtils qw/uniq/;
 use Log::Log4perl qw/:easy/;
 use File::Find::Rule;
+use File::Basename qw/dirname/;
 use Data::Dumper;
+use Try::Tiny;
+use File::Path qw/mkpath/;
 use strict;
 use warnings;
 
@@ -109,6 +112,71 @@ sub disk_is_up {
     return 0 if -e "$root.is_down";
     return 0 if -e "$root/is_down";
     return 1;
+}
+
+=item disk_is_down
+
+Disk is not up.
+
+=cut
+
+sub disk_is_down {
+    return not shift->disk_is_up(@_);
+}
+
+=item disk_is_local
+
+Return true iff the disk is on this server.
+
+=cut
+
+sub disk_is_local {
+    my $class = shift;
+    my $root = shift;
+    return $DiskIsLocal{$root};
+}
+
+sub _touch {
+    my $path = shift;
+    my $dir = dirname($path);
+    -d $dir or do {
+        my $ok;
+        try { mkpath($dir); $ok = 1; }
+        catch { WARN "mkpath $dir failed : $_;"; $ok = 0; };
+        return 0 unless $ok;
+    };
+    open my $fp, ">>$path" or return 0;
+    close $fp;
+    return 1;
+}
+
+=item mark_disk_down, mark_disk_up
+
+Mark a disk as up or down.
+
+=cut
+
+sub mark_disk_down {
+    my $class = shift;
+    my $root = shift;
+    return 1 if $class->disk_is_down($root);
+    _touch("$root.is_down") and return 1;
+    _touch("$root/is_down") and return 1;
+    chmod 0555, $root and return 1;
+    ERROR "Could not mark disk $root down";
+    return 0;
+}
+
+sub mark_disk_up {
+    my $class = shift;
+    my $root = shift;
+    return 1 if $class->disk_is_up($root);
+    not -w "$root" and do {
+        chmod 0775, $root or WARN "chmod $root failed : $!";
+    };
+    -e "$root.is_down" and do { unlink "$root.is_down" or WARN "unlink $root.is_down failed : $!"; };
+    -e "$root/is_down" and do { unlink "$root/is_down" or WARN "unlink $root/is_down failed : $!"; };
+    return $class->disk_is_up($root);
 }
 
 =item server_for
