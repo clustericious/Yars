@@ -7,7 +7,7 @@ use strict;
 use warnings;
 
 my $test_files = 20;
-my $root = File::Temp->newdir(CLEANUP => 0);
+my $root = File::Temp->newdir(CLEANUP => 1);
 
 use Test::More;
 use Test::Mojo;
