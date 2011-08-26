@@ -150,7 +150,7 @@ sub server_is_up {
     TRACE "Checking $server_url/status";
     my $tx = $UA->get( "$server_url/status" );
     if (my $res = $tx->success) {
-        my $got = $res->body->json;
+        my $got = $res->json;
         return 1 if defined($got->{server_version}) && length($got->{server_version});
     }
     TRACE "No version from $server_url/status";

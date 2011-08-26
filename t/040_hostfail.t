@@ -3,6 +3,7 @@
 use strict;
 use warnings;
 
+use Mojo::ByteStream qw/b/;
 use File::Basename qw/dirname/;
 use Test::More;
 use Yars;
@@ -43,7 +44,14 @@ is $ua->get($urls[1].'/status')->res->json->{server_url}, $urls[1], "started sec
 my $i = 0;
 my @contents = <DATA>;
 my @locations;
+my %assigned; # server => { disk => count }
 for my $content (@contents) {
+    for (b($content)->md5_sum) {
+        /^[0-3]/i  and $assigned{"http://localhost:9051"}{"$root/one"}{count}++;
+        /^[4-7]/i  and $assigned{"http://localhost:9051"}{"$root/two"}{count}++;
+        /^[89AB]/i and $assigned{"http://localhost:9052"}{"$root/three"}{count}++;
+        /^[CDEF]/i and $assigned{"http://localhost:9052"}{"$root/four"}{count}++;
+    }
     $i++;
     my $filename = "file_numero_$i";
     my $tx = $ua->put("$urls[0]/file/$filename", {}, $content);
@@ -67,6 +75,27 @@ for my $url (@locations) {
     ok $res = $tx->success, "got $url";
     my $body = $res ? $res->body : '';
     is $body, $want, "content match for file $i at $url";
+}
+
+# Now start it back up.
+_sys("YARS_WHICH=2 yars start");
+
+# And let the balancer to do its thing.
+Mojo::IOLoop->timer(5 => sub { Mojo::IOLoop->stop; });
+Mojo::IOLoop->start;
+TODO :
+{
+local $TODO = "balance remotely";
+for my $host (keys %assigned) {
+    my $tx = $ua->get("$host/stats/files_by_disk?count=1&df=0");
+    my $res;
+    ok $res = $tx->success, "got stats";
+    unless ($res) {
+        diag "failed to get $host/stats/files_by_disk?count=1&df=0 : ".$tx->error;
+        next;
+    }
+    is_deeply( $res->json, { url => $host, %{ $assigned{$host} } } );
+}
 }
 
 _sys("YARS_WHICH=1 yars stop");
