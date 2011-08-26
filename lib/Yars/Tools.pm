@@ -136,6 +136,30 @@ sub disk_is_local {
     return $DiskIsLocal{$root};
 }
 
+=item server_is_up, server_is_down
+
+Check to see if a remote server is up or down.
+
+=cut
+
+our $UA;
+sub server_is_up {
+    my $class = shift;
+    my $server_url = shift;
+    $UA ||= Mojo::UserAgent->new;
+    TRACE "Checking $server_url/status";
+    my $tx = $UA->get( "$server_url/status" );
+    if (my $res = $tx->success) {
+        my $got = $res->body->json;
+        return 1 if defined($got->{server_version}) && length($got->{server_version});
+    }
+    TRACE "No version from $server_url/status";
+    return 0;
+}
+sub server_is_down {
+    return not shift->server_is_up(@_);
+}
+
 sub _touch {
     my $path = shift;
     my $dir = dirname($path);

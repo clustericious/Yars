@@ -77,10 +77,11 @@ sub _tidy_stashed_files {
                         return;
                     }
                     return unless -f;
-                    if (Yars::Tools->server_for($md5) eq Yars::Tools->server_url and
-                        Yars::Tools->disk_is_down(Yars::Tools->disk_for($md5))) {
-                            # Skip local down disk
-                            return;
+                    my $destination_server = Yars::Tools->server_for($md5);
+                    if ($destination_server eq Yars::Tools->server_url) {
+                        return if Yars::Tools->disk_is_down(Yars::Tools->disk_for($md5));
+                    } else {
+                        return if Yars::Tools->server_is_down($destination_server);
                     }
                     TRACE "Found first hit $_";
                     $file_being_moved = $_;
@@ -134,6 +135,8 @@ sub _tidy_stashed_files {
     if (my $destination_server = Yars::Tools->server_for($md5_being_moved)) {
         WARN "Not implemented -- balancing stashes to other servers";
         # TODO
+        # 1. put the file
+        # 2. on success, remove local file.
         return;
     }
 
