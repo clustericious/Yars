@@ -3,23 +3,22 @@
 use strict;
 use warnings;
 
-my $root;
-
-BEGIN {
-    use File::Basename qw/dirname/;
-    use File::Temp;
-    $ENV{CLUSTERICIOUS_CONF_DIR} = dirname(__FILE__).'/conf';
-    $ENV{YARS_TMP_ROOT} = $root = File::Temp->newdir(CLEANUP => 0);
-}
-
-
 use Test::More;
 use Test::Mojo;
 use Mojo::ByteStream qw/b/;
-use FindBin qw/$Bin/;
+use File::Temp;
 use Yars;
 
 my $t = Test::Mojo->new('Yars');
+my $root = File::Temp->newdir;
+$t->app->config->servers(
+    default => [{
+        url   => 'dummy',
+        disks => [ { root => $root, buckets => [ '0' .. '9', 'A' .. 'F' ] } ]
+    }]
+);
+$t->app->config->{url} = 'dummy';
+
 my $content = 'Yabba Dabba Dooo!';
 my $digest = b($content)->md5_sum->to_string;
 
