@@ -4,24 +4,26 @@
 
 use strict;
 use warnings;
-
-my $test_files = 10;
-my $root;
-
-BEGIN {
-    use File::Basename qw/dirname/;
-    use File::Temp;
-    $ENV{CLUSTERICIOUS_CONF_DIR} = dirname(__FILE__).'/conf4';
-    $ENV{YARS_TMP_ROOT} = $root = File::Temp->newdir(CLEANUP => 1);
-    $ENV{LOG_LEVEL} = 'FATAL';
-}
-
+use File::Basename qw/dirname/;
+use File::Temp;
 use Test::More;
 use Test::Mojo;
 use File::Path qw/mkpath/;
 use Mojo::ByteStream qw/b/;
 
+my $test_files = 10;
+my $root = File::Temp->newdir(CLEANUP => 1);
 my $t = Test::Mojo->new("Yars");
+my $conf = $t->app->config;
+
+$conf->servers( default => [{
+            url   => "http://localhost:9050", # notused
+            disks => [
+                { root => "$root/one",   buckets => [ qw/0 1 2 3 4 5 6 7/ ] },
+                { root => "$root/two",   buckets => [ qw/8 9 A B C D E F/ ] },
+            ]}]);
+$conf->{balance_delay} = 1;
+$conf->{url} = "http://localhost:9050"; # not used
 
 $t->get_ok('/'."got /");
 
@@ -49,7 +51,7 @@ $t->get_ok("/stats/files_by_disk?count=1&df=0")->status_is(200)
 
 # Now balance!
 Mojo::IOLoop->timer(10 => sub { Mojo::IOLoop->stop; });
-$ua->ioloop->start;
+Mojo::IOLoop->singleton->start;
 
 $t->get_ok("/stats/files_by_disk?count=1&df=0")->status_is(200)
   ->json_content_is( { "$root/one" => { count => $one },
