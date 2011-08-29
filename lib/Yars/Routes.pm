@@ -165,6 +165,10 @@ put '/file/(.filename)/:md5' => { md5 => 'calculate' } => sub {
     }
 
     # Local designated disk is down.
+    if ($c->req->headers->header('X-Yars-NoStash')) {
+        return $c->render_exception("Local disk is down and NoStash was sent.");
+    }
+
     _stash_locally( $c, $filename, $digest, $content )
       or _stash_remotely( $c, $filename, $digest, $content )
       or $c->render_exception("could not store or stash remotely");
@@ -221,7 +225,10 @@ sub _stash_locally {
     my $wrote;
     for my $root ( shuffle Yars::Tools->disk_roots ) {
         next if $assigned_root && ($root eq $assigned_root);
-        next unless Yars::Tools->disk_is_up($root);
+        unless (Yars::Tools->disk_is_up($root)) {
+            DEBUG "local disk $root is down, cannot stash $filename there.";
+            next;
+        }
         my $dir = Yars::Tools->storage_path( $digest, $root );
         _atomic_write( $dir, $filename, $content ) and do {
             $wrote = $root;

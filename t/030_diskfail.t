@@ -63,7 +63,7 @@ for my $content (@contents) {
     }
     if ($i==60) {
         # Make both disks on one host unwriteable.
-        ok ( (chmod 0555, "$root/four"), "chmod 0555, $root/three");
+        ok ( (chmod 0555, "$root/four"), "chmod 0555, $root/four");
     }
 }
 

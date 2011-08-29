@@ -78,7 +78,7 @@ $t->post_ok("/disk/status$root/two",
            ->status_is(200)
            ->content_like(qr/ok/);
 
-Mojo::IOLoop->timer(5 => sub { Mojo::IOLoop->stop; });
+Mojo::IOLoop->timer(9 => sub { Mojo::IOLoop->stop; });
 Mojo::IOLoop->singleton->start;
 
 my $remaining = int($test_files - $two);

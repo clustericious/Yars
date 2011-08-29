@@ -87,6 +87,9 @@ sub disk_for {
     return $Bucket2Root{$bucket};
 }
 
+our %diskStatusCache;
+our $diskStatusCacheLifetime = 3;
+
 =item disk_is_up
 
 Given a disk root, return true unless the disk is marked down.
@@ -108,10 +111,15 @@ to the disk.
 sub disk_is_up {
     my $class = shift;
     my $root = shift;
-    return 0 if ( -d $root && ! -w $root);
-    return 0 if -e "$root.is_down";
-    return 0 if -e "$root/is_down";
-    return 1;
+    # TODO (tests fail)
+    #if (exists($diskStatusCache{$root}) && $diskStatusCache{$root}{checked} > time - $diskStatusCacheLifetime) {
+    #    return $diskStatusCache{$root}{result};
+    #}
+    $diskStatusCache{$root}{checked} = time;
+    return ($diskStatusCache{$root}{result} = 0) if ( -d $root && ! -w $root);
+    return ($diskStatusCache{$root}{result} = 0) if -e "$root.is_down";
+    return ($diskStatusCache{$root}{result} = 0) if -e "$root/is_down";
+    return ($diskStatusCache{$root}{result} = 1);
 }
 
 =item disk_is_down
@@ -143,18 +151,26 @@ Check to see if a remote server is up or down.
 =cut
 
 our $UA;
+our %serverStatusCache;
+our $serverStatusCacheLifetime = 3; # cache results for three seconds
 sub server_is_up {
     my $class = shift;
     my $server_url = shift;
+    if (exists($serverStatusCache{$server_url}) && $serverStatusCache{$server_url}{checked} > time - $serverStatusCacheLifetime) {
+        return $serverStatusCache{$server_url}{result};
+    }
     $UA ||= Mojo::UserAgent->new;
     TRACE "Checking $server_url/status";
     my $tx = $UA->get( "$server_url/status" );
+    $serverStatusCache{$server_url}{checked} = time;
     if (my $res = $tx->success) {
         my $got = $res->json;
-        return 1 if defined($got->{server_version}) && length($got->{server_version});
+        if (defined($got->{server_version}) && length($got->{server_version})) {
+            return ($serverStatusCache{$server_url}{result} = 1);
+        }
     }
     TRACE "No version from $server_url/status";
-    return 0;
+    return ($serverStatusCache{$server_url}{result} = 0);
 }
 sub server_is_down {
     return not shift->server_is_up(@_);

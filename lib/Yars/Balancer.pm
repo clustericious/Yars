@@ -44,6 +44,7 @@ use Try::Tiny;
 use File::Path qw/mkpath/;
 use Fcntl qw(:DEFAULT :flock);
 use File::Copy qw/move/;
+use File::Basename qw/dirname basename/;
 
 has 'app';
 has 'balancer_file'; # stores the list of balancers
@@ -133,21 +134,46 @@ sub _tidy_stashed_files {
 
     # Otherwise it's a remote file.
     if (my $destination_server = Yars::Tools->server_for($md5_being_moved)) {
-        WARN "Not implemented -- balancing stashes to other servers";
-        # TODO
-        # 1. put the file
-        # 2. on success, remove local file.
+        our $UA;
+        $UA ||= Mojo::UserAgent->new();
+        $UA->ioloop(Mojo::IOLoop->singleton);
+        my $name = basename($file_being_moved);
+        TRACE "Putting stashed file $name to $destination_server";
+        my $url = "$destination_server/file/$name/$md5_being_moved";
+        $UA->put( $url =>
+             { 'X-Yars-NoStash' => 1 } =>
+             Mojo::Asset::File->new( path => $file_being_moved )->slurp =>
+              sub {
+                my ( $self, $tx ) = @_;
+                if ( my $res = $tx->success ) {
+                    TRACE "Successfully put $name to $destination_server";
+                    unlink $file_being_moved or
+                        WARN "Failed to remove local file $file_being_moved : $!";
+                    Yars::Tools->cleanup_tree(dirname($file_being_moved));
+                    undef $file_being_moved;
+                    undef $md5_being_moved;
+                }
+                else {
+                    my ( $message, $code ) = $tx->error;
+                    ERROR "Could not put to $url : $message"
+                      . ( $code ? " (code $code)" : "" );
+                    if ( $tx->res && ( my $body = $tx->res->body ) ) {
+                        ERROR "Error body: $body";
+                    }
+                }
+            }
+        );
         return;
     }
 
-    WARN "I don't know where $md5_being_moved belongs, neither local nor remote";
+    WARN "I don't know where file with md5 [$md5_being_moved] belongs, neither local nor remote";
 }
 
 sub _balance {
     my $config = shift;
     DEBUG "Checking for stashed files (".time.")\n";
     my @disks = map @{ $_->{disks} }, $config->servers;
-    _tidy_stashed_files($_) for @disks;
+    _tidy_stashed_files($_) for grep { Yars::Tools->disk_is_local($_->{root}) } @disks;
 }
 
 =item init_and_start

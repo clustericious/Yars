@@ -14,7 +14,7 @@ $ENV{CLUSTERICIOUS_CONF_DIR} = dirname(__FILE__).'/conf3';
 $ENV{CLUSTERICIOUS_TEST_CONF_DIR} = $ENV{CLUSTERICIOUS_CONF_DIR};
 $ENV{PERL5LIB} = join ':', @INC;
 $ENV{PATH} = dirname(__FILE__)."/../blib/script:$ENV{PATH}";
-#$ENV{LOG_LEVEL} = "TRACE";
+$ENV{LOG_LEVEL} = "FATAL";
 my $root = $ENV{YARS_TMP_ROOT} = File::Temp->newdir(CLEANUP => 1);
 
 sub _sys {
@@ -81,11 +81,10 @@ for my $url (@locations) {
 _sys("YARS_WHICH=2 yars start");
 
 # And let the balancer to do its thing.
-Mojo::IOLoop->timer(5 => sub { Mojo::IOLoop->stop; });
+Mojo::IOLoop->timer(20 => sub { Mojo::IOLoop->stop; });
 Mojo::IOLoop->start;
-TODO :
-{
-local $TODO = "balance remotely";
+# Note -- the time above is a guess, may vary depending on the environment.
+
 for my $host (keys %assigned) {
     my $tx = $ua->get("$host/stats/files_by_disk?count=1&df=0");
     my $res;
@@ -94,8 +93,7 @@ for my $host (keys %assigned) {
         diag "failed to get $host/stats/files_by_disk?count=1&df=0 : ".$tx->error;
         next;
     }
-    is_deeply( $res->json, { url => $host, %{ $assigned{$host} } } );
-}
+    is_deeply( $res->json, $assigned{$host}, "$host has the right count" );
 }
 
 _sys("YARS_WHICH=1 yars stop");
