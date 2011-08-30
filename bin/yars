@@ -6,6 +6,7 @@ use Log::Log4perl qw/:easy/;
 
 use lib join '/', File::Spec->splitdir(dirname(__FILE__)), 'lib';
 use lib join '/', File::Spec->splitdir(dirname(__FILE__)), '..', 'lib';
+use lib join '/', File::Spec->splitdir(dirname(__FILE__)), '..', 'lib', 'perl';
 
 use Yars;
 use Clustericious::Commands;
