@@ -13,11 +13,11 @@ my $root = File::Temp->newdir(CLEANUP => 1);
 my $t = Test::Mojo->new('Yars');
 $t->app->config->servers(
     default => [{
-        url   => 'dummy',
         disks => [ { root => $root, buckets => [ '0' .. '9', 'A' .. 'F' ] } ]
     }]
 );
-$t->app->config->{url} = 'dummy';
+$t->app->config->{url} = $t->ua->test_server;
+$t->app->config->servers->[0]{url} = $t->app->config->{url};
 
 $t->get_ok('/')->status_is(200)->content_type_like('/text\/html/')
   ->content_like(qr/welcome/i);

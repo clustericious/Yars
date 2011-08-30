@@ -13,7 +13,6 @@ my $t = Test::Mojo->new('Yars');
 my $root = File::Temp->newdir(CLEANUP => 1);
 $t->app->config->servers(
     default => [{
-        url   => 'dummy',
         disks => [ { root => $root, buckets => [ '0' .. '9', 'A' .. 'F' ] } ]
     }]
 );

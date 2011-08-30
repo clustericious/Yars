@@ -12,7 +12,6 @@ use Yars;
 my $t = Test::Mojo->new('Yars');
 $t->app->config->servers(
     default => [ {
-            url   => 'dummy',
             disks => [
                 {
                     root    => File::Temp->newdir,
@@ -22,7 +21,8 @@ $t->app->config->servers(
         }
     ]
 );
-$t->app->config->{url} = 'dummy';
+$t->app->config->{url} = $t->ua->test_server;
+$t->app->config->servers->[0]{url} = $t->app->config->{url};
 
 local $/ = undef;
 my $content =b(<DATA>)->b64_decode;

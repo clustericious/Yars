@@ -11,11 +11,11 @@ use Yars;
 my $t = Test::Mojo->new('Yars');
 $t->app->config->servers(
     default => [{
-        url   => 'dummy',
         disks => [ { root => File::Temp->newdir, buckets => [ '0' .. '9', 'A' .. 'F' ] } ]
     }]
 );
-$t->app->config->{url} = 'dummy';
+$t->app->config->{url} = $t->ua->test_server;
+$t->app->config->servers->[0]{url} = $t->app->config->{url};
 
 my $content = 'We\'re gonna be late for the lodge meeting Fred.';
 
