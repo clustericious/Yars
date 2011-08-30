@@ -156,12 +156,28 @@ put '/file/(.filename)/:md5' => { md5 => 'calculate' } => sub {
 
     DEBUG "Received $filename assigned to $assigned_server ($assigned_disk)";
 
-    if ( Yars::Tools->disk_is_up($assigned_disk) &&
-         _atomic_write( Yars::Tools->storage_path($digest, $assigned_disk), $filename, $content ) ) {
-        # Normal situation.
+    if ( Yars::Tools->disk_is_up($assigned_disk) ) {
+        my $assigned_path = Yars::Tools->storage_path($digest, $assigned_disk);
+        my $abs_path = join '/', $assigned_path, $filename;
         my $location = $c->url_for("file", md5 => $digest, filename => $filename)->to_abs;
-        $c->res->headers->location($location);
-        return $c->render(status => 201, text => 'ok'); # CREATED
+        if (-e $abs_path) {
+            my $old = b(Mojo::Asset::File->new(path => $abs_path)->slurp);
+            if (b($old)->md5_sum eq $digest) {
+                if ($old eq $content) {
+                    $c->res->headers->location($location);
+                    return $c->render(status => 200, text => 'exists');
+                } else {
+                    WARN "Same md5, but different content ($content != $old);";
+                    return $c->render(status => 409, text => 'md5 collision');
+                }
+            }
+            DEBUG "md5 of content in $abs_path was incorrect; replacing corrupt file"
+        }
+        if (_atomic_write( $assigned_path , $filename, $content ) ) {
+            # Normal situation.
+            $c->res->headers->location($location);
+            return $c->render(status => 201, text => 'ok'); # CREATED
+       }
     }
 
     # Local designated disk is down.
