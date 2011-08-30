@@ -60,16 +60,22 @@ put '/file/(.filename)/:md5' => { md5 => 'none' } => sub {
     my $dir = _dir($digest);
     mkpath $dir;
 
-    # use a temp file for atomicity
-    my $tmp = File::Temp->new( UNLINK => 0, DIR => $dir );
-    print $tmp $content;
-    $tmp->close;
-    rename "$tmp", "$dir/$filename" or die "rename failed: $!";
-
     # send the URL back in the header
     my $location = $c->url_for("file", md5 => $digest, filename => $filename)->to_abs;
     $c->res->headers->location($location);
-    $c->render(status => 201, text => 'ok'); # CREATED
+
+    if (-e "$dir/$filename") {
+        # file exits - render ok
+        $c->render(status => 200, text => 'ok');
+    }
+    else {
+        # create the file - use a temp file for atomicity
+        my $tmp = File::Temp->new( UNLINK => 0, DIR => $dir );
+        print $tmp $content;
+        $tmp->close;
+        rename "$tmp", "$dir/$filename" or die "rename failed: $!";
+        $c->render(status => 201, text => 'created');
+    }
 };
 
 

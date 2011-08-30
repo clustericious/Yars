@@ -9,10 +9,10 @@ use Mojo::ByteStream qw/b/;
 use FindBin qw/$Bin/;
 use Yars;
 
-my $t = Test::Mojo->new(app => 'Yars');
+my $t = Test::Mojo->new('Yars');
 
 local $/ = undef;
-my $content =b(<DATA>)->b64_decode;
+my $content = b(<DATA>)->b64_decode;
 my $digest = b($content)->md5_sum->to_string;
 
 $t->put_ok("/file/my_bin_file", {}, $content)->status_is(201);

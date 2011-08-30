@@ -2,7 +2,6 @@
 
 use File::Basename 'dirname';
 use File::Spec;
-use Log::Log4perl qw/:easy/;
 
 use lib join '/', File::Spec->splitdir(dirname(__FILE__)), 'lib';
 use lib join '/', File::Spec->splitdir(dirname(__FILE__)), '..', 'lib';

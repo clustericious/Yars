@@ -13,7 +13,7 @@ BEGIN {
 
 use_ok('Yars');
 
-my $t = Test::Mojo->new(app => 'Yars');
+my $t = Test::Mojo->new('Yars');
 
 $t->get_ok('/')->status_is(200)->content_type_like('/text\/html/')
   ->content_like(qr/welcome/i);

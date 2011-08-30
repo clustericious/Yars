@@ -7,7 +7,7 @@ use Test::More;
 use Test::Mojo;
 use Yars;
 
-my $t = Test::Mojo->new(app => 'Yars');
+my $t = Test::Mojo->new('Yars');
 
 my $content = 'We\'re gonna be late for the lodge meeting Fred.';
 
