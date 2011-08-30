@@ -167,7 +167,7 @@ put '/file/(.filename)/:md5' => { md5 => 'calculate' } => sub {
                     $c->res->headers->location($location);
                     return $c->render(status => 200, text => 'exists');
                 } else {
-                    WARN "Same md5, but different content ($content != $old);";
+                    WARN "Same md5, but different content for $filename";
                     return $c->render(status => 409, text => 'md5 collision');
                 }
             }

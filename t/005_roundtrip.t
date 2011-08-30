@@ -10,7 +10,7 @@ use File::Temp;
 use Yars;
 
 my $t = Test::Mojo->new('Yars');
-my $root = File::Temp->newdir(CLEANUP => 0);
+my $root = File::Temp->newdir(CLEANUP => 1);
 $t->app->config->servers(
     default => [{
         url   => 'dummy',
