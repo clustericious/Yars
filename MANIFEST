@@ -1,7 +1,11 @@
 bin/yars
 Build.PL
+eg/disk_map.conf
+eg/Yars.conf
 lib/Yars.pm
+lib/Yars/Balancer.pm
 lib/Yars/Routes.pm
+lib/Yars/Tools.pm
 Makefile.PL
 MANIFEST			This list of files
 MANIFEST.SKIP
@@ -10,8 +14,15 @@ README
 t/001_basic.t
 t/005_roundtrip.t
 t/006_roundtrip_bin.t
+t/007_md5_collision.t
 t/010_digest.t
 t/015_unknown_file.t
+t/020_dual.t
+t/030_diskfail.t
+t/040_hostfail.t
+t/050_balance.t
+t/060_mark_down.t
 t/999_pod.t
 t/999_pod_coverage.t
-t/conf/Yars.conf
+t/conf2/Yars.conf
+t/conf3/Yars.conf
