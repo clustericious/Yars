@@ -41,10 +41,28 @@ $conf->{balance_delay} = 1;
 
 $t->get_ok('/'."got /");
 
+$t->get_ok('/servers/status')->status_is(200)->json_content_is(
+    {
+        "http://localhost:9050" =>
+          { map {( "$root/$_" => "up" )} qw/one two three four five/ }
+    }
+);
+
 _touch "$root/two.is_down";
 _touch "$root/three/is_down";
 mkpath "$root/four";
 chmod 0555, "$root/four";
+
+$t->get_ok('/servers/status')->status_is(200)->json_content_is(
+    {
+        "http://localhost:9050" =>
+          {
+            (map {( "$root/$_" => "up" )} qw/one five/),
+            (map {( "$root/$_" => "down" )} qw/two three four/)
+          }
+    }
+);
+
 
 $t->post_ok("/disk/status$root/five",
     { "Content-Type" => "application/json" },

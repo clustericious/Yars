@@ -41,6 +41,13 @@ $ua->max_redirects(3);
 is $ua->get($urls[0].'/status')->res->json->{server_url}, $urls[0], "started first server at $urls[0]";
 is $ua->get($urls[1].'/status')->res->json->{server_url}, $urls[1], "started second server at $urls[1]";
 
+my $status = $ua->get($urls[0].'/servers/status')->res->json;
+is_deeply($status, {
+        "http://localhost:9051" => { "$root/one" => "up" },
+        "http://localhost:9052" => { "$root/two" => "up" },
+    }
+);
+
 my $i = 0;
 my @contents = <DATA>;
 my @locations;

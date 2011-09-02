@@ -336,6 +336,27 @@ post '/disk/status/*root' => sub {
     $c->render_text($success ? "ok" : "failed" );
 };
 
+get '/servers/status' => sub {
+    my $c = shift;
+    my %disks =
+      map { $_ => Yars::Tools->disk_is_up($_) ? "up" : "down" }
+      Yars::Tools->disk_roots;
+    return $c->render_json(\%disks) if $c->param('single');
+    my %all;
+    $all{Yars::Tools->server_url} = \%disks;
+    for my $server (Yars::Tools->server_urls) {
+        next if exists($all{$server});
+        my $tx = $c->ua->get("$server/servers/status?single=1");
+        if (my $res = $tx->success) {
+            $all{$server} = $res->json;
+        } else {
+            WARN "Could not reach $server : ".$tx->error;
+            $all{$server} = "down";
+        }
+    }
+    $c->render_json(\%all);
+};
+
 get '/bucket_map' => sub {
     my $c = shift;
     $c->render_json(Yars::Tools->bucket_map)
