@@ -311,7 +311,7 @@ sub _del {
     }
 };
 
-get '/stats/files_by_disk' => sub {
+get '/usage/files_by_disk' => sub {
     my $c = shift;
     my %r;
     for my $disk (Yars::Tools->disk_roots) {

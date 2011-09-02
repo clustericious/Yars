@@ -63,7 +63,7 @@ for my $i (1..$test_files) {
      }
 }
 
-$t->get_ok("/stats/files_by_disk?count=1&df=0")->status_is(200)
+$t->get_ok("/usage/files_by_disk?count=1&df=0")->status_is(200)
   ->json_content_is( { "$root/one"   => { count => $test_files },
                        "$root/two"   => { count => 0 },
                        "$root/three" => { count => 0 },
@@ -82,7 +82,7 @@ Mojo::IOLoop->timer(9 => sub { Mojo::IOLoop->stop; });
 Mojo::IOLoop->singleton->start;
 
 my $remaining = int($test_files - $two);
-$t->get_ok("/stats/files_by_disk?count=1&df=0")->status_is(200)
+$t->get_ok("/usage/files_by_disk?count=1&df=0")->status_is(200)
   ->json_content_is( { "$root/one"   => { count => $remaining },
                        "$root/two"   => { count => $two },
                        "$root/three" => { count => 0 },
