@@ -26,3 +26,6 @@ t/999_pod.t
 t/999_pod_coverage.t
 t/conf2/Yars.conf
 t/conf3/Yars.conf
+t/integrate/001_start.t
+t/integrate/002_stop.t
+t/integrate/conf/Yars.conf

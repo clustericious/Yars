@@ -51,7 +51,8 @@
 ^t/regression
 
 # Avoid Vim swap files
-.swp$
+\.swp$
+\.pid$
 
 # Avoid log files
 .log$

@@ -20,6 +20,7 @@ WriteMakefile
                          },
           'INSTALLDIRS' => 'site',
           'EXE_FILES' => [
+                           'bin/hypnotoad.pid',
                            'bin/yars'
                          ],
           'PL_FILES' => {}
