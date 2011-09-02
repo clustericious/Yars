@@ -321,11 +321,11 @@ get '/usage/files_by_disk' => sub {
     $c->render_json(\%r);
 };
 
-post '/disk/status/*root' => sub {
+post '/disk/status' => sub {
     my $c = shift;
-    my $root = '/' . $c->stash("root");
     $c->app->plugins->run_hook('parse_autodata',$c);
     my $got = $c->stash('autodata');
+    my $root = $got->{root};
     my $state = $got->{state} or return $c->render_exception("no state found in request");
     Yars::Tools->disk_is_local($root) or return $c->render_exception("Disk $root is not on this server.");
     my $success;

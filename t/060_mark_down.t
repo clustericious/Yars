@@ -64,9 +64,9 @@ $t->get_ok('/servers/status')->status_is(200)->json_content_is(
 );
 
 
-$t->post_ok("/disk/status$root/five",
+$t->post_ok("/disk/status",
     { "Content-Type" => "application/json" },
-    Mojo::JSON->new->encode( { "state" => "down" }))
+    Mojo::JSON->new->encode( { root => "$root/five", "state" => "down" }))
            ->status_is(200)
            ->content_like(qr/ok/);
 
@@ -90,9 +90,9 @@ $t->get_ok("/usage/files_by_disk?count=1&df=0")->status_is(200)
                        });
 
 # Now mark two up and let things balance
-$t->post_ok("/disk/status$root/two",
+$t->post_ok("/disk/status",
     { "Content-Type" => "application/json" },
-    Mojo::JSON->new->encode( { "state" => "up" }))
+    Mojo::JSON->new->encode( { root => "$root/two", "state" => "up" }))
            ->status_is(200)
            ->content_like(qr/ok/);
 
