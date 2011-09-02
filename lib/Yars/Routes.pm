@@ -336,4 +336,9 @@ post '/disk/status/*root' => sub {
     $c->render_text($success ? "ok" : "failed" );
 };
 
+get '/bucket_map' => sub {
+    my $c = shift;
+    $c->render_json(Yars::Tools->bucket_map)
+};
+
 1;

@@ -228,8 +228,22 @@ Given an md5, return the url for the server for this file.
 sub server_for {
     my $class = shift;
     my $digest = shift;
-    my ($bucket) = grep { $digest =~ /^$_/i } keys %Bucket2Url;
-    return $Bucket2Url{$bucket};
+    my $found;
+    for my $i (0..length($digest)) {
+        last if $found = $Bucket2Url{ uc substr($digest,0,$i) };
+        last if $found = $Bucket2Url{ lc substr($digest,0,$i) };
+    }
+    return $found;
+}
+
+=item bucket_map
+
+Return a map from bucket prefix to server url.
+
+=cut
+
+sub bucket_map {
+    return \%Bucket2Url;
 }
 
 =item storage_path
