@@ -1,5 +1,7 @@
 bin/yars
+bin/yars_generate_diskmap
 Build.PL
+eg/big_disk_map.conf
 eg/disk_map.conf
 eg/Yars.conf
 lib/Yars.pm
