@@ -1,0 +1,97 @@
+#!/usr/bin/env perl
+
+=head1 NAME
+
+yars_generate_diskmap -- generate a mapping from servers + hosts to buckets for yars.
+
+=head1 SYNOPSIS
+
+    yars_generate_diskmap <number of hex digits>
+    host1 /disk1
+    host1 /disk2
+    host2 /disk1
+    host2 /disk2
+
+    echo "host1 /disk/1" | yars_generate_diskmap 1
+
+=head1 DESCRIPTION
+
+Given a list of hosts and disks, distribute 16^n buckets onto the disks.
+
+=head1 EXAMPLES
+
+clad -a testarch df -kh|grep archive | awk '{print $1 " " $7}' |  ./yars_generate_diskmap 2
+
+=head1 SEE ALSO
+
+Clustericious::Admin
+
+=cut
+
+use strict;
+use warnings;
+use JSON::XS;
+use feature 'say';
+
+&main;
+
+sub main {
+    my %servers;
+    my $port = 9001;
+    my $digits = shift @ARGV or die "no number of digits given";
+    my @all;
+    while (<>) {
+        chomp;
+        my ($host,$disk) = split;
+        $host =~ tr/a-zA-Z0-9._//dc;
+        die "could not parse line : $_" unless $host && $disk;
+        $servers{$host}{$disk} = [];
+        push @all, $servers{$host}{$disk};
+    }
+
+    my $i = 0;
+    for my $bucket (0..16**$digits-1) {
+        my $b = sprintf( '%0'.$digits.'x',$bucket);
+        push @{ $all[$i] }, "$b";
+        $i++;
+        $i = 0 if $i==@all;
+    }
+
+    say '---';
+    say 'servers :';
+    for my $host (sort keys %servers) {
+        say "- url : http://$host:$port";
+        say "  disks :";
+        for my $root (sort keys %{ $servers{$host} }) {
+            say "  - root : $root";
+            print "    buckets : [";
+            my $i = 1;
+            for my $bucket (@{ $servers{$host}{$root} }) {
+                print "\n               " if $i++%14 == 0;
+                print " $bucket";
+                print "," unless $i==@{ $servers{$host}{$root} }+1;
+            }
+            say " ]";
+        }
+    }
+}
+
+sub dense {
+    my %servers = @_;
+    # Alternative unreadable representation
+    my @conf;
+    for my $host (sort keys %servers) {
+        push @conf, +{ url => "http://$host:9001", disks => [
+            map +{ root => $_, buckets => $servers{$host}{$_} }, keys %{ $servers{$host} }
+        ]};
+    }
+
+    my $out = JSON::XS->new->space_after->encode({ servers => \@conf });
+    $out =~ s/{/\n{/g;
+    $out =~ s/\[/\n[/g;
+    $out =~ s/\],/],\n/g;
+    print $out,"\n";
+}
+
+1;
+
