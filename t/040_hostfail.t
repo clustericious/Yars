@@ -86,11 +86,11 @@ Mojo::IOLoop->start;
 # Note -- the time above is a guess, may vary depending on the environment.
 
 for my $host (keys %assigned) {
-    my $tx = $ua->get("$host/usage/files_by_disk?count=1&df=0");
+    my $tx = $ua->get("$host/disk/usage?count=1");
     my $res;
     ok $res = $tx->success, "got usage";
     unless ($res) {
-        diag "failed to get $host/usage/files_by_disk?count=1&df=0 : ".$tx->error;
+        diag "failed to get $host/disk/usage?count=1".$tx->error;
         next;
     }
     is_deeply( $res->json, $assigned{$host}, "$host has the right count" );

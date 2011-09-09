@@ -45,7 +45,7 @@ for my $i (1..$test_files) {
 
 ok chmod 0775, "$root/two", "chmod 0775 $root/two";
 
-$t->get_ok("/usage/files_by_disk?count=1&df=0")->status_is(200)
+$t->get_ok("/disk/usage?count=1")->status_is(200)
   ->json_content_is( { "$root/one" => { count => $test_files },
                        "$root/two" => { count => 0 } });
 
@@ -53,7 +53,7 @@ $t->get_ok("/usage/files_by_disk?count=1&df=0")->status_is(200)
 Mojo::IOLoop->timer(10 => sub { Mojo::IOLoop->stop; });
 Mojo::IOLoop->singleton->start;
 
-$t->get_ok("/usage/files_by_disk?count=1&df=0")->status_is(200)
+$t->get_ok("/disk/usage?count=1")->status_is(200)
   ->json_content_is( { "$root/one" => { count => $one },
                        "$root/two" => { count => $two } } );
 

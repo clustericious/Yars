@@ -311,7 +311,7 @@ sub _del {
     }
 };
 
-get '/usage/files_by_disk' => sub {
+get '/disk/usage' => sub {
     my $c = shift;
     my $count = $c->param("count") ? 1 : 0;
     my %r;
@@ -332,7 +332,7 @@ get '/usage/files_by_disk' => sub {
     my %all = ( Yars::Tools->server_url => \%r );
     for my $server (Yars::Tools->server_urls) {
         next if exists $all{$server};
-        my $tx = $c->ua->get("$server/usage/files_by_disk?count=$count");
+        my $tx = $c->ua->get("$server/disk/usage?count=$count");
         my $res = $tx->success or do {
             $all{$server} = 'down';
             next;
