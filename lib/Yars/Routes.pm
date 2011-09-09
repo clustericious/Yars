@@ -313,6 +313,7 @@ sub _del {
 
 get '/usage/files_by_disk' => sub {
     my $c = shift;
+    my $count = $c->param("count") ? 1 : 0;
     my %r;
     for my $disk (Yars::Tools->disk_roots) {
         my $df = df($disk);
@@ -325,9 +326,20 @@ get '/usage/files_by_disk' => sub {
                 space_avail  => Yars::Tools->human_size($df->{bavail}*1024),
                 percent_used => sprintf('%02d',(100*($df->{blocks} - $df->{bavail})/($df->{blocks}))).'%',
             };
-        $r{$disk}{count} = Yars::Tools->count_files($disk) if $c->param("count");
+        $r{$disk}{count} = Yars::Tools->count_files($disk) if $count;
     }
-    $c->render_json(\%r);
+    return $c->render_json(\%r) unless $c->param('all');
+    my %all = ( Yars::Tools->server_url => \%r );
+    for my $server (Yars::Tools->server_urls) {
+        next if exists $all{$server};
+        my $tx = $c->ua->get("$server/usage/files_by_disk?count=$count");
+        my $res = $tx->success or do {
+            $all{$server} = 'down';
+            next;
+        };
+        $all{$server} = $res->json;
+    }
+    return $c->render_json(\%all);
 };
 
 post '/disk/status' => sub {
