@@ -38,6 +38,8 @@ $conf->servers( default => [{
     ]);
 $conf->{url} = "http://localhost:9050"; # TODO provide a better config api
 $conf->{balance_delay} = 1;
+my $temp = File::Temp->new(UNLINK => 0);
+$conf->{balancer_file} = "$temp";
 
 $t->get_ok('/'."got /");
 
@@ -81,13 +83,9 @@ for my $i (1..$test_files) {
      }
 }
 
-$t->get_ok("/disk/usage?count=1")->status_is(200)
-  ->json_content_is( { "$root/one"   => { count => $test_files },
-                       "$root/two"   => { count => 0 },
-                       "$root/three" => { count => 0 },
-                       "$root/four"  => { count => 0 },
-                       "$root/five"  => { count => 0 },
-                       });
+my $json = $t->get_ok("/disk/usage?count=1")->status_is(200)->tx->res->json;
+is $json->{"$root/one"}{count}, $test_files;
+is $json->{"$root/$_"}{count}, 0 for qw/two three four five/;
 
 # Now mark two up and let things balance
 $t->post_ok("/disk/status",
@@ -100,13 +98,10 @@ Mojo::IOLoop->timer(9 => sub { Mojo::IOLoop->stop; });
 Mojo::IOLoop->singleton->start;
 
 my $remaining = int($test_files - $two);
-$t->get_ok("/disk/usage?count=1")->status_is(200)
-  ->json_content_is( { "$root/one"   => { count => $remaining },
-                       "$root/two"   => { count => $two },
-                       "$root/three" => { count => 0 },
-                       "$root/four"  => { count => 0 },
-                       "$root/five"  => { count => 0 },
-                       });
+$json = $t->get_ok("/disk/usage?count=1")->status_is(200)->tx->res->json;
+is $json->{"$root/one"}{count}, $remaining;
+is $json->{"$root/two"}{count}, $two;
+is $json->{"$root/$_"}{count}, 0 for qw/three four five/;
 
 done_testing();
 

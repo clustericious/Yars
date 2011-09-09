@@ -93,7 +93,7 @@ for my $host (keys %assigned) {
         diag "failed to get $host/disk/usage?count=1".$tx->error;
         next;
     }
-    is_deeply( $res->json, $assigned{$host}, "$host has the right count" );
+    is( $res->json->{count}, $assigned{$host}{count}, "$host has the right count" );
 }
 
 _sys("YARS_WHICH=1 yars stop");

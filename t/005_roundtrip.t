@@ -30,13 +30,13 @@ ok $location, "got location header";
 $t->get_ok("/file/$file/$digest")->status_is(200)->content_is($content);
 $t->get_ok("/file/$digest/$file")->status_is(200)->content_is($content);
 $t->get_ok($location)->status_is(200)->content_is($content);
-$t->get_ok("/disk/usage?count=1")->status_is(200)->json_content_is({$root => {count => 1}});
+is $t->get_ok("/disk/usage?count=1")->status_is(200)->tx->res->json->{$root}{count}, 1;
 
 # Idempotent PUT
 $t->put_ok("/file/$file", {}, $content)->status_is(200);
 my $location2 = $t->tx->res->headers->location;
 is $location, $location2, "same location header";
-$t->get_ok("/disk/usage?count=1")->status_is(200)->json_content_is({$root => {count => 1}});
+is $t->get_ok("/disk/usage?count=1")->status_is(200)->tx->res->json->{$root}{count}, 1;
 
 $t->head_ok($location)->status_is(200);
 

@@ -23,6 +23,8 @@ $conf->servers( default => [{
                 { root => "$root/two",   buckets => [ qw/8 9 A B C D E F/ ] },
             ]}]);
 $conf->{balance_delay} = 1;
+my $temp = File::Temp->new(UNLINK => 0);
+$conf->{balancer_file} = "$temp";
 $conf->{url} = "http://localhost:9050"; # not used
 
 $t->get_ok('/'."got /");
@@ -45,17 +47,17 @@ for my $i (1..$test_files) {
 
 ok chmod 0775, "$root/two", "chmod 0775 $root/two";
 
-$t->get_ok("/disk/usage?count=1")->status_is(200)
-  ->json_content_is( { "$root/one" => { count => $test_files },
-                       "$root/two" => { count => 0 } });
+my $json = $t->get_ok("/disk/usage?count=1")->status_is(200)->tx->res->json;
+is $json->{"$root/one"}{count}, $test_files;
+is $json->{"$root/two"}{count}, 0;
 
 # Now balance!
 Mojo::IOLoop->timer(10 => sub { Mojo::IOLoop->stop; });
 Mojo::IOLoop->singleton->start;
 
-$t->get_ok("/disk/usage?count=1")->status_is(200)
-  ->json_content_is( { "$root/one" => { count => $one },
-                       "$root/two" => { count => $two } } );
+$json = $t->get_ok("/disk/usage?count=1")->status_is(200)->tx->res->json;
+is $json->{"$root/one"}{count}, $one;
+is $json->{"$root/two"}{count}, $two;
 
 done_testing();
 

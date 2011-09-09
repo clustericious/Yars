@@ -316,16 +316,17 @@ get '/disk/usage' => sub {
     my $count = $c->param("count") ? 1 : 0;
     my %r;
     for my $disk (Yars::Tools->disk_roots) {
-        my $df = df($disk);
-        $r{$disk} = {
-                '1K-blocks'  => $df->{blocks},
-                blocks_used  => $df->{used},
-                blocks_avail => $df->{bavail},
-                space        => Yars::Tools->human_size($df->{blocks}*1024),
-                space_used   => Yars::Tools->human_size($df->{used}*1024),
-                space_avail  => Yars::Tools->human_size($df->{bavail}*1024),
-                percent_used => sprintf('%02d',(100*($df->{blocks} - $df->{bavail})/($df->{blocks}))).'%',
-            };
+        if ( my $df = df($disk)) {
+            $r{$disk} = {
+                    '1K-blocks'  => $df->{blocks},
+                    blocks_used  => $df->{used},
+                    blocks_avail => $df->{bavail},
+                    space        => Yars::Tools->human_size($df->{blocks}*1024),
+                    space_used   => Yars::Tools->human_size($df->{used}*1024),
+                    space_avail  => Yars::Tools->human_size($df->{bavail}*1024),
+                    percent_used => sprintf('%02d',(100*($df->{blocks} - $df->{bavail})/($df->{blocks}))).'%',
+                };
+        };
         $r{$disk}{count} = Yars::Tools->count_files($disk) if $count;
     }
     return $c->render_json(\%r) unless $c->param('all');
