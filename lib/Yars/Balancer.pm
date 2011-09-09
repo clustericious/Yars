@@ -58,8 +58,7 @@ sub _tidy_stashed_files {
     return if $file_being_moved;
     -d $disk->{root} or return;
     my @belong = @{ $disk->{buckets} };
-    DEBUG "Checking disk ".$disk->{root};
-    DEBUG "belong : @belong";
+    TRACE "Checking disk ".$disk->{root};
 
     # Find the first file that doesn't belong here.
     try {
