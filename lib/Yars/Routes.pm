@@ -315,7 +315,16 @@ get '/usage/files_by_disk' => sub {
     my $c = shift;
     my %r;
     for my $disk (Yars::Tools->disk_roots) {
-        $r{$disk} = { df => df($disk) } unless defined($c->param("df")) && $c->param("df") eq '0';
+        my $df = df($disk);
+        $r{$disk} = {
+                '1K-blocks'  => $df->{blocks},
+                blocks_used  => $df->{used},
+                blocks_avail => $df->{bavail},
+                space        => Yars::Tools->human_size($df->{blocks}*1024),
+                space_used   => Yars::Tools->human_size($df->{used}*1024),
+                space_avail  => Yars::Tools->human_size($df->{bavail}*1024),
+                percent_used => sprintf('%02d',(100*($df->{blocks} - $df->{bavail})/($df->{blocks}))).'%',
+            };
         $r{$disk}{count} = Yars::Tools->count_files($disk) if $c->param("count");
     }
     $c->render_json(\%r);

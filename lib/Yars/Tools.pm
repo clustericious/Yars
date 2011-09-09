@@ -372,6 +372,23 @@ sub count_files {
     return scalar @list;
 }
 
+=item human_size
+
+Given a size, format it like df -kh
+
+=cut
+
+sub human_size {
+    my $class = shift;
+    my $val   = shift;
+    my @units = qw/B K M G T P/;
+    my $unit = shift @units;
+    do {
+        $unit = shift @units;
+        $val /= 1024;
+    } until $val < 1024 || !@units;
+    return sprintf( "%.0f%s", $val + 0.5, $unit );
+}
 
 1;
 
