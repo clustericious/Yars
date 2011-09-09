@@ -97,6 +97,7 @@ for my $host (keys %assigned) {
 }
 
 _sys("YARS_WHICH=1 yars stop");
+_sys("YARS_WHICH=2 yars stop");
 
 done_testing();
 
