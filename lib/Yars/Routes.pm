@@ -347,9 +347,15 @@ post '/disk/status' => sub {
     my $c = shift;
     $c->app->plugins->run_hook('parse_autodata',$c);
     my $got = $c->stash('autodata');
-    my $root = $got->{root};
+    my $root = $got->{root} || $got->{disk};
     my $state = $got->{state} or return $c->render_exception("no state found in request");
-    Yars::Tools->disk_is_local($root) or return $c->render_exception("Disk $root is not on this server.");
+    my $host = $got->{host};
+    if ($host && $host ne Yars::Tools->server_url) {
+        WARN "Sending ".$c->req->body;
+        my $tx = $c->ua->post("$host/disk/status", $c->req->headers->to_hash, ''.$c->req->body );
+        return $c->render_text( $tx->success ? $tx->res->body : 'failed '.$tx->error );
+    }
+    Yars::Tools->disk_is_local($root) or return $c->render_exception("Disk $root is not on ".Yars::Tools->server_url);
     my $success;
     for ($state) {
         /down/ and $success = Yars::Tools->mark_disk_down($root);
