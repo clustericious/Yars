@@ -10,9 +10,10 @@ use File::Temp;
 use Yars;
 
 my $t = Test::Mojo->new('Yars');
+my $root = File::Temp->newdir;
 $t->app->config->servers(
     default => [{
-        disks => [ { root => File::Temp->newdir, buckets => [ '0' .. '9', 'A' .. 'F' ] } ]
+        disks => [ { root => $root, buckets => [ '0' .. '9', 'A' .. 'F' ] } ]
     }]
 );
 $t->app->config->{url} = $t->ua->test_server;
@@ -24,8 +25,18 @@ my $bad_digest = '5551212';
 
 
 $t->put_ok("/file/fred/$digest", {}, $content)->status_is(201);
-
+my $location = $t->tx->res->headers->location;
 $t->put_ok("/file/fred/$bad_digest", {}, $content)->status_is(400);
 
+$t->get_ok($location)->content_is($content);
+
+# Corrupt it
+my $filename = join '/', $root, grep length, (split /(..)/,$digest),'fred';
+ok -e $filename, "found file on filesystem";
+open my $fp, ">$filename" or die "can't write to $root/$filename : $!";
+ok ( (print $fp "drink more coffee"), "wrote more data to file");
+close $fp or die $!;
+
+$t->get_ok($location)->status_isnt(200);
 
 done_testing();

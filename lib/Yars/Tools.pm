@@ -295,7 +295,8 @@ Find a local directory stashing this file, if one exists.
 Parameters :
     $filename - filename
     $digest - digest
-
+Returns :
+    The directory or false.
 
 =cut
 

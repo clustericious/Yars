@@ -29,6 +29,7 @@ use Data::Dumper;
 use Yars::Tools;
 use Filesys::Df qw/df/;
 use List::Util qw/shuffle/;
+use Digest::file qw/digest_file_hex/;
 
 # max downloads of 1 GB
 $ENV{MOJO_MAX_MESSAGE_SIZE} = 1073741824;
@@ -67,6 +68,11 @@ sub _get {
           || _redirect_to_remote_stash( $c, $filename, $md5 )
           || $c->render_not_found;
     };
+    my $computed = digest_file_hex("$dir/$filename",'MD5');
+    unless ($computed eq $md5) {
+        WARN "Content mismatch, possible disk corruption ($filename), $md5 != $computed";
+        return $c->render(text => "content-mismatch", status => 500);
+    }
     $c->app->static->root($dir)->serve($c,$filename);
     $c->rendered;
 };
@@ -109,6 +115,11 @@ sub _get_from_local_stash {
     # If this is stashed locally, serve it and return true.
     # Otherwise return false.
     my $dir = Yars::Tools->local_stashed_dir($filename,$md5) or return 0;
+    my $computed = digest_file_hex("$dir/$filename",'MD5');
+    unless ($computed eq $md5) {
+        WARN "Content mismatch, possible disk corruption for stashed file ($filename), $md5 != $computed";
+        return 0;
+    }
     $c->app->static->root($dir)->serve($c,$filename);
     $c->rendered;
     return 1;
