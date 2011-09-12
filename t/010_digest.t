@@ -8,6 +8,7 @@ use Test::Mojo;
 use Mojo::ByteStream qw/b/;
 use File::Temp;
 use Yars;
+$ENV{LOG_LEVEL} = 'FATAL';
 
 my $t = Test::Mojo->new('Yars');
 my $root = File::Temp->newdir;
