@@ -37,9 +37,16 @@ $t->put_ok("/file/$file", {}, $content)->status_is(200);
 my $location2 = $t->tx->res->headers->location;
 is $location, $location2, "same location header";
 is $t->get_ok("/disk/usage?count=1")->status_is(200)->tx->res->json->{$root}{count}, 1;
-
 $t->head_ok($location)->status_is(200);
-
 $t->delete_ok("/file/$file/$digest")->status_is(200);
+
+# Same filename, different content
+my $nyc = $t->put_ok("/file/houston", {}, "a street in nyc")->status_is(201)->tx->res->headers->location;
+my $tx = $t->put_ok("/file/houston", {}, "we have a problem")->status_is(201)->tx->res->headers->location;
+ok $nyc ne $tx, "Two locations";
+$t->get_ok($nyc)->content_is("a street in nyc");
+$t->get_ok($tx)->content_is("we have a problem");
+$t->delete_ok($nyc);
+$t->delete_ok($tx);
 
 done_testing();
