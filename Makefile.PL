@@ -5,7 +5,7 @@ WriteMakefile
           'NAME' => 'Yars',
           'VERSION_FROM' => 'lib/Yars.pm',
           'PREREQ_PM' => {
-                           'Clustericious' => '0.62',
+                           'Clustericious' => '0.67',
                            'Clustericious::Config' => 0,
                            'Digest::file' => 0,
                            'File::Copy' => 0,
