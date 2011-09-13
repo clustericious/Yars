@@ -58,7 +58,7 @@ sub _get {
         TRACE "$md5 should be on $url";
         # but check our local stash first, just in case.
         _get_from_local_stash($c,$filename,$md5) and return;
-        return $c->redirect_to("$url/file/$md5/$filename");
+        return $c->render_moved("$url/file/$md5/$filename");
     }
 
     my $dir = Yars::Tools->storage_path($md5);
@@ -97,7 +97,7 @@ sub _head {
         if (Yars::Tools->local_stashed_dir($filename,$md5)) {
             return $c->render(status => 200, text => 'found');
         }
-        return $c->redirect_to("$url/file/$md5/$filename");
+        return $c->render_moved("$url/file/$md5/$filename");
     }
 
     my $dir = Yars::Tools->storage_path($md5);
