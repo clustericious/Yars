@@ -31,8 +31,8 @@ use Filesys::Df qw/df/;
 use List::Util qw/shuffle/;
 use Digest::file qw/digest_file_hex/;
 
-# max downloads of 1 GB
-$ENV{MOJO_MAX_MESSAGE_SIZE} = 1073741824;
+# max downloads of 4 GB
+$ENV{MOJO_MAX_MESSAGE_SIZE} = 1073741824 * 4;
 
 our $balancer;
 ladder sub {
