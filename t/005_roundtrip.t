@@ -39,6 +39,8 @@ is $location, $location2, "same location header";
 is $t->get_ok("/disk/usage?count=1")->status_is(200)->tx->res->json->{$root}{count}, 1;
 $t->head_ok($location)->status_is(200);
 is $t->tx->res->headers->content_length, b($content)->size, "Right content-length in HEAD";
+is $t->tx->res->headers->content_type, "text/plain", "Right content-type in HEAD";
+diag $t->tx->res->headers->last_modified;
 $t->delete_ok("/file/$file/$digest")->status_is(200);
 
 # Same filename, different content

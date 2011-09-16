@@ -82,35 +82,28 @@ sub _head {
     my $filename = $c->stash("filename");
     my $md5      = $c->stash("md5");
 
-    my $found_dir;
-    if ($c->req->headers->header("X-Yars-Check-Stash")) {
-        if ($found_dir = Yars::Tools->local_stashed_dir($filename,$md5)) {
-            $c->res->headers->content_length(Yars::Tools->file_size("$found_dir/$filename"));
-            return $c->render(status => 200, text => 'found');
-        }
-        return $c->render_not_found;
-    }
+    # Just check the local stash and return?
+    my $check_stash = $c->req->headers->header("X-Yars-Check-Stash") ? 1 : 0;
+    my $url;
+    $url = Yars::Tools->server_for($md5) unless $check_stash;
 
-    # Otherwise mimick GET, but just check for existence.
-    my $url = Yars::Tools->server_for($md5);
-    if ($url ne Yars::Tools->server_url) {
-        TRACE "$md5 should be on $url";
-        # but check our local stash first, just in case.
-        if ($found_dir = Yars::Tools->local_stashed_dir($filename,$md5)) {
+    # Check the local stash if we are asked to, or if it doesn't belong here.
+    if ($check_stash or $url ne Yars::Tools->server_url) {
+        if (my $found_dir = Yars::Tools->local_stashed_dir($filename,$md5)) {
             $c->res->headers->content_length(Yars::Tools->file_size("$found_dir/$filename"));
             return $c->render(status => 200, text => 'found');
         }
+        return $c->render_not_found if $check_stash;
         return $c->render_moved("$url/file/$md5/$filename");
     }
 
+    # It belongs here.  But it might still be stashed locally or remotely.
     my $dir = Yars::Tools->storage_path($md5);
-    $found_dir = -r "$dir/$filename" ? $dir : undef;
-    $found_dir ||= Yars::Tools->local_stashed_dir($filename,$md5);
-    $c->res->headers->content_length(Yars::Tools->file_size("$found_dir/$filename")) if $found_dir;
-    if ( $found_dir or Yars::Tools->remote_stashed_server($c, $filename,$md5)) {
-            return $c->render(status => 200, text => 'found');
-    }
-    $c->render_not_found;
+    my $found_dir = -r "$dir/$filename" ? $dir : undef;
+    $found_dir ||= Yars::Tools->local_stashed_dir( $filename, $md5 );
+    return $c->render_not_found unless ( $found_dir or $c->_redirect_to_remote_stash( $filename, $md5 ) );
+    $c->res->headers->content_length( Yars::Tools->file_size("$found_dir/$filename") ) if $found_dir;
+    $c->render( status => 200, text => 'found' );
 }
 
 sub _get_from_local_stash {
