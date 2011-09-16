@@ -391,17 +391,6 @@ sub human_size {
     return sprintf( "%.0f%s", $val + 0.5, $unit );
 }
 
-=item file_size
-
-Just compute the size of a file
-
-=cut
-
-sub file_size {
-    my $class = shift;
-    return Mojo::Asset::File->new(path => shift)->size;
-}
-
 
 1;
 

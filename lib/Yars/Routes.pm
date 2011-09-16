@@ -77,6 +77,22 @@ sub _get {
     $c->rendered;
 };
 
+sub _set_static_headers {
+    # Based on Mojolicious::Static.  Probably should support if-modified..?
+    my $c = shift;
+    my $filepath = shift;
+    my ($size, $modified) = (stat $filepath)[7, 9];
+    my $rsh = $c->res->headers;
+    $rsh->content_length($size);
+    $rsh->last_modified(Mojo::Date->new($modified));
+    $rsh->accept_ranges('bytes');
+
+    $filepath =~ /\.(\w+)$/;
+    my $ext = $1;
+    $rsh->content_type($c->app->types->type($ext) || 'text/plain');
+    return 1;
+}
+
 sub _head {
     my $c        = shift;
     my $filename = $c->stash("filename");
@@ -90,7 +106,7 @@ sub _head {
     # Check the local stash if we are asked to, or if it doesn't belong here.
     if ($check_stash or $url ne Yars::Tools->server_url) {
         if (my $found_dir = Yars::Tools->local_stashed_dir($filename,$md5)) {
-            $c->res->headers->content_length(Yars::Tools->file_size("$found_dir/$filename"));
+            _set_static_headers($c,"$found_dir/$filename");
             return $c->render(status => 200, text => 'found');
         }
         return $c->render_not_found if $check_stash;
@@ -102,7 +118,7 @@ sub _head {
     my $found_dir = -r "$dir/$filename" ? $dir : undef;
     $found_dir ||= Yars::Tools->local_stashed_dir( $filename, $md5 );
     return $c->render_not_found unless ( $found_dir or $c->_redirect_to_remote_stash( $filename, $md5 ) );
-    $c->res->headers->content_length( Yars::Tools->file_size("$found_dir/$filename") ) if $found_dir;
+    _set_static_headers($c,"$found_dir/$filename");
     $c->render( status => 200, text => 'found' );
 }
 
