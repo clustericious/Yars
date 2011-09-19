@@ -11,7 +11,7 @@ use warnings;
 use base 'Clustericious::App';
 use Yars::Routes;
 use Yars::Balancer;
-our $VERSION = '0.38';
+our $VERSION = '0.39';
 
 __PACKAGE__->attr( secret => rand );
 
