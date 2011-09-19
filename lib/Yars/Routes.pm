@@ -117,7 +117,7 @@ sub _head {
     my $dir = Yars::Tools->storage_path($md5);
     my $found_dir = -r "$dir/$filename" ? $dir : undef;
     $found_dir ||= Yars::Tools->local_stashed_dir( $filename, $md5 );
-    return $c->render_not_found unless ( $found_dir or $c->_redirect_to_remote_stash( $filename, $md5 ) );
+    return $c->render_not_found unless ( $found_dir or _redirect_to_remote_stash($c, $filename, $md5 ) );
     _set_static_headers($c,"$found_dir/$filename");
     $c->render( status => 200, text => 'found' );
 }
