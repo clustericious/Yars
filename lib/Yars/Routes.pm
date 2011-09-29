@@ -153,8 +153,16 @@ put '/file/(.filename)/:md5' => { md5 => 'calculate' } => sub {
     my $c        = shift;
     my $filename = $c->stash('filename');
     my $md5      = $c->stash('md5');
-    my $content  = $c->req->body;
-    my $digest   = b($content)->md5_sum->to_string;
+
+    my $asset    = $c->req->content->asset;
+    my $digest;
+    if ($asset->isa("Mojo::Asset::File")) {
+        TRACE "Using Digest::file";
+        $digest = digest_file_hex($asset->path,'MD5');
+    } else {
+        $digest = b($asset->slurp)->md5_sum->to_string;
+    }
+
     $md5 = $digest if $md5 eq 'calculate';
 
     return $c->render(text => "incorrect digest, $md5!=$digest", status => 400)
@@ -162,16 +170,16 @@ put '/file/(.filename)/:md5' => { md5 => 'calculate' } => sub {
 
     if ($c->req->headers->header('X-Yars-Stash')) {
         DEBUG "Stashing a file that is not ours : $digest $filename";
-        _stash_locally($c, $filename, $digest, $content) and return;
+        _stash_locally($c, $filename, $digest, $asset) and return;
         return $c->render_exception("Cannot stash $filename locally");
     }
 
     my $assigned_server = Yars::Tools->server_for($digest);
 
     if ( $assigned_server ne Yars::Tools->server_url ) {
-        return _proxy_to( $c, $assigned_server, $filename, $digest, $content )
-              || _stash_locally( $c, $filename, $digest, $content )
-              || _stash_remotely( $c, $filename, $digest, $content )
+        return _proxy_to( $c, $assigned_server, $filename, $digest, $asset )
+              || _stash_locally( $c, $filename, $digest, $asset )
+              || _stash_remotely( $c, $filename, $digest, $asset )
               || $c->render_exception("could not proxy or stash");
     }
 
@@ -186,7 +194,7 @@ put '/file/(.filename)/:md5' => { md5 => 'calculate' } => sub {
         if (-e $abs_path) {
             my $old = b(Mojo::Asset::File->new(path => $abs_path)->slurp);
             if (b($old)->md5_sum eq $digest) {
-                if ($old eq $content) {
+                if ($old eq $asset->slurp) { # TODO improve
                     $c->res->headers->location($location);
                     return $c->render(status => 200, text => 'exists');
                 } else {
@@ -196,7 +204,7 @@ put '/file/(.filename)/:md5' => { md5 => 'calculate' } => sub {
             }
             DEBUG "md5 of content in $abs_path was incorrect; replacing corrupt file"
         }
-        if (_atomic_write( $assigned_path , $filename, $content ) ) {
+        if (_atomic_write( $assigned_path , $filename, $asset ) ) {
             # Normal situation.
             $c->res->headers->location($location);
             return $c->render(status => 201, text => 'ok'); # CREATED
@@ -208,13 +216,13 @@ put '/file/(.filename)/:md5' => { md5 => 'calculate' } => sub {
         return $c->render_exception("Local disk is down and NoStash was sent.");
     }
 
-    _stash_locally( $c, $filename, $digest, $content )
-      or _stash_remotely( $c, $filename, $digest, $content )
+    _stash_locally( $c, $filename, $digest, $asset )
+      or _stash_remotely( $c, $filename, $digest, $asset )
       or $c->render_exception("could not store or stash remotely");
 };
 
 sub _proxy_to {
-    my ($c, $url,$filename,$digest,$content,$temporary) = @_;
+    my ($c, $url,$filename,$digest,$asset,$temporary) = @_;
     # Proxy a file to another url.
     # On success, render the response and return true.
     # On failure, return false.
@@ -223,7 +231,9 @@ sub _proxy_to {
       . ( $temporary ? " temporarily" : "" );
    my $headers = $temporary ? { 'X-Yars-Stash' => 1 } : {};
    $headers->{Connection} = "Close";
-   my $tx = $c->ua->put( "$url/file/$filename/$digest", $headers, $content );
+   my $tx = $c->ua->build_tx(PUT => "$url/file/$filename/$digest", $headers );
+   $tx->req->content->asset($asset);
+   $tx = $c->ua->start($tx);
    if ($res = $tx->success) {
        $c->res->headers->location($tx->res->headers->location);
        $c->render(status => $tx->res->code, text => 'ok');
@@ -235,17 +245,13 @@ sub _proxy_to {
 }
 
 sub _atomic_write {
-    my ($dir, $filename, $content) = @_;
+    my ($dir, $filename, $asset) = @_;
     TRACE "Writing $dir/$filename";
     # Write a file atomically.  Return 1 on success, 0 on failure.
     my $failed;
     try {
         mkpath $dir; # dies on error
-        my $tmp = File::Temp->new( UNLINK => 0, DIR => $dir )
-          or LOGDIE "Cannot make tempfile in $dir : $!";
-        print $tmp $content or LOGDIE "Cannot write content in $dir : $!";
-        $tmp->close or LOGDIE "cannot close tempfile";
-        rename "$tmp", "$dir/$filename" or LOGDIE "rename failed: $!";
+        $asset->move_to("$dir/$filename") or LOGDIE "failed to write $dir/$filename: $!";
     } catch {
         WARN "Could not write $dir/$filename : $_";
         $failed = 1;
@@ -256,7 +262,7 @@ sub _atomic_write {
 }
 
 sub _stash_locally {
-    my ($c, $filename,$digest, $content) = @_;
+    my ($c, $filename,$digest, $asset) = @_;
     # Stash this file on a local disk.
     # Returns false or renders the response.
     DEBUG "Stashing $filename locally";
@@ -269,7 +275,7 @@ sub _stash_locally {
             next;
         }
         my $dir = Yars::Tools->storage_path( $digest, $root );
-        _atomic_write( $dir, $filename, $content ) and do {
+        _atomic_write( $dir, $filename, $asset ) and do {
             $wrote = $root;
             last;
         };
@@ -285,7 +291,7 @@ sub _stash_locally {
 }
 
 sub _stash_remotely {
-    my ($c, $filename,$digest,$content) = @_;
+    my ($c, $filename,$digest,$asset) = @_;
     # Stash this file on a remote disk.
     # Returns false or renders the response.
     DEBUG "Stashing $filename remotely.";
@@ -293,7 +299,7 @@ sub _stash_remotely {
     for my $server (shuffle Yars::Tools->server_urls) {
         next if $server eq Yars::Tools->server_url;
         next if $server eq $assigned_server;
-        _proxy_to( $c, $server, $filename, $digest, $content, 1 ) and return 1;
+        _proxy_to( $c, $server, $filename, $digest, $asset, 1 ) and return 1;
     }
     return 0;
 }
