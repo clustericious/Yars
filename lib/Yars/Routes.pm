@@ -157,9 +157,11 @@ put '/file/(.filename)/:md5' => { md5 => 'calculate' } => sub {
     my $asset    = $c->req->content->asset;
     my $digest;
     if ($asset->isa("Mojo::Asset::File")) {
-        TRACE "Using Digest::file";
+        TRACE "Received file asset with size ".$asset->size;
         $digest = digest_file_hex($asset->path,'MD5');
+        TRACE "Md5 of ".$asset->path." is $digest";
     } else {
+        TRACE "Received memory asset with size ".$asset->size;
         $digest = b($asset->slurp)->md5_sum->to_string;
     }
 
