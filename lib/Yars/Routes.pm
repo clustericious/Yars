@@ -73,6 +73,7 @@ sub _get {
         WARN "Content mismatch, possible disk corruption ($filename), $md5 != $computed";
         return $c->render(text => "content-mismatch", status => 500);
     }
+    $c->res->headers->add("Content-MD5", $computed);
     $c->app->static->root($dir)->serve($c,$filename);
     $c->rendered;
 };
@@ -132,6 +133,7 @@ sub _get_from_local_stash {
         WARN "Content mismatch, possible disk corruption for stashed file ($filename), $md5 != $computed";
         return 0;
     }
+    $c->res->headers->add("Content-MD5", $computed);
     $c->app->static->root($dir)->serve($c,$filename);
     $c->rendered;
     return 1;
