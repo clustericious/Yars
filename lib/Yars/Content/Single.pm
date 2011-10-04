@@ -7,6 +7,8 @@ Yars::Content::Single - incoming content
 Just like Mojo::Content::Single, but uses a tempdir
 that is in the right directory.
 
+=over
+
 =cut
 
 package Yars::Content::Single;
@@ -15,6 +17,15 @@ use File::Path qw/mkpath/;
 use Mojo::Base 'Mojo::Content::Single';
 
 has 'content_disk' => sub { undef; };
+
+=item parse
+
+Parse the incoming request.  Just
+falls through except for the case
+where we need to determine the disk
+and the temp directory for the file.
+
+=cut
 
 sub parse {
     my $self = shift;
