@@ -26,7 +26,7 @@ name: Yars
 provides:
   Yars:
     file: lib/Yars.pm
-    version: 0.42
+    version: 0.43
   Yars::Balancer:
     file: lib/Yars/Balancer.pm
   Yars::Content::Single:
@@ -39,4 +39,4 @@ provides:
     file: lib/Yars/Tools.pm
 resources:
   license: http://dev.perl.org/licenses/
-version: 0.42
+version: 0.43
