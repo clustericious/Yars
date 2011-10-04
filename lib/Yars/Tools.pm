@@ -13,6 +13,7 @@ Just some useful functions here.
 =cut
 
 package Yars::Tools;
+use Clustericious::Config;
 use List::Util qw/shuffle/;
 use List::MoreUtils qw/uniq/;
 use Log::Log4perl qw/:easy/;
@@ -39,7 +40,8 @@ Refresh the configuration data cached in memory.
 sub refresh_config {
  my $class = shift;
  my $config = shift;
- return 1 if defined($OurUrl);
+ return 1 if defined($OurUrl) && keys %Bucket2Root > 0;
+ $config ||= Clustericious::Config->new("Yars");
  $OurUrl = $config->url or WARN "No url found in config file";
  TRACE "Our url is $OurUrl";
  for my $server ($config->servers) {
@@ -82,6 +84,10 @@ sub disk_for {
     my $class = shift;
     my $digest = shift;
     my ($bucket) = grep { $digest =~ /^$_/i } keys %Bucket2Root;
+    unless (keys %Bucket2Root) {
+        $class->refresh_config;
+        LOGDIE "No config data" unless keys %Bucket2Root > 0;
+    }
     TRACE "no local disk for $digest in ".(join ' ', keys %Bucket2Root) unless defined($bucket);
     return unless defined($bucket);
     return $Bucket2Root{$bucket};

@@ -41,6 +41,7 @@ sub parse {
 
     my $disk;
     unless ($disk = $self->content_disk) {
+        Yars::Tools->refresh_config;
         $disk = Yars::Tools->disk_for($md5) || '/dev/null'; # (/dev/null == not ours)
         $self->content_disk($disk);
     }

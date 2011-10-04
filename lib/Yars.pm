@@ -32,7 +32,6 @@ sub startup {
     $self->SUPER::startup(@_);
     $self->hook(after_build_tx => sub {
         my ($tx,$app) = @_;
-        Yars::Tools->refresh_config($app->config);
         my $req = Yars::Message::Request->new();
         $tx->req($req);
     });

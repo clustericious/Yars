@@ -21,6 +21,7 @@ $t->app->config->servers(
 );
 $t->app->config->{url} = $t->ua->test_server;
 $t->app->config->servers->[0]{url} = $t->app->config->{url};
+Clustericious::Config->set_singleton(Yars => $t->app->config);
 
 my $content = 'x' x 1_000_000;
 my $digest = b($content)->md5_sum->to_string;
