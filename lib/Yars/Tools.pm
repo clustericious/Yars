@@ -40,7 +40,7 @@ Refresh the configuration data cached in memory.
 sub refresh_config {
  my $class = shift;
  my $config = shift;
- return 1 if defined($OurUrl) && keys %Bucket2Root > 0;
+ return 1 if defined($OurUrl) && keys %Bucket2Root > 0 && keys %Bucket2Url > 0;
  $config ||= Clustericious::Config->new("Yars");
  $OurUrl = $config->url or WARN "No url found in config file";
  TRACE "Our url is $OurUrl";
@@ -235,6 +235,7 @@ sub server_for {
     my $class = shift;
     my $digest = shift;
     my $found;
+    Yars::Tools->refresh_config unless keys %Bucket2Url > 0;
     for my $i (0..length($digest)) {
         last if $found = $Bucket2Url{ uc substr($digest,0,$i) };
         last if $found = $Bucket2Url{ lc substr($digest,0,$i) };

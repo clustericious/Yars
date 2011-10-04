@@ -78,6 +78,7 @@ sub _tidy_stashed_files {
                     }
                     return unless -f;
                     my $destination_server = Yars::Tools->server_for($md5);
+                    WARN "No server for $md5" unless $destination_server;
                     if ($destination_server eq Yars::Tools->server_url) {
                         return if Yars::Tools->disk_is_down(Yars::Tools->disk_for($md5));
                     } else {
