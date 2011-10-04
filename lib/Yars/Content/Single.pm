@@ -44,13 +44,11 @@ sub parse {
         $disk = Yars::Tools->disk_for($md5) || '/dev/null'; # (/dev/null == not ours)
         $self->content_disk($disk);
     }
-    TRACE "Disk for asset computed as $disk";
 
     return $self->SUPER::parse(@_) if $self->content_disk eq '/dev/null';
     return $self->SUPER::parse(@_) unless Yars::Tools->disk_is_up($disk);
 
     my $tmpdir = join '/', $disk, 'tmp';
-    TRACE "tmpdir for asset will be $tmpdir";
     eval { -d $tmpdir or mkpath $tmpdir };
     if ($@ or ! -d $tmpdir) {
         WARN "Cannot make tmpdir $tmpdir ".($@ || '');
