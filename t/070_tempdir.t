@@ -26,8 +26,6 @@ my $content = 'x' x 1_000_000;
 my $digest = b($content)->md5_sum->to_string;
 my $filename = 'stuff.txt';
 
-$t->get_ok("/")->content_is("welcome to Yars"); # also reads config.
-
 $t->put_ok("/file/$filename", {"Content-MD5" => $digest}, $content)->status_is(201);
 
 my $location = $t->tx->res->headers->location;
