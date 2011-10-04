@@ -30,6 +30,7 @@ for incoming requests.
 sub startup {
     my $self = shift;
     $self->SUPER::startup(@_);
+    Mojo::IOLoop->singleton->connection_timeout(3000);
     $self->hook(after_build_tx => sub {
         my ($tx,$app) = @_;
         my $req = Yars::Message::Request->new();
