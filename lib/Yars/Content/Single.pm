@@ -34,16 +34,23 @@ sub parse {
 
     return $self->SUPER::parse(@_) unless $self->is_parsing_body;
     return $self->SUPER::parse(@_) if $self->asset->isa("Mojo::Asset::File");
-    my $md5 = $self->headers->header("Content-MD5") or return $self->SUPER::parse(@_);
+    my $md5 = $self->headers->header("Content-MD5") or do {
+        TRACE "No md5 in headers";
+        return $self->SUPER::parse(@_);
+    };
 
     my $disk;
     unless ($disk = $self->content_disk) {
         $disk = Yars::Tools->disk_for($md5) || '/dev/null'; # (/dev/null == not ours)
         $self->content_disk($disk);
     }
+    TRACE "Disk for asset computed as $disk";
+
     return $self->SUPER::parse(@_) if $self->content_disk eq '/dev/null';
     return $self->SUPER::parse(@_) unless Yars::Tools->disk_is_up($disk);
+
     my $tmpdir = join '/', $disk, 'tmp';
+    TRACE "tmpdir for asset will be $tmpdir";
     eval { -d $tmpdir or mkpath $tmpdir };
     if ($@ or ! -d $tmpdir) {
         WARN "Cannot make tmpdir $tmpdir ".($@ || '');
@@ -52,6 +59,7 @@ sub parse {
 
     my $tmp = $ENV{MOJO_TMPDIR};
     $ENV{MOJO_TMPDIR} = $tmpdir;
+    TRACE "Set tmpdir to $tmpdir, calling SUPER::parse";
     my $ok = $self->SUPER::parse(@_);
     $ENV{MOJO_TMPDIR} = $tmp;
     return $ok;
