@@ -4,6 +4,8 @@ package Yars;
 
 Yars (Yet Another REST Server)
 
+=over
+
 =cut
 
 use strict;
@@ -16,6 +18,14 @@ use Yars::Content::Single;
 our $VERSION = '0.41';
 
 __PACKAGE__->attr( secret => rand );
+
+=item startup
+
+Called by the server to start up, we change
+the object classes to use Yars::Message::Request
+for incoming requests.
+
+=cut
 
 sub startup {
     my $self = shift;

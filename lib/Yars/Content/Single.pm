@@ -1,3 +1,14 @@
+=head1 NAME
+
+Yars::Content::Single - incoming content
+
+=head1 DESCRIPTION
+
+Just like Mojo::Content::Single, but uses a tempdir
+that is in the right directory.
+
+=cut
+
 package Yars::Content::Single;
 use Clustericious::Log;
 use File::Path qw/mkpath/;
