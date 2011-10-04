@@ -6,6 +6,8 @@ eg/disk_map.conf
 eg/Yars.conf
 lib/Yars.pm
 lib/Yars/Balancer.pm
+lib/Yars/Content/Single.pm
+lib/Yars/Message/Request.pm
 lib/Yars/Routes.pm
 lib/Yars/Tools.pm
 Makefile.PL
@@ -24,6 +26,7 @@ t/030_diskfail.t
 t/040_hostfail.t
 t/050_balance.t
 t/060_mark_down.t
+t/070_tempdir.t
 t/999_pod.t
 t/999_pod_coverage.t
 t/conf2/Yars.conf
