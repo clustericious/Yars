@@ -72,7 +72,7 @@ sub _tidy_stashed_files {
                     $dir =~ s/$disk->{root}//;
                     $dir =~ s[/][]g;
                     my $md5 = $dir;
-                    if (grep { $dir =~ /^$_/i } @belong) {
+                    if (grep { $dir =~ /^$_/i } (@belong,'tmp')) {
                         $File::Find::prune = 1;
                         return;
                     }
