@@ -22,6 +22,8 @@ use File::Basename qw/dirname/;
 use Data::Dumper;
 use Try::Tiny;
 use File::Path qw/mkpath/;
+use File::Temp;
+use File::Compare;
 use strict;
 use warnings;
 
@@ -398,6 +400,28 @@ sub human_size {
     return sprintf( "%.0f%s", $val + 0.5, $unit );
 }
 
+=item content_is_same
+
+Given a filename and an Asset, return true iff the
+content is the same for both.
+
+=cut
+
+sub content_is_same {
+    my $class = shift;
+    my ($filename,$asset) = @_;
+    my $tmp;
+    my $asset_path;
+    if ($asset->isa("Mojo::Asset::File")) {
+        $asset_path = $asset->path;
+    } else {
+        $tmp = File::Temp->new;
+        $asset->move_to("$tmp");
+        $asset_path = "$tmp";
+    }
+    return 1 if compare($filename,$asset_path) == 0;
+    return 0;
+}
 
 1;
 

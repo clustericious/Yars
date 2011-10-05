@@ -196,9 +196,10 @@ put '/file/(.filename)/:md5' => { md5 => 'calculate' } => sub {
         my $abs_path = join '/', $assigned_path, $filename;
         my $location = $c->url_for("file", md5 => $digest, filename => $filename)->to_abs;
         if (-e $abs_path) {
-            my $old = b(Mojo::Asset::File->new(path => $abs_path)->slurp);
-            if (b($old)->md5_sum eq $digest) {
-                if ($old eq $asset->slurp) { # TODO improve
+            TRACE "Found another file at $abs_path, comparing content";
+            my $old_md5 = digest_file_hex($abs_path,"MD5");
+            if ($old_md5 eq $digest) {
+                if (Yars::Tools->content_is_same($abs_path,$asset)) {
                     $c->res->headers->location($location);
                     return $c->render(status => 200, text => 'exists');
                 } else {

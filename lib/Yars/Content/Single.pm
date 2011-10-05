@@ -43,6 +43,7 @@ sub parse {
     unless ($disk = $self->content_disk) {
         Yars::Tools->refresh_config;
         $disk = Yars::Tools->disk_for($md5) || '/dev/null'; # (/dev/null == not ours)
+        TRACE "tmpdir will be put onto $disk";
         $self->content_disk($disk);
     }
 
@@ -58,7 +59,6 @@ sub parse {
 
     my $tmp = $ENV{MOJO_TMPDIR};
     $ENV{MOJO_TMPDIR} = $tmpdir;
-    TRACE "Set tmpdir to $tmpdir, calling SUPER::parse";
     my $ok = $self->SUPER::parse(@_);
     $ENV{MOJO_TMPDIR} = $tmp;
     return $ok;
