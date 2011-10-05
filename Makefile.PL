@@ -8,6 +8,7 @@ WriteMakefile
                            'Clustericious' => '0.67',
                            'Clustericious::Config' => '0.07',
                            'Digest::file' => 0,
+                           'File::Compare' => 0,
                            'File::Copy' => 0,
                            'File::Find' => 0,
                            'File::Find::Rule' => 0,
