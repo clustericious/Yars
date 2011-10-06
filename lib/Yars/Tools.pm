@@ -127,6 +127,7 @@ sub disk_is_up {
     return ($diskStatusCache{$root}{result} = 0) if ( -d $root && ! -w $root);
     return ($diskStatusCache{$root}{result} = 0) if -e "$root.is_down";
     return ($diskStatusCache{$root}{result} = 0) if -e "$root/is_down";
+    return ($diskStatusCache{$root}{result} = 0) if -e "/tmp$root.is_down";
     return ($diskStatusCache{$root}{result} = 1);
 }
 
@@ -210,6 +211,7 @@ sub mark_disk_down {
     return 1 if $class->disk_is_down($root);
     _touch("$root.is_down") and return 1;
     _touch("$root/is_down") and return 1;
+    _touch("/tmp$root/is_down") and return 1;
     -d $root and do { chmod 0555, $root and return 1; };
     ERROR "Could not mark disk $root down";
     return 0;
@@ -224,6 +226,7 @@ sub mark_disk_up {
     };
     -e "$root.is_down" and do { unlink "$root.is_down" or WARN "unlink $root.is_down failed : $!"; };
     -e "$root/is_down" and do { unlink "$root/is_down" or WARN "unlink $root/is_down failed : $!"; };
+    -e "/tmp$root.is_down" and do { unlink "/tmp$root.is_down" or WARN "unlink $root.is_down failed : $!"; };
     return $class->disk_is_up($root);
 }
 
