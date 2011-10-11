@@ -235,6 +235,7 @@ sub _proxy_to {
    DEBUG "Proxying file $filename with md5 $digest to $url/file/$filename/$digest"
       . ( $temporary ? " temporarily" : "" );
    my $headers = $temporary ? { 'X-Yars-Stash' => 1 } : {};
+   $headers->{"Content-MD5"} = $digest;
    $headers->{Connection} = "Close";
    my $tx = $c->ua->build_tx(PUT => "$url/file/$filename/$digest", $headers );
    $tx->req->content->asset($asset);

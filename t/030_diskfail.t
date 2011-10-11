@@ -6,6 +6,7 @@ use warnings;
 use File::Basename qw/dirname/;
 use Test::More;
 use Mojo::ByteStream qw/b/;
+use File::Find::Rule;
 use Yars;
 
 my @urls = ("http://localhost:9051","http://localhost:9052");
@@ -15,6 +16,7 @@ $ENV{CLUSTERICIOUS_TEST_CONF_DIR} = $ENV{CLUSTERICIOUS_CONF_DIR};
 $ENV{PERL5LIB} = join ':', @INC;
 $ENV{PATH} = dirname(__FILE__)."/../blib/script:$ENV{PATH}";
 #$ENV{LOG_LEVEL} = "TRACE";
+$ENV{MOJO_MAX_MEMORY_SIZE} = 10;
 my $root = $ENV{YARS_TMP_ROOT} = File::Temp->newdir(CLEANUP => 1);
 
 sub _sys {
@@ -32,9 +34,9 @@ for my $which (qw/1 2/) {
     my $pid_file = "/tmp/yars_${which}_hypnotoad.pid";
     if (-e $pid_file && kill 0, _slurp($pid_file)) {
         diag "killing running yars $which";
-        _sys("LOG_FILE=/tmp/yars_test_$which.log YARS_WHICH=$which yars stop");
+        _sys("MOJO_MAX_MEMORY_SIZE=1 LOG_FILE=/tmp/yars_test_$which.log YARS_WHICH=$which yars stop");
     }
-    _sys("LOG_FILE=/tmp/yars_test_$which.log YARS_WHICH=$which yars start");
+    _sys("MOJO_MAX_MEMORY_SIZE=1 LOG_FILE=/tmp/yars_test_$which.log YARS_WHICH=$which yars start");
 }
 
 my $ua = Mojo::UserAgent->new();
@@ -43,7 +45,7 @@ is $ua->get($urls[0].'/status')->res->json->{server_url}, $urls[0], "started fir
 is $ua->get($urls[1].'/status')->res->json->{server_url}, $urls[1], "started second server at $urls[1]";
 
 my $i = 0;
-my @contents = <DATA>;
+my @contents = map { $_ x 5000 } <DATA>;
 my @locations;
 my @md5s;
 my @filenames;
@@ -52,18 +54,22 @@ for my $content (@contents) {
     my $filename = "file_numero_$i";
     push @filenames, $filename;
     push @md5s, b($content)->md5_sum;
-    my $tx = $ua->put("$urls[1]/file/$filename", {}, $content);
+    my $tx = $ua->put("$urls[1]/file/$filename", { "Content-MD5" => $md5s[-1] }, $content);
     my $location = $tx->res->headers->location;
     ok $location, "Got location header";
     ok $tx->success, "put $filename to $urls[1]/file/$filename";
     push @locations, $location;
     if ($i==20) {
         # Make a disk unwriteable.
-        ok ( (chmod 0555, "$root/three"), "chmod 0555, $root/three");
+        File::Find::Rule->new->exec(sub {
+             chmod 0555, $_ })->in("$root/three");
+        #ok ( (chmod 0555, "$root/three"), "chmod 0555, $root/three");
     }
     if ($i==60) {
         # Make both disks on one host unwriteable.
-        ok ( (chmod 0555, "$root/four"), "chmod 0555, $root/four");
+        File::Find::Rule->new->exec(sub { chmod 0555, $_ })->in("$root/four");
+        #ok ( (chmod 0555, "$root/four"), "chmod 0555, $root/four");
+        #ok ( (chmod 0555, "$root/four/tmp"), "chmod 0555, $root/four/tmp");
     }
 }
 
