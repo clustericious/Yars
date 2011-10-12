@@ -67,7 +67,6 @@ sub _tidy_stashed_files {
             {
                 no_chdir => 1,
                 wanted   => sub {
-                    return if /\/is_down$/;
                     my $dir = $File::Find::dir;
                     $dir =~ s/$disk->{root}//;
                     $dir =~ s[/][]g;
@@ -223,17 +222,19 @@ sub maybe_start {
 
 sub DESTROY {
     my $self = shift;
-    # remove self from balancer file
-    $self->_remove_pid_from_balancers if $IAmABalancer;
+    # remove self from balancer file quietly (logging doesn't work
+    # well during global destruction)
+    $self->_remove_pid_from_balancers(1) if $IAmABalancer;
     $IAmABalancer = 0;
     $self->SUPER::DESTROY if $self->can("SUPER::DESTROY");
 }
 
 sub _sanity_check_balancer_file {
     my $pids = shift;
+    my $quiet = shift;
     for ( keys %$pids ) {
         kill 0, $_ or do {
-            WARN "balancer $_ is not running, removing from list.";
+            WARN "balancer $_ is not running, removing from list." unless $quiet;
             delete $pids->{$_};
           }
     }
@@ -267,20 +268,21 @@ sub _add_pid_to_balancers {
 
 sub _remove_pid_from_balancers {
     my $self = shift;
+    my $quiet = shift;
     my $filename = $self->balancer_file;
     my $j = Mojo::JSON->new();
     # see perldoc -q lock
-    sysopen my $fh, $filename, O_RDWR or do { WARN "can't open $filename: $!"; return 0; };
-    flock $fh, LOCK_EX                or do { WARN "can't flock $filename: $!"; return 0; };
+    sysopen my $fh, $filename, O_RDWR or do { !$quiet && WARN "can't open $filename: $!"; return 0; };
+    flock $fh, LOCK_EX                or do { !$quiet && WARN "can't flock $filename: $!"; return 0; };
     my $content = do { local $\; <$fh>; };
     my $pids = {};
     $pids = $j->decode($content) if $content;
-    _sanity_check_balancer_file($pids);
-    delete $pids->{$$}             or WARN "PID $$ was not in balancer file";
-    seek $fh, 0, 0                 or do { WARN "can't rewind $filename: $!";   return 0; };
-    truncate $fh, 0                or do { WARN "can't truncate $filename: $!"; return 0; };
-    (print $fh $j->encode($pids))  or do { WARN "can't write $filename: $!";    return 0; };
-    close $fh                      or do { WARN "can't close $filename: $!";    return 0; };
+    _sanity_check_balancer_file($pids,$quiet);
+    delete $pids->{$$}             or do { !$quiet && WARN "PID $$ was not in balancer file"; return 1; };
+    seek $fh, 0, 0                 or do { !$quiet && WARN "can't rewind $filename: $!";   return 0; };
+    truncate $fh, 0                or do { !$quiet && WARN "can't truncate $filename: $!"; return 0; };
+    (print $fh $j->encode($pids))  or do { !$quiet && WARN "can't write $filename: $!";    return 0; };
+    close $fh                      or do { !$quiet && WARN "can't close $filename: $!";    return 0; };
     return 1;
 }
 

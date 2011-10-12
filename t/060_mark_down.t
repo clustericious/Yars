@@ -2,28 +2,35 @@
 
 # t/060_mark_down.t
 
-use File::Temp;
-use strict;
-use warnings;
-
-my $test_files = 20;
-my $root = File::Temp->newdir(CLEANUP => 1);
-
 use Test::More;
 use Test::Mojo;
 use File::Path qw/mkpath/;
 use File::Basename qw/dirname/;
 use Mojo::ByteStream qw/b/;
+use File::Temp;
+use Yars;
 
-sub _touch {
-    my $path = shift;
-    mkpath dirname($path);
-    open my $fp, ">>$path" or die "could not touch $path : $!";
-    close $fp;
-    return 1;
-}
+use strict;
+use warnings;
+$SIG{__WARN__} = \&Carp::cluck;
+
+my $test_files = 20;
+my $root = File::Temp->newdir(CLEANUP => 1);
+
+$ENV{LOG_LEVEL} = "WARN";
 
 my $t = Test::Mojo->new("Yars");
+
+sub _mark_down {
+    my $t = shift;
+    my $which = shift;
+    $t->post_ok("/disk/status",
+        { "Content-Type" => "application/json" },
+        Mojo::JSON->new->encode( { root => "$root/$which", "state" => "down" }))
+               ->status_is(200)
+               ->content_like(qr/ok/);
+}
+
 my $conf = $t->app->config;
 $conf->servers( default => [{
             url   => "http://localhost:9050",
@@ -38,8 +45,11 @@ $conf->servers( default => [{
     ]);
 $conf->{url} = "http://localhost:9050"; # TODO provide a better config api
 $conf->{balance_delay} = 1;
-my $temp = File::Temp->new(UNLINK => 0);
+my $temp = File::Temp->new;
 $conf->{balancer_file} = "$temp";
+my $tempdir = File::Temp->newdir;
+diag "state file will be in $tempdir";
+$conf->{state_file} = "$tempdir/state.txt";
 
 $t->get_ok('/'."got /");
 
@@ -50,8 +60,8 @@ $t->get_ok('/servers/status')->status_is(200)->json_content_is(
     }
 );
 
-_touch "$root/two.is_down";
-_touch "$root/three/is_down";
+_mark_down($t,"two");
+_mark_down($t,"three");
 mkpath "$root/four";
 chmod 0555, "$root/four";
 
@@ -65,12 +75,7 @@ $t->get_ok('/servers/status')->status_is(200)->json_content_is(
     }
 );
 
-
-$t->post_ok("/disk/status",
-    { "Content-Type" => "application/json" },
-    Mojo::JSON->new->encode( { root => "$root/five", "state" => "down" }))
-           ->status_is(200)
-           ->content_like(qr/ok/);
+_mark_down($t,"five");
 
 
 my ($one,$two) = (0,0);

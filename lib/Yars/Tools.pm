@@ -16,7 +16,7 @@ package Yars::Tools;
 use Clustericious::Config;
 use List::Util qw/shuffle/;
 use List::MoreUtils qw/uniq/;
-use Log::Log4perl qw/:easy/;
+use Clustericious::Log;
 use File::Find::Rule;
 use File::Basename qw/dirname/;
 use Data::Dumper;
@@ -24,6 +24,8 @@ use Try::Tiny;
 use File::Path qw/mkpath/;
 use File::Temp;
 use File::Compare;
+use JSON::XS;
+use File::stat qw/stat/;
 use strict;
 use warnings;
 
@@ -32,6 +34,7 @@ our %Bucket2Root; # map buckets to disk roots
 our $OurUrl;      # Our server url
 our %DiskIsLocal; # Our disk roots (values are just 1)
 our %Servers;     # All servers
+our $StateFile;   # Name of file with disk states.
 
 =item refresh_config
 
@@ -58,6 +61,14 @@ sub refresh_config {
         }
     }
  }
+ our $default_dir = $ENV{HARNESS_ACTIVE} ? File::Temp->newdir : "$ENV{HOME}/var/run/yars/state.txt";
+ $StateFile = $config->state_file(default => "$default_dir/state.txt");
+ -e $StateFile or do {
+    INFO "Writing new state file ($StateFile)";
+    my %disks = map { ($_ => "up") } keys %DiskIsLocal;
+    $class->_write_state({disks => \%disks});
+ };
+ -e $StateFile or LOGDIE "Could not write state file $StateFile";
  TRACE "bucket2url : ".Dumper(\%Bucket2Url);
 }
 
@@ -95,40 +106,45 @@ sub disk_for {
     return $Bucket2Root{$bucket};
 }
 
-our %diskStatusCache;
-our $diskStatusCacheLifetime = 3;
+sub _state {
+    my $class = shift;
+    our $mod_time;
+    our $cached;
+    $class->refresh_config() unless $StateFile && -e $StateFile;
+    return $cached if $mod_time && $mod_time == stat($StateFile)->mtime;
+    our $j ||= JSON::XS->new;
+    -e $StateFile or LOGDIE "Missing state file $StateFile";
+    $cached = $j->decode(Mojo::Asset::File->new(path => $StateFile)->slurp);
+    $mod_time = stat($StateFile)->mtime;
+    return $cached;
+}
+
+sub _write_state {
+    my $class = shift;
+    my $state = shift;
+    my $dir = dirname($StateFile);
+    our $j ||= JSON::XS->new;
+    mkpath dirname($dir);
+    Mojo::Asset::File->new->tmpdir($dir)
+      ->add_chunk( $j->encode( $state) )
+      ->move_to($StateFile) or return 0;
+    return 1;
+}
 
 =item disk_is_up
 
 Given a disk root, return true unless the disk is marked down.
-A disk may be marked down in several ways.  If the root is
-/mnt/archive/f0002 then any of the following will indicate
-that the disk is down and should not be written to :
-
-    1. /mnt/archive/f0002 is not writeable.
-    2. The file /mnt/archive/f0002.is_down exists.
-    3. The file /mnt/archive/f0002/is_down exists.
-
-The ability to mark it down in several ways is designed
-to allow one to mark it as down without using a central
-mechanism, and without relying on being able to write
-to the disk.
+A disk is down if the state file indicates it, or if it exists
+but is unwriteable.
 
 =cut
 
 sub disk_is_up {
     my $class = shift;
     my $root = shift;
-    # TODO (tests fail)
-    #if (exists($diskStatusCache{$root}) && $diskStatusCache{$root}{checked} > time - $diskStatusCacheLifetime) {
-    #    return $diskStatusCache{$root}{result};
-    #}
-    $diskStatusCache{$root}{checked} = time;
-    return ($diskStatusCache{$root}{result} = 0) if ( -d $root && ! -w $root);
-    return ($diskStatusCache{$root}{result} = 0) if -e "$root.is_down";
-    return ($diskStatusCache{$root}{result} = 0) if -e "$root/is_down";
-    return ($diskStatusCache{$root}{result} = 0) if -e "/tmp$root.is_down";
-    return ($diskStatusCache{$root}{result} = 1);
+    return 0 if -d $root && ! -w $root;
+    return 1 if $class->_state->{disks}{$root} eq 'up';
+    return 0;
 }
 
 =item disk_is_down
@@ -163,6 +179,7 @@ our $UA;
 our %serverStatusCache;
 our $serverStatusCacheLifetime = 3; # cache results for three seconds
 sub server_is_up {
+    # TODO use state file for this
     my $class = shift;
     my $server_url = shift;
     if (exists($serverStatusCache{$server_url}) && $serverStatusCache{$server_url}{checked} > time - $serverStatusCacheLifetime) {
@@ -209,10 +226,11 @@ sub mark_disk_down {
     my $class = shift;
     my $root = shift;
     return 1 if $class->disk_is_down($root);
-    _touch("$root.is_down") and return 1;
-    _touch("$root/is_down") and return 1;
-    _touch("/tmp$root/is_down") and return 1;
-    -d $root and do { chmod 0555, $root and return 1; };
+    my $state = $class->_state;
+    INFO "Marking disk $root down";
+    exists($state->{disks}{$root}) or WARN "$root not present in state file";
+    $state->{disks}{$root} = 'down';
+    $class->_write_state($state) and return 1;
     ERROR "Could not mark disk $root down";
     return 0;
 }
@@ -221,13 +239,12 @@ sub mark_disk_up {
     my $class = shift;
     my $root = shift;
     return 1 if $class->disk_is_up($root);
-    -d $root and ! -w $root and do {
-        chmod 0775, $root or WARN "chmod $root failed : $!";
-    };
-    -e "$root.is_down" and do { unlink "$root.is_down" or WARN "unlink $root.is_down failed : $!"; };
-    -e "$root/is_down" and do { unlink "$root/is_down" or WARN "unlink $root/is_down failed : $!"; };
-    -e "/tmp$root.is_down" and do { unlink "/tmp$root.is_down" or WARN "unlink $root.is_down failed : $!"; };
-    return $class->disk_is_up($root);
+    my $state = $class->_state;
+    INFO "Marking disk $root up";
+    $state->{disks}{$root} = 'up';
+    $class->_write_state($state) and return 1;
+    ERROR "Could not mark disk up";
+    return 0;
 }
 
 =item server_for
@@ -268,7 +285,7 @@ Optionally pass a second parameter to force it onto a particular disk.
 sub storage_path {
     my $class = shift;
     my $digest = shift;
-    my $root = shift || $class->disk_for($digest) || LOGCONFESS "No local disk for $digest";
+    my $root = shift || $class->disk_for($digest) || LOGDIE "No local disk for $digest";
     return join "/", $root, ( grep length, split /(..)/, $digest );
 }
 
@@ -381,7 +398,7 @@ sub count_files {
     my $class = shift;
     my $dir = shift;
     -d $dir or return 0;
-    my @list = File::Find::Rule->file->not_name("is_down")->in($dir);
+    my @list = File::Find::Rule->file->in($dir);
     return scalar @list;
 }
 

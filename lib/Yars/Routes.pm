@@ -20,7 +20,7 @@ may be useful.
 use strict;
 use warnings;
 use Mojo::ByteStream qw/b/;
-use Log::Log4perl qw/:easy/;
+use Clustericious::Log;
 use File::Path qw/mkpath/;
 use File::Temp;
 use Clustericious::RouteBuilder;
