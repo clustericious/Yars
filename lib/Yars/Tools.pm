@@ -61,7 +61,7 @@ sub refresh_config {
         }
     }
  }
- our $default_dir = $ENV{HARNESS_ACTIVE} ? File::Temp->newdir : "$ENV{HOME}/var/run/yars/state.txt";
+ our $default_dir = $ENV{HARNESS_ACTIVE} ? File::Temp->newdir : "$ENV{HOME}/var/run/yars";
  $StateFile = $config->state_file(default => "$default_dir/state.txt");
  -e $StateFile or do {
     INFO "Writing new state file ($StateFile)";
@@ -124,10 +124,11 @@ sub _write_state {
     my $state = shift;
     my $dir = dirname($StateFile);
     our $j ||= JSON::XS->new;
-    mkpath dirname($dir);
-    Mojo::Asset::File->new->tmpdir($dir)
-      ->add_chunk( $j->encode( $state) )
-      ->move_to($StateFile) or return 0;
+    mkpath $dir;
+    my $temp = File::Temp->new(DIR => $dir, UNLINK => 0);
+    print $temp $j->encode($state);
+    $temp->close;
+    rename "$temp", $StateFile or return 0;
     return 1;
 }
 
