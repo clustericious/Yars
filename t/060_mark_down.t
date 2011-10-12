@@ -48,7 +48,6 @@ $conf->{balance_delay} = 1;
 my $temp = File::Temp->new;
 $conf->{balancer_file} = "$temp";
 my $tempdir = File::Temp->newdir;
-diag "state file will be in $tempdir";
 $conf->{state_file} = "$tempdir/state.txt";
 
 $t->get_ok('/'."got /");
