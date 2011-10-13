@@ -30,6 +30,7 @@ use Yars::Tools;
 use Filesys::Df qw/df/;
 use List::Util qw/shuffle/;
 use Digest::file qw/digest_file_hex/;
+use File::Basename qw/basename/;
 
 # max downloads of 4 GB
 $ENV{MOJO_MAX_MESSAGE_SIZE} = 1073741824 * 4;
@@ -397,6 +398,47 @@ post '/disk/status' => sub {
         /up/   and $success = Yars::Tools->mark_disk_up($root);
     }
     $c->render_text($success ? "ok" : "failed" );
+};
+
+post '/check/manifest' => sub {
+    my $c = shift;
+    $c->app->plugins->run_hook('parse_autodata',$c);
+    my $got = $c->stash('autodata');
+    my $files = $c->stash('files') || [];
+    if (my $manifest = $got->{manifest}) {
+        for my $line (split /\n/, $manifest) {
+            my ($md5,$filename) = split /\s+/, $line;
+            push @$files, +{ md5 => $md5, filename => $filename };
+        }
+    }
+    my %ret = ( missing => [], found => [] );
+    my %remote;
+    for my $entry (@$files) {
+        my ($filename,$md5) = @$entry{qw/filename md5/};
+        $filename = basename($filename);
+        next unless $md5 && $filename;
+        TRACE "checking for $md5 and $filename";
+        my $server = Yars::Tools->server_for($md5);
+        if ($server eq Yars::Tools->server_url) {
+            my $dir = Yars::Tools->storage_path($md5);
+            my $which = -r "$dir/$filename" ? "found" : "missing";
+            push @{ $ret{$which} }, { filename => $filename, md5 => $md5 };
+        } else {
+            push @{ $remote{$server} }, { filename => $filename, md5 => $md5 };
+        }
+    }
+    for my $server (keys %remote) {
+        my $tx = $c->ua->post("$server/check/manifest", { "Content-type" => "application/json" }, Mojo::JSON->new->encode($remote{$server}) );
+        if (my $res = $tx->success) {
+            my $got = $res->json;
+            push @{ $ret{missing} }, @{ $got->{missing} };
+            push @{ $ret{found}   }, @{ $got->{found} };
+        } else {
+            push @{ $ret{missing} }, @{ $remote{$server} };
+        }
+    }
+    # TODO Now check local and remote stashes for all missing files
+    $c->render_json(\%ret);
 };
 
 get '/servers/status' => sub {
