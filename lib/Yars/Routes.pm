@@ -326,7 +326,7 @@ sub _del {
     if ($server eq Yars::Tools->server_url) {
         DEBUG "This is our file, we will delete it.";
         my $dir  = Yars::Tools->storage_path( $md5 );
-        if (-r "$dir/$filename" || ($dir = Yars::Tools->local_stashed_dir($c,$md5,$filename))) {
+        if (-r "$dir/$filename" || ($dir = Yars::Tools->local_stashed_dir($md5,$filename))) {
             unlink "$dir/$filename" or return $c->render_exception($!);
             Yars::Tools->cleanup_tree($dir);
             return $c->render(status => 200, text =>'ok');
@@ -427,6 +427,7 @@ post '/check/manifest' => sub {
             push @{ $remote{$server} }, { filename => $filename, md5 => $md5 };
         }
     }
+
     for my $server (keys %remote) {
         my $content = Mojo::JSON->new->encode({ files => $remote{$server} });
         my $tx = $c->ua->post(
@@ -441,7 +442,18 @@ post '/check/manifest' => sub {
             push @{ $ret{missing} }, @{ $remote{$server} };
         }
     }
-    # TODO Now check local and remote stashes for all missing files
+
+    # Check stashes for missing ones to be sure.
+    my $missing = $ret{missing};
+    for my $i (0..(@$missing-1)) {
+        my $found = Yars::Tools->local_stashed_dir( $missing->[$i]{filename}, $missing->[$i]{md5} )
+         || Yars::Tools->remote_stashed_server( $c, $missing->[$i]{filename}, $missing->[$i]{md5} );
+        next unless $found;
+        WARN "Found stashed file $missing->[$i]{filename}, $missing->[$i]{md5}";
+        my $stashed = splice @$missing, $i, 1;
+        push @{ $ret{found} }, $stashed;
+    }
+
     $c->render_json(\%ret);
 };
 

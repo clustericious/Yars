@@ -310,7 +310,7 @@ sub remote_stashed_server {
         next if $server eq $OurUrl;
         next if $server eq $assigned_server;
         DEBUG "Checking remote $server for $filename";
-        my $tx = $c->ua->head( "$server/file/$filename/$digest", { "X-Yars-Check-Stash" => 1 } );
+        my $tx = $c->ua->head( "$server/file/$filename/$digest", { "X-Yars-Check-Stash" => 1, "Connection" => "Close" } );
         if (my $res = $tx->success) {
             # Found it!
             return $server;

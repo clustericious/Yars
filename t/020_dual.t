@@ -93,12 +93,16 @@ for my $url (@locations) {
     }
 }
 
+$manifest .= "11f488c161221e8a0d689202bc8ce5cd  dummy\n";
+
 my $tx = $ua->post( "$urls[0]/check/manifest", { "Content-Type" => "application/json" },
     Mojo::JSON->new->encode( { manifest => $manifest } ) );
 my $res = $tx->success;
 ok $res, "posted to manifest";
 is $res->code, 200, "got 200 for manifest";
-ok eq_set( $res->json->{missing}, []), "none missing";
+ok eq_set( $res->json->{missing},
+    [ { filename => "dummy", md5 => "11f488c161221e8a0d689202bc8ce5cd" } ] ),
+  "none missing";
 is_deeply (_normalize($res->json->{found}),_normalize(\@filelist),'found all');
 
 for my $url (@locations) {
