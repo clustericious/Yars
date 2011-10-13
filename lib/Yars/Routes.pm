@@ -431,7 +431,7 @@ post '/check/manifest' => sub {
     for my $server (keys %remote) {
         my $content = Mojo::JSON->new->encode({ files => $remote{$server} });
         my $tx = $c->ua->post(
-            "$server/check/manifest",
+            "$server/check/manifest?show_found=1",
             { "Content-type" => "application/json", "Connection" => "Close" }, $content );
         if (my $res = $tx->success) {
             my $got = $res->json;
@@ -454,6 +454,7 @@ post '/check/manifest' => sub {
         push @{ $ret{found} }, $stashed;
     }
 
+    $ret{found} = scalar @{ $ret{found} } unless $c->param("show_found");
     $c->render_json(\%ret);
 };
 
