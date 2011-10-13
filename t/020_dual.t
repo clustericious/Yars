@@ -28,6 +28,12 @@ sub _slurp {
     return join '', @lines;
 }
 
+sub _normalize {
+    my ($one) = @_;
+    return [ sort { $a->{md5} cmp $b->{md5} } @$one ];
+}
+
+
 for my $which (qw/1 2/) {
     my $pid_file = "/tmp/yars_${which}_hypnotoad.pid";
     if (-e $pid_file && kill 0, _slurp($pid_file)) {
@@ -65,10 +71,15 @@ for my $content (@contents) {
     push @locations, $location;
 }
 
+my $manifest;
+my @filelist;
+$i = 0;
 for my $url (@locations) {
-    my $content = shift @contents;
-    my $filename = shift @filenames;
-    my $md5 = shift @digests;
+    my $content  = $contents[$i];
+    my $filename = $filenames[$i];
+    my $md5      = $digests[ $i++ ];
+    $manifest .= "$md5  $filename\n";
+    push @filelist, { filename => $filename, md5 => "$md5" };
     next unless $url; # error will occur above
     {
         my $tx = $ua->get($url);
@@ -80,6 +91,20 @@ for my $url (@locations) {
         my $tx = $ua->head("$urls[0]/file/$md5/$filename");
         ok $tx->success, "head $urls[0]/file/$md5/$filename";
     }
+}
+
+my $tx = $ua->post( "$urls[0]/check/manifest", { "Content-Type" => "application/json" },
+    Mojo::JSON->new->encode( { manifest => $manifest } ) );
+my $res = $tx->success;
+ok $res, "posted to manifest";
+is $res->code, 200, "got 200 for manifest";
+ok eq_set( $res->json->{missing}, []), "none missing";
+is_deeply (_normalize($res->json->{found}),_normalize(\@filelist),'found all');
+
+for my $url (@locations) {
+    my $content  = shift @contents;
+    my $filename = shift @filenames;
+    my $md5      = shift @digests;
     {
         my $tx = $ua->delete("$urls[0]/file/$md5/$filename");
         ok $tx->success, "delete $urls[0]/file/$md5/$filename";
@@ -92,6 +117,7 @@ for my $url (@locations) {
         is $tx->res->code, 404, "Not found after deleting";
     }
 }
+
 
 # Ensure that only one balancer is running.
 my $got = Mojo::Asset::File->new(path => '/tmp/yars_balancers.test')->slurp;

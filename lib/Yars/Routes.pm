@@ -404,7 +404,7 @@ post '/check/manifest' => sub {
     my $c = shift;
     $c->app->plugins->run_hook('parse_autodata',$c);
     my $got = $c->stash('autodata');
-    my $files = $c->stash('files') || [];
+    my $files = $got->{files} || [];
     if (my $manifest = $got->{manifest}) {
         for my $line (split /\n/, $manifest) {
             my ($md5,$filename) = split /\s+/, $line;
@@ -428,12 +428,16 @@ post '/check/manifest' => sub {
         }
     }
     for my $server (keys %remote) {
-        my $tx = $c->ua->post("$server/check/manifest", { "Content-type" => "application/json" }, Mojo::JSON->new->encode($remote{$server}) );
+        my $content = Mojo::JSON->new->encode({ files => $remote{$server} });
+        my $tx = $c->ua->post(
+            "$server/check/manifest",
+            { "Content-type" => "application/json", "Connection" => "Close" }, $content );
         if (my $res = $tx->success) {
             my $got = $res->json;
             push @{ $ret{missing} }, @{ $got->{missing} };
             push @{ $ret{found}   }, @{ $got->{found} };
         } else {
+            ERROR "Failed to connect to $server";
             push @{ $ret{missing} }, @{ $remote{$server} };
         }
     }
