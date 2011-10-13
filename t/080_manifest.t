@@ -40,7 +40,7 @@ $manifest .= "\n";
 $manifest .= join "\n", map "$missing_md5s[$_]  not/there/$missing_filenames[$_]", 0..5;
 
 $t->post_ok(
-    '/check/manifest',
+    '/check/manifest?show_found=1',
     { "Content-Type" => "application/json" },
     Mojo::JSON->new->encode( { manifest => $manifest } )
 )->status_is(200)

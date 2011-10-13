@@ -95,7 +95,7 @@ for my $url (@locations) {
 
 $manifest .= "11f488c161221e8a0d689202bc8ce5cd  dummy\n";
 
-my $tx = $ua->post( "$urls[0]/check/manifest", { "Content-Type" => "application/json" },
+my $tx = $ua->post( "$urls[0]/check/manifest?show_found=1", { "Content-Type" => "application/json" },
     Mojo::JSON->new->encode( { manifest => $manifest } ) );
 my $res = $tx->success;
 ok $res, "posted to manifest";
