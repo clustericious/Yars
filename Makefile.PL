@@ -23,6 +23,7 @@ WriteMakefile
           'INSTALLDIRS' => 'site',
           'EXE_FILES' => [
                            'bin/yars',
+                           'bin/yars_disk_scan',
                            'bin/yars_generate_diskmap'
                          ],
           'PL_FILES' => {}

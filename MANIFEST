@@ -1,4 +1,5 @@
 bin/yars
+bin/yars_disk_scan
 bin/yars_generate_diskmap
 Build.PL
 eg/big_disk_map.conf

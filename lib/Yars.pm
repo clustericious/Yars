@@ -15,7 +15,7 @@ use Yars::Routes;
 use Yars::Balancer;
 use Yars::Message::Request;
 use Yars::Content::Single;
-our $VERSION = '0.51';
+our $VERSION = '0.52';
 
 __PACKAGE__->attr( secret => rand );
 
