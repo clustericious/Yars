@@ -27,6 +27,7 @@ t/040_hostfail.t
 t/050_balance.t
 t/060_mark_down.t
 t/070_tempdir.t
+t/080_manifest.t
 t/999_pod.t
 t/999_pod_coverage.t
 t/conf2/Yars.conf
