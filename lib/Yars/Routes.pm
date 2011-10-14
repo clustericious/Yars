@@ -415,8 +415,10 @@ post '/check/manifest' => sub {
     my %remote;
     for my $entry (@$files) {
         my ($filename,$md5) = @$entry{qw/filename md5/};
+        next unless $md5 && $md5 =~ /^[0-9a-fA-F]+$/;
+        next unless $filename && $filename =~ /\w/;
         $filename = basename($filename);
-        next unless $md5 && $filename;
+        next if $filename =~ m[/];
         TRACE "checking for $md5 and $filename";
         my $server = Yars::Tools->server_for($md5);
         if ($server eq Yars::Tools->server_url) {
@@ -429,6 +431,7 @@ post '/check/manifest' => sub {
     }
 
     for my $server (keys %remote) {
+        TRACE "Looking for manifest files on $server";
         my $content = Mojo::JSON->new->encode({ files => $remote{$server} });
         my $tx = $c->ua->post(
             "$server/check/manifest?show_found=1",
@@ -445,13 +448,20 @@ post '/check/manifest' => sub {
 
     # Check stashes for missing ones to be sure.
     my $missing = $ret{missing};
-    for my $i (0..(@$missing-1)) {
-        my $found = Yars::Tools->local_stashed_dir( $missing->[$i]{filename}, $missing->[$i]{md5} )
-         || Yars::Tools->remote_stashed_server( $c, $missing->[$i]{filename}, $missing->[$i]{md5} );
-        next unless $found;
-        WARN "Found stashed file $missing->[$i]{filename}, $missing->[$i]{md5}";
-        my $stashed = splice @$missing, $i, 1;
-        push @{ $ret{found} }, $stashed;
+    my @are_missing;
+    my @not_missing;
+    for my $m (@$missing) {
+        my $found = Yars::Tools->local_stashed_dir( $m->{filename}, $m->{md5} )
+         || Yars::Tools->remote_stashed_server( $c, $m->{filename}, $m->{md5} );
+        if ($found) {
+            push @not_missing, $m;
+        } else {
+            push @are_missing, $m;
+        }
+    }
+    if (@not_missing) {
+        push @{ $ret{found} }, @not_missing;
+        $ret{missing} = \@are_missing;
     }
 
     $ret{found} = scalar @{ $ret{found} } unless $c->param("show_found");

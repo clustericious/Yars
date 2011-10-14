@@ -149,10 +149,7 @@ sub _tidy_stashed_files {
                     unlink $file_being_moved or
                         WARN "Failed to remove local file $file_being_moved : $!";
                     Yars::Tools->cleanup_tree(dirname($file_being_moved));
-                    undef $file_being_moved;
-                    undef $md5_being_moved;
-                }
-                else {
+                } else {
                     my ( $message, $code ) = $tx->error;
                     ERROR "Could not put to $url : $message"
                       . ( $code ? " (code $code)" : "" );
@@ -160,6 +157,8 @@ sub _tidy_stashed_files {
                         ERROR "Error body: $body";
                     }
                 }
+                undef $file_being_moved;
+                undef $md5_being_moved;
             }
         );
         return;
