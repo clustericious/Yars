@@ -139,11 +139,11 @@ sub _tidy_stashed_files {
         my $name = basename($file_being_moved);
         TRACE "Putting stashed file $name to $destination_server";
         my $url = "$destination_server/file/$name/$md5_being_moved";
-        $UA->put( $url =>
-             { 'X-Yars-NoStash' => 1 } =>
-             Mojo::Asset::File->new( path => $file_being_moved )->slurp =>
-              sub {
-                my ( $self, $tx ) = @_;
+        my $tx = $UA->build_tx(PUT => $url,
+             { 'X-Yars-NoStash' => 1, 'Content-MD5' => $md5_being_moved } );
+        $tx->req->content->asset(Mojo::Asset::File->new(path => $file_being_moved));
+        $tx->res->body(sub {
+                my $tx = shift;
                 if ( my $res = $tx->success ) {
                     TRACE "Successfully put $name to $destination_server";
                     unlink $file_being_moved or
@@ -159,10 +159,10 @@ sub _tidy_stashed_files {
                 }
                 undef $file_being_moved;
                 undef $md5_being_moved;
-            }
-        );
+            });
+        $tx = $UA->start($tx);
         return;
-    }
+    };
 
     WARN "I don't know where file with md5 [$md5_being_moved] belongs, neither local nor remote";
 }
