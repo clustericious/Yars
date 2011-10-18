@@ -140,7 +140,7 @@ sub _tidy_stashed_files {
         TRACE "Putting stashed file $name to $destination_server";
         my $url = "$destination_server/file/$name/$md5_being_moved";
         my $tx = $UA->build_tx(PUT => $url,
-             { 'X-Yars-NoStash' => 1, 'Content-MD5' => $md5_being_moved } );
+             { 'X-Yars-NoStash' => 1, 'Content-MD5' => b(pack 'H*',$md5_being_moved)->b64_encode } );
         $tx->req->content->asset(Mojo::Asset::File->new(path => $file_being_moved));
         $tx->res->body(sub {
                 my $tx = shift;

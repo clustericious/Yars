@@ -14,6 +14,7 @@ that is in the right directory.
 package Yars::Content::Single;
 use Clustericious::Log;
 use File::Path qw/mkpath/;
+use Mojo::ByteStream qw/b/;
 use Mojo::Base 'Mojo::Content::Single';
 
 has 'content_disk' => sub { undef; };
@@ -34,10 +35,11 @@ sub parse {
 
     return $self->SUPER::parse(@_) unless $self->is_parsing_body;
     return $self->SUPER::parse(@_) if $self->asset->isa("Mojo::Asset::File");
-    my $md5 = $self->headers->header("Content-MD5") or do {
+    my $md5_b64 = $self->headers->header("Content-MD5") or do {
         TRACE "No md5 in headers";
         return $self->SUPER::parse(@_);
     };
+    my $md5 = unpack 'H*', b($md5_b64)->b64_decode;
 
     my $disk;
     unless ($disk = $self->content_disk) {

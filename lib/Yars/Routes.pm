@@ -74,7 +74,7 @@ sub _get {
         WARN "Content mismatch, possible disk corruption ($filename), $md5 != $computed";
         return $c->render(text => "content-mismatch", status => 500);
     }
-    $c->res->headers->add("Content-MD5", $computed);
+    $c->res->headers->add("Content-MD5", b(pack 'H*',$computed)->b64_encode);
     $c->app->static->root($dir)->serve($c,$filename);
     $c->rendered;
 };
@@ -134,7 +134,7 @@ sub _get_from_local_stash {
         WARN "Content mismatch, possible disk corruption for stashed file ($filename), $md5 != $computed";
         return 0;
     }
-    $c->res->headers->add("Content-MD5", $computed);
+    $c->res->headers->add("Content-MD5", b(pack 'H*',$computed)->b64_encode);
     $c->app->static->root($dir)->serve($c,$filename);
     $c->rendered;
     return 1;
@@ -236,7 +236,7 @@ sub _proxy_to {
    DEBUG "Proxying file $filename with md5 $digest to $url/file/$filename/$digest"
       . ( $temporary ? " temporarily" : "" );
    my $headers = $temporary ? { 'X-Yars-Stash' => 1 } : {};
-   $headers->{"Content-MD5"} = $digest;
+   $headers->{"Content-MD5"} = b(pack 'H*', $digest)->b64_encode;
    $headers->{Connection} = "Close";
    my $tx = $c->ua->build_tx(PUT => "$url/file/$filename/$digest", $headers );
    $tx->req->content->asset($asset);
