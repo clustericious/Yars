@@ -26,6 +26,7 @@ use File::Temp;
 use File::Compare;
 use JSON::XS;
 use File::stat qw/stat/;
+use Mojo::ByteStream qw/b/;
 use strict;
 use warnings;
 
@@ -443,6 +444,28 @@ sub content_is_same {
     return 1 if compare($filename,$asset_path) == 0;
     return 0;
 }
+
+=item hex2b64, b642hex
+
+Convert from hex to base 64.
+
+=cut
+
+sub hex2b64 {
+    my $class = shift;
+    my $hex = shift;
+    my $b64 = b(pack 'H*', $hex)->b64_encode;
+    local $/="\n";
+    chomp $b64;
+    return $b64;
+}
+
+sub b642hex {
+    my $class = shift;
+    my $b64 = shift;
+    return unpack 'H*', b($b64)->b64_decode;
+}
+
 
 1;
 

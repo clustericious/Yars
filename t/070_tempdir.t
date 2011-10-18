@@ -27,8 +27,8 @@ my $content = 'x' x 1_000_000;
 my $digest = b($content)->md5_sum->to_string;
 my $filename = 'stuff.txt';
 
-diag $digest;
-$t->put_ok("/file/$filename", {"Content-MD5" => b($content)->md5_bytes->b64_encode}, $content)->status_is(201);
+chomp (my $b64 = b($content)->md5_bytes->b64_encode);
+$t->put_ok("/file/$filename", {"Content-MD5" => $b64 }, $content)->status_is(201);
 
 my $location = $t->tx->res->headers->location;
 ok $location, "got location header";
@@ -38,7 +38,8 @@ $ENV{MOJO_TMPDIR} = "/tmp";
 my $got = $t->get_ok("/file/$filename/$digest")->status_is(200)->tx->success->body;
 
 ok $got eq $content, "got content";
-is $t->tx->res->headers->header("Content-MD5"),unpack 'H*', b($digest)->b64_decode;
+chomp (my $header = b($content)->md5_bytes->b64_encode);
+is $t->tx->res->headers->header("Content-MD5"), $header;
 
 $t->delete_ok("/file/$filename/$digest")->status_is(200);
 
