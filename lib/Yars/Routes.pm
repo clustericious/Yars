@@ -382,8 +382,7 @@ get '/disk/usage' => sub {
 
 post '/disk/status' => sub {
     my $c = shift;
-    $c->app->plugins->run_hook('parse_autodata',$c);
-    my $got = $c->stash('autodata');
+    my $got = $c->parse_autodata;
     my $root = $got->{root} || $got->{disk};
     my $state = $got->{state} or return $c->render_exception("no state found in request");
     my $host = $got->{host};
@@ -403,8 +402,7 @@ post '/disk/status' => sub {
 
 post '/check/manifest' => sub {
     my $c = shift;
-    $c->app->plugins->run_hook('parse_autodata',$c);
-    my $got = $c->stash('autodata');
+    my $got = $c->parse_autodata;
     my $files = $got->{files} || [];
     if (my $manifest = $got->{manifest}) {
         for my $line (split /\n/, $manifest) {
