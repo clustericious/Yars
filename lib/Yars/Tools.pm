@@ -196,8 +196,10 @@ sub server_is_up {
         if (defined($got->{server_version}) && length($got->{server_version})) {
             return ($serverStatusCache{$server_url}{result} = 1);
         }
+        TRACE "/status did not return version, got : ".Dumper($got);
+        return ($serverStatusCache{$server_url}{result} = 0);
     }
-    TRACE "No version from $server_url/status";
+    TRACE "Server $server_url is not up : response was ".$tx->error;
     return ($serverStatusCache{$server_url}{result} = 0);
 }
 sub server_is_down {
