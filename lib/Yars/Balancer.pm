@@ -142,8 +142,8 @@ sub _tidy_stashed_files {
         my $tx = $UA->build_tx(PUT => $url,
              { 'X-Yars-NoStash' => 1, 'Content-MD5' => Yars::Tools->hex2b64($md5_being_moved)} );
         $tx->req->content->asset(Mojo::Asset::File->new(path => $file_being_moved));
-        $tx->res->body(sub {
-                my $tx = shift;
+        $UA->start($tx => sub {
+                my ($ua,$tx) = @_;
                 if ( my $res = $tx->success ) {
                     TRACE "Successfully put $name to $destination_server";
                     unlink $file_being_moved or
@@ -160,7 +160,6 @@ sub _tidy_stashed_files {
                 undef $file_being_moved;
                 undef $md5_being_moved;
             });
-        $tx = $UA->start($tx);
         return;
     };
 
@@ -169,9 +168,12 @@ sub _tidy_stashed_files {
 
 sub _balance {
     my $config = shift;
+    Yars::Tools->refresh_config;
     DEBUG "Checking for stashed files (".time.")\n";
     my @disks = map @{ $_->{disks} }, $config->servers;
-    _tidy_stashed_files($_) for grep { Yars::Tools->disk_is_local($_->{root}) } @disks;
+    my @local = grep { Yars::Tools->disk_is_local($_->{root}) } @disks;
+    LOGDIE "No local disks" unless @local;
+    _tidy_stashed_files($_) for @local;
 }
 
 =item init_and_start
@@ -187,14 +189,7 @@ sub init_and_start {
     my $max_balancers = $config->max_balancers(default => 1);
     my $test = $ENV{HARNESS_ACTIVE} ? ".test" : "";
     $self->balancer_file($config->balancer_file(default => "/tmp/yars_balancers$test"));
-    $self->maybe_start or do {
-        Mojo::IOLoop->recurring((60*60*24 + int rand 6000) => sub {
-            # Stagger delay to avoid race conditions
-            $self->maybe_start;
-        });
-
-        return $self;
-    };
+    $self->maybe_start or WARN "Failed to start balancer";
     return $self;
 }
 
@@ -211,11 +206,10 @@ sub maybe_start {
     my $max_balancers = $config->max_balancers(default => 1);
     $self->_add_pid_to_balancers($max_balancers) or return 0;
     return 0 if $IAmABalancer;
-    DEBUG "Starting balancer ($$)";
     $IAmABalancer = 1;
     my $balance_delay = $config->balance_delay(default => 10);
-    my $ioloop = Mojo::IOLoop->singleton;
-    $ioloop->recurring($balance_delay => sub {  _balance($config) });
+    Mojo::IOLoop->recurring( $balance_delay => sub { _balance($config) });
+    WARN "Starting balancer ($$) with interval $balance_delay";
     return 1;
 }
 

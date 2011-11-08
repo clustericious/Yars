@@ -35,12 +35,10 @@ use File::Basename qw/basename/;
 # max downloads of 4 GB
 $ENV{MOJO_MAX_MESSAGE_SIZE} = 1073741824 * 4;
 
-our $balancer;
 ladder sub {
  my $c = shift;
  Yars::Tools->refresh_config($c->config);
- $balancer ||= Yars::Balancer->new(app => $c->app)->init_and_start;
- return 1;
+ 1;
 };
 
 get '/' => sub { shift->render_text("welcome to Yars") } => 'index';

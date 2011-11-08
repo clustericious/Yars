@@ -81,7 +81,7 @@ for my $url (@locations) {
 _sys("YARS_WHICH=2 yars start");
 
 # And let the balancer to do its thing.
-Mojo::IOLoop->timer(20 => sub { Mojo::IOLoop->stop; });
+Mojo::IOLoop->timer(40 => sub { Mojo::IOLoop->stop; });
 Mojo::IOLoop->start;
 # Note -- the time above is a guess, may vary depending on the environment.
 
@@ -93,7 +93,10 @@ for my $host (keys %assigned) {
         diag "failed to get $host/disk/usage?count=1".$tx->error;
         next;
     }
-    is( $res->json->{count}, $assigned{$host}{count}, "$host has the right count" );
+    my $got = $res->json;
+    for my $disk (keys %$got) {
+        is( $got->{$disk}{count}, $assigned{$host}{$disk}{count}, "$host,$disk has the right count ($assigned{$host}{$disk}{count})" );
+    }
 }
 
 _sys("YARS_WHICH=1 yars stop");
