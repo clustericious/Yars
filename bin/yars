@@ -5,12 +5,14 @@ use File::Spec;
 use Clustericious::Log;
 use File::Path qw/mkpath/;
 use Proc::Daemon;
+use Cwd qw/getcwd/;
 
 use lib join '/', File::Spec->splitdir(dirname(__FILE__)), 'lib';
 use lib join '/', File::Spec->splitdir(dirname(__FILE__)), '..', 'lib';
 use lib join '/', File::Spec->splitdir(dirname(__FILE__)), '..', 'lib', 'perl';
 
 use Yars;
+use Yars::Balancer;
 use Clustericious::Commands;
 
 use strict;
@@ -24,55 +26,10 @@ sub main {
     my $cmd = $ARGV[0];
     my $app = Clustericious::Commands->start;
 
-    # TODO: this only runs a maximum of one balancer at a time.
-    _start_balancers($app) if $cmd && $cmd eq 'start';
-    _stop_balancers($app) if $cmd && $cmd eq 'stop';
+    Yars::Balancer->start_balancers($app) if $cmd && $cmd eq 'start';
+    Yars::Balancer->stop_balancers($app) if $cmd && $cmd eq 'stop';
     $app;
 }
 
-sub _new_daemon {
-    my $config = Clustericious::Config->new("Yars");
-    my $args = $config->proc_daemon(
-        default => {
-            pid_file     => "$ENV{HOME}/var/run/balancer.pid",
-            work_dir     => "$ENV{HOME}/var/run/yars_balancer",
-            child_STDOUT => "$ENV{HOME}/var/run/yars_balancer.out.log",
-            child_STDERR => "$ENV{HOME}/var/log/yars_balancer.err.log"
-        }
-    );
-    -d $args->{work_dir} or INFO "making $args->{work_dir}";
-    mkpath $args->{work_dir};
-    my %a = %$args;
-    return Proc::Daemon->new( %a );
-}
 
-sub _start_balancers {
-    my $app = shift;
-    my $daemon = _new_daemon();
-    my $pid = $daemon->Init;
-    INFO "Started balancer $pid" if $pid;
-    if (!$pid) {
-        Mojo::IOLoop->singleton(Mojo::IOLoop->new());
-        # child
-        $Log::Log4perl::Logger::INITIALIZED = 0;
-        $app = Yars->new();
-        $app->init_logging();
-        WARN "Balancer ($$) starting";
-        Yars::Balancer->new(app => $app)->init_and_start;
-        while (1) {
-            Mojo::IOLoop->start;
-            WARN "restarting ioloop";
-            sleep 2;
-        }
-        exit;
-    }
-    sleep 1;
-    kill 0, $pid or WARN "Balancer $pid exited";
-}
-
-sub _stop_balancers {
-    my $app = shift;
-    my $daemon = _new_daemon();
-    $daemon->Kill_Daemon or WARN "Couldn't stop balancer";
-}
 

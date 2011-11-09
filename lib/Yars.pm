@@ -12,7 +12,6 @@ use strict;
 use warnings;
 use base 'Clustericious::App';
 use Yars::Routes;
-use Yars::Balancer;
 use Yars::Message::Request;
 use Yars::Content::Single;
 our $VERSION = '0.54';

@@ -21,10 +21,6 @@ balancers.  e.g. under hypnotoad + nginx there may be
 multiple daemons handling requests.  This parameter
 restricts the number that will also balance stashed files.
 
-balancer_file (/tmp/yars_balancers) : A file used by the
-balancers when starting/exiting in order to keep the maximum
-number <= max_balancers.
-
 =head1 TODO
 
 Maybe use inotify instead of periodically checking
@@ -35,6 +31,7 @@ with File::Find.
 =cut
 
 package Yars::Balancer;
+use Yars;
 use Mojo::Base qw/-base/;
 use List::Util qw/max/;
 use Log::Log4perl qw/:easy/;
@@ -45,9 +42,9 @@ use File::Path qw/mkpath/;
 use Fcntl qw(:DEFAULT :flock);
 use File::Copy qw/move/;
 use File::Basename qw/dirname basename/;
+use Cwd qw/getcwd/;
 
 has 'app';
-has 'balancer_file'; # stores the list of balancers
 
 # Move a maximum of one file at time per unix process.
 my $file_being_moved;
@@ -176,109 +173,78 @@ sub _balance {
     _tidy_stashed_files($_) for @local;
 }
 
-=item init_and_start
+=item init
 
-Initialize and start the balancer.
-
-=cut
-
-our $IAmABalancer = 0;
-sub init_and_start {
-    my $self = shift;
-    my $config = $self->app->config;
-    my $max_balancers = $config->max_balancers(default => 1);
-    my $test = $ENV{HARNESS_ACTIVE} ? ".test" : "";
-    $self->balancer_file($config->balancer_file(default => "/tmp/yars_balancers$test"));
-    $self->maybe_start or WARN "Failed to start balancer";
-    return $self;
-}
-
-=item maybe_start
-
-Start this balancer only if it is not running and the
-number of running balancers is <= the max balancer setting.
+Initialize a daemon, add it to the IOLoop.
 
 =cut
 
-sub maybe_start {
+sub init {
     my $self = shift;
     my $config = $self->app->config;
     my $max_balancers = $config->max_balancers(default => 1);
-    $self->_add_pid_to_balancers($max_balancers) or return 0;
-    return 0 if $IAmABalancer;
-    $IAmABalancer = 1;
     my $balance_delay = $config->balance_delay(default => 10);
     Mojo::IOLoop->recurring( $balance_delay => sub { _balance($config) });
     WARN "Starting balancer ($$) with interval $balance_delay";
     return 1;
 }
 
-sub DESTROY {
-    my $self = shift;
-    # remove self from balancer file quietly (logging doesn't work
-    # well during global destruction)
-    $self->_remove_pid_from_balancers(1) if $IAmABalancer;
-    $IAmABalancer = 0;
-    $self->SUPER::DESTROY if $self->can("SUPER::DESTROY");
+sub _new_daemon {
+    my $config = Clustericious::Config->new("Yars");
+    my $root = $ENV{HARNESS_ACTIVE} ? "/tmp/yars.test.$$.run" : "$ENV{HOME}/var/run/yars";
+    my $root_log = $ENV{HARNESS_ACTIVE} ? "/tmp/yars.test.$$.log" : "$ENV{HOME}/var/log/yars";
+    my $args = $config->proc_daemon(
+        default => {
+            pid_file     => "$root/balancer.pid",
+            work_dir     => ($ENV{HARNESS_ACTIVE} ? getcwd() : "$root/balancer"),
+            child_STDOUT => "$root_log/balancer.out.log",
+            child_STDERR => "$root_log/balancer.err.log"
+        }
+    );
+    -d $args->{work_dir} or do {
+        INFO "making $args->{work_dir}";
+        mkpath $args->{work_dir};
+    };
+    -d dirname($args->{child_STDERR}) or mkpath dirname($args->{child_STDERR});
+    -d dirname($args->{pid_file}) or mkpath dirname($args->{pid_file});
+    my %a = %$args;
+    return Proc::Daemon->new( %a );
 }
 
-sub _sanity_check_balancer_file {
-    my $pids = shift;
-    my $quiet = shift;
-    for ( keys %$pids ) {
-        kill 0, $_ or do {
-            WARN "balancer $_ is not running, removing from list." unless $quiet;
-            delete $pids->{$_};
-          }
+sub start_balancers {
+    # TODO : Currently we only support one daemon.
+    shift->spawn_daemon(@_);
+}
+
+sub spawn_daemon {
+    my $app = shift;
+    my $daemon = _new_daemon();
+    my $pid = $daemon->Init;
+    if (!$pid) {
+        Mojo::IOLoop->singleton(Mojo::IOLoop->new());
+        # child
+        $Log::Log4perl::Logger::INITIALIZED = 0;
+        $app = Yars->new();
+        $app->init_logging();
+        WARN "Balancer ($$) starting";
+        Yars::Balancer->new(app => $app)->init;
+        while (1) {
+            Mojo::IOLoop->start;
+            WARN "restarting ioloop";
+            sleep 2;
+        }
+        exit;
     }
+    INFO "Started balancer $pid";
+    sleep 1;
+    kill 0, $pid or WARN "Balancer $pid exited, see ".$daemon->{child_STDERR};
 }
 
-sub _add_pid_to_balancers {
-    my $self = shift;
-    my ($max_balancers) = @_;
-    my $filename = $self->balancer_file;
-    my $j = Mojo::JSON->new();
-    # see perldoc -q lock
-    sysopen my $fh, $filename, O_RDWR|O_CREAT or LOGDIE "can't open $filename: $!";
-    flock $fh, LOCK_EX                        or LOGDIE "can't flock $filename: $!";
-    my $content = join '', <$fh>;
-    my $pids = {};
-    $pids = $j->decode($content) if $content;
-    _sanity_check_balancer_file($pids);
-    if ( (keys %$pids) >= $max_balancers) {
-        TRACE "Balancer count is ".(keys %$pids)." not starting a new one.";
-        close $fh or LOGDIE "can't close $filename: $!";
-        return 0;
-    }
-    $pids->{$$} = time;
-    my $out = $j->encode($pids);
-    seek $fh, 0, 0    or LOGDIE "can't rewind $filename: $!";
-    truncate $fh, 0   or LOGDIE "can't truncate $filename: $!";
-    (print $fh $out)  or LOGDIE "can't write $filename: $!";
-    close $fh         or LOGDIE "can't close $filename: $!";
-    return 1;
-}
-
-sub _remove_pid_from_balancers {
-    my $self = shift;
-    my $quiet = shift;
-    my $filename = $self->balancer_file;
-    my $j = Mojo::JSON->new();
-    # see perldoc -q lock
-    sysopen my $fh, $filename, O_RDWR or do { !$quiet && WARN "can't open $filename: $!"; return 0; };
-    flock $fh, LOCK_EX                or do { !$quiet && WARN "can't flock $filename: $!"; return 0; };
-    my $content = do { local $\; <$fh>; };
-    my $pids = {};
-    $pids = $j->decode($content) if $content;
-    _sanity_check_balancer_file($pids,$quiet);
-    delete $pids->{$$}             or do { !$quiet && WARN "PID $$ was not in balancer file"; return 1; };
-    seek $fh, 0, 0                 or do { !$quiet && WARN "can't rewind $filename: $!";   return 0; };
-    truncate $fh, 0                or do { !$quiet && WARN "can't truncate $filename: $!"; return 0; };
-    (print $fh $j->encode($pids))  or do { !$quiet && WARN "can't write $filename: $!";    return 0; };
-    close $fh                      or do { !$quiet && WARN "can't close $filename: $!";    return 0; };
-    return 1;
+sub stop_balancers {
+    my $app = shift;
+    my $daemon = _new_daemon();
+    $daemon->Kill_Daemon or WARN "Couldn't stop balancer";
 }
 
 1;
-
 

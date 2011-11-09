@@ -15,7 +15,7 @@ $ENV{CLUSTERICIOUS_TEST_CONF_DIR} = $ENV{CLUSTERICIOUS_CONF_DIR};
 $ENV{PERL5LIB} = join ':', @INC;
 $ENV{PATH} = dirname(__FILE__)."/../blib/script:$ENV{PATH}";
 my $root = $ENV{YARS_TMP_ROOT} = File::Temp->newdir(CLEANUP => 1);
-#$ENV{LOG_LEVEL} = "TRACE";
+$ENV{LOG_LEVEL} = "TRACE";
 
 sub _sys {
     my $cmd = shift;
@@ -126,7 +126,7 @@ for my $url (@locations) {
 # Ensure that only one balancer is running.
 my $got = Mojo::Asset::File->new(path => '/tmp/yars_balancers.test')->slurp;
 my $json = Mojo::JSON->new->decode($got);
-ok ( (keys %$json)==1, "One balancer is running" );
+is scalar (keys %$json), 1, "One balancer is running";
 
 for (keys %$json) {
     ok ( (kill 0, $_), "pid $_ is running");
