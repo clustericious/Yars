@@ -33,7 +33,12 @@ sub _normalize {
     return [ sort { $a->{md5} cmp $b->{md5} } @$one ];
 }
 
-
+# Kill any runaway balancers or daemons.
+for my $pid_file (glob "/tmp/yars.test.$<.*.run/balancer.pid") {
+    my $pid = _slurp($pid_file) or next;
+    diag "killing running balancer $pid";
+    kill 'TERM', $pid;
+}
 for my $which (qw/1 2/) {
     my $pid_file = "/tmp/yars_${which}_hypnotoad.pid";
     if (-e $pid_file && kill 0, _slurp($pid_file)) {
@@ -42,6 +47,8 @@ for my $which (qw/1 2/) {
     }
     _sys("LOG_FILE=/tmp/yars_test.log YARS_WHICH=$which yars start");
 }
+
+
 my $ua = Mojo::UserAgent->new();
 $ua->max_redirects(3);
 is $ua->get($urls[0].'/status')->res->json->{server_url}, $urls[0], "started first server at $urls[0]";
@@ -126,11 +133,11 @@ for my $url (@locations) {
 # Ensure that a balancer is running for each yars.
 my $count;
 for my $pid_file (glob "/tmp/yars.test.$<.*.run/balancer.pid") {
-    my $pid = _slurp($pid_file);
+    my $pid = _slurp($pid_file) or next;
     $count++ if kill 0, $pid;
 }
 
-is $count, 2, "two balancer running";
+is $count, 2, "two balancers running";
 
 _sys("YARS_WHICH=1 yars stop");
 _sys("YARS_WHICH=2 yars stop");
