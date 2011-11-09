@@ -2,6 +2,10 @@
 
 # t/050_balance.t
 
+# TODO: logging doesn't work quite right in this test;
+# balancer logs are in /tmp/yars.test*.log instead of stderr.
+# (when LOG_LEVEL is e.g. TRACE)
+
 use strict;
 use warnings;
 use File::Basename qw/dirname/;
@@ -10,6 +14,8 @@ use Test::More;
 use Test::Mojo;
 use File::Path qw/mkpath/;
 use Mojo::ByteStream qw/b/;
+
+use Yars::Balancer;
 
 my $test_files = 10;
 my $root = File::Temp->newdir(CLEANUP => 1);
@@ -51,12 +57,14 @@ is $json->{"$root/one"}{count}, $test_files;
 is $json->{"$root/two"}{count}, 0;
 
 # Now balance!
-Mojo::IOLoop->timer(10 => sub { Mojo::IOLoop->stop; });
-Mojo::IOLoop->singleton->start;
+Yars::Balancer->start_balancers($t->app);
+sleep 10;
 
 $json = $t->get_ok("/disk/usage?count=1")->status_is(200)->tx->res->json;
 is $json->{"$root/one"}{count}, $one;
 is $json->{"$root/two"}{count}, $two;
+
+Yars::Balancer->stop_balancers($t->app);
 
 done_testing();
 

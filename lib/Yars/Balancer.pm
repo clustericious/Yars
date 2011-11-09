@@ -43,6 +43,7 @@ use Fcntl qw(:DEFAULT :flock);
 use File::Copy qw/move/;
 use File::Basename qw/dirname basename/;
 use Cwd qw/getcwd/;
+use Proc::Daemon;
 
 has 'app';
 
@@ -218,6 +219,7 @@ sub start_balancers {
 }
 
 sub spawn_daemon {
+    my $class = shift;
     my $app = shift;
     my $daemon = _new_daemon();
     my $pid = $daemon->Init;
@@ -225,7 +227,7 @@ sub spawn_daemon {
         Mojo::IOLoop->singleton(Mojo::IOLoop->new());
         # child
         $Log::Log4perl::Logger::INITIALIZED = 0;
-        $app = Yars->new();
+        $app = Yars->new() unless ref $app;
         $app->init_logging();
         WARN "Balancer ($$) starting";
         Yars::Balancer->new(app => $app)->init;

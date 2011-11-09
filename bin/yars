@@ -2,10 +2,6 @@
 
 use File::Basename 'dirname';
 use File::Spec;
-use Clustericious::Log;
-use File::Path qw/mkpath/;
-use Proc::Daemon;
-use Cwd qw/getcwd/;
 
 use lib join '/', File::Spec->splitdir(dirname(__FILE__)), 'lib';
 use lib join '/', File::Spec->splitdir(dirname(__FILE__)), '..', 'lib';
