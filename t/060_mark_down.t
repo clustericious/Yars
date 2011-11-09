@@ -46,7 +46,6 @@ $conf->servers( default => [{
 $conf->{url} = "http://localhost:9050"; # TODO provide a better config api
 $conf->{balance_delay} = 1;
 my $temp = File::Temp->new;
-$conf->{balancer_file} = "$temp";
 my $tempdir = File::Temp->newdir;
 $conf->{state_file} = "$tempdir/state.txt";
 

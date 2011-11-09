@@ -191,8 +191,9 @@ sub init {
 
 sub _new_daemon {
     my $config = Clustericious::Config->new("Yars");
-    my $root = $ENV{HARNESS_ACTIVE} ? "/tmp/yars.test.$$.run" : "$ENV{HOME}/var/run/yars";
-    my $root_log = $ENV{HARNESS_ACTIVE} ? "/tmp/yars.test.$$.log" : "$ENV{HOME}/var/log/yars";
+    my $which = $ENV{YARS_WHICH} || '0';
+    my $root = $ENV{HARNESS_ACTIVE} ? "/tmp/yars.test.$<.$which.run" : "$ENV{HOME}/var/run/yars";
+    my $root_log = $ENV{HARNESS_ACTIVE} ? "/tmp/yars.test.$<.$which.log" : "$ENV{HOME}/var/log/yars";
     my $args = $config->proc_daemon(
         default => {
             pid_file     => "$root/balancer.pid",
@@ -243,7 +244,7 @@ sub spawn_daemon {
 sub stop_balancers {
     my $app = shift;
     my $daemon = _new_daemon();
-    $daemon->Kill_Daemon or WARN "Couldn't stop balancer";
+    $daemon->Kill_Daemon or WARN "Couldn't stop balancer (pid file ".$daemon->{pid_file}.")";
 }
 
 1;

@@ -15,7 +15,7 @@ $ENV{CLUSTERICIOUS_TEST_CONF_DIR} = $ENV{CLUSTERICIOUS_CONF_DIR};
 $ENV{PERL5LIB} = join ':', @INC;
 $ENV{PATH} = dirname(__FILE__)."/../blib/script:$ENV{PATH}";
 my $root = $ENV{YARS_TMP_ROOT} = File::Temp->newdir(CLEANUP => 1);
-$ENV{LOG_LEVEL} = "TRACE";
+$ENV{LOG_LEVEL} = "WARN";
 
 sub _sys {
     my $cmd = shift;
@@ -123,17 +123,30 @@ for my $url (@locations) {
 }
 
 
-# Ensure that only one balancer is running.
-my $got = Mojo::Asset::File->new(path => '/tmp/yars_balancers.test')->slurp;
-my $json = Mojo::JSON->new->decode($got);
-is scalar (keys %$json), 1, "One balancer is running";
-
-for (keys %$json) {
-    ok ( (kill 0, $_), "pid $_ is running");
+# Ensure that a balancer is running for each yars.
+my $count;
+for my $pid_file (glob "/tmp/yars.test.$<.*.run/balancer.pid") {
+    my $pid = _slurp($pid_file);
+    $count++ if kill 0, $pid;
 }
+
+is $count, 2, "two balancer running";
 
 _sys("YARS_WHICH=1 yars stop");
 _sys("YARS_WHICH=2 yars stop");
+
+# Ensure balancers stopped.
+sleep 1;
+$count = 0;
+for my $pid_file (glob "/tmp/yars.test.$<.*.run/balancer.pid") {
+    my $pid = _slurp($pid_file) or next;
+    if (kill 0, $pid) {
+        $count++;
+        diag "Balancer $pid ($pid_file) still running";
+    }
+}
+
+is $count, 0, "no balancers running";
 
 done_testing();
 
