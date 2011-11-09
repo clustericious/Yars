@@ -9,10 +9,10 @@ use File::Basename qw/dirname/;
 use Mojo::ByteStream qw/b/;
 use File::Temp;
 use Yars;
+use Yars::Balancer;
 
 use strict;
 use warnings;
-$SIG{__WARN__} = \&Carp::cluck;
 
 my $test_files = 20;
 my $root = File::Temp->newdir(CLEANUP => 1);
@@ -91,14 +91,14 @@ is $json->{"$root/one"}{count}, $test_files;
 is $json->{"$root/$_"}{count}, 0 for qw/two three four five/;
 
 # Now mark two up and let things balance
+Yars::Balancer->start_balancers($t->app);
 $t->post_ok("/disk/status",
     { "Content-Type" => "application/json" },
     Mojo::JSON->new->encode( { root => "$root/two", "state" => "up" }))
            ->status_is(200)
            ->content_like(qr/ok/);
 
-Mojo::IOLoop->timer(9 => sub { Mojo::IOLoop->stop; });
-Mojo::IOLoop->singleton->start;
+sleep 10;
 
 my $remaining = int($test_files - $two);
 $json = $t->get_ok("/disk/usage?count=1")->status_is(200)->tx->res->json;
@@ -106,5 +106,6 @@ is $json->{"$root/one"}{count}, $remaining;
 is $json->{"$root/two"}{count}, $two;
 is $json->{"$root/$_"}{count}, 0 for qw/three four five/;
 
+Yars::Balancer->stop_balancers($t->app);
 done_testing();
 
