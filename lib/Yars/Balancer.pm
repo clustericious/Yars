@@ -224,7 +224,7 @@ sub spawn_daemon {
     my $daemon = _new_daemon();
     my $pid = $daemon->Init;
     if (!$pid) {
-        Mojo::IOLoop->singleton(Mojo::IOLoop->new());
+        #Mojo::IOLoop->singleton(Mojo::IOLoop->new());
         # child
         $Log::Log4perl::Logger::INITIALIZED = 0;
         $app = Yars->new() unless ref $app;

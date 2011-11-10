@@ -97,11 +97,11 @@ Undef is returned if this file does not belong on the current host.
 sub disk_for {
     my $class = shift;
     my $digest = shift;
-    my ($bucket) = grep { $digest =~ /^$_/i } keys %Bucket2Root;
     unless (keys %Bucket2Root) {
         $class->refresh_config;
         LOGDIE "No config data" unless keys %Bucket2Root > 0;
     }
+    my ($bucket) = grep { $digest =~ /^$_/i } keys %Bucket2Root;
     TRACE "no local disk for $digest in ".(join ' ', keys %Bucket2Root) unless defined($bucket);
     return unless defined($bucket);
     return $Bucket2Root{$bucket};

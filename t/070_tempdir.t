@@ -9,8 +9,9 @@ use Mojo::ByteStream qw/b/;
 use File::Temp;
 use Yars;
 
-$ENV{MOJO_MAX_MEMORY_SIZE} = 1; # Force temp files.
-$ENV{MOJO_TMPDIR} = "/dev/null"; # should be computed during request
+$ENV{MOJO_MAX_MEMORY_SIZE} = 100; # Force temp files.
+#$ENV{MOJO_TMPDIR} = "/dev/null"; # should be computed during request
+$ENV{MOJO_TMPDIR} = "/tmp/nodir";
 
 my $t = Test::Mojo->new('Yars');
 my $root = File::Temp->newdir(CLEANUP => 1);
@@ -22,6 +23,8 @@ $t->app->config->servers(
 $t->app->config->{url} = $t->ua->test_server;
 $t->app->config->servers->[0]{url} = $t->app->config->{url};
 Clustericious::Config->set_singleton(Yars => $t->app->config);
+
+$t->get_ok("/")->status_is(200);
 
 my $content = 'x' x 1_000_000;
 my $digest = b($content)->md5_sum->to_string;
