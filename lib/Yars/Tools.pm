@@ -62,7 +62,9 @@ sub refresh_config {
         }
     }
  }
- our $default_dir = $ENV{HARNESS_ACTIVE} ? File::Temp->newdir : "$ENV{HOME}/var/run/yars";
+our $default_dir = $ENV{HARNESS_ACTIVE}
+  ? File::Temp->newdir( "/tmp/yars.test.$<.XXXXXX" )
+  : "$ENV{HOME}/var/run/yars";
  $StateFile = $config->state_file(default => "$default_dir/state.txt");
  -e $StateFile or do {
     INFO "Writing new state file ($StateFile)";
@@ -439,12 +441,13 @@ sub content_is_same {
     if ($asset->isa("Mojo::Asset::File")) {
         $asset_path = $asset->path;
     } else {
-        $tmp = File::Temp->new;
+        $tmp = File::Temp->new(UNLINK => 0);
         $asset->move_to("$tmp");
         $asset_path = "$tmp";
     }
-    return 1 if compare($filename,$asset_path) == 0;
-    return 0;
+    my $check = ( compare($filename,$asset_path) == 0 );
+    unlink $tmp if $tmp;
+    return $check;
 }
 
 =item hex2b64, b642hex
