@@ -7,8 +7,6 @@ eg/disk_map.conf
 eg/Yars.conf
 lib/Yars.pm
 lib/Yars/Balancer.pm
-lib/Yars/Content/Single.pm
-lib/Yars/Message/Request.pm
 lib/Yars/Routes.pm
 lib/Yars/Tools.pm
 Makefile.PL

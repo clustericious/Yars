@@ -29,7 +29,6 @@ $conf->servers( default => [{
                 { root => "$root/two",   buckets => [ qw/8 9 A B C D E F/ ] },
             ]}]);
 $conf->{balance_delay} = 1;
-my $temp = File::Temp->new(UNLINK => 0);
 $conf->{url} = "http://localhost:9050"; # not used
 
 $t->get_ok('/'."got /");
