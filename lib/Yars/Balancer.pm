@@ -21,11 +21,6 @@ balancers.  e.g. under hypnotoad + nginx there may be
 multiple daemons handling requests.  This parameter
 restricts the number that will also balance stashed files.
 
-=head1 TODO
-
-Maybe use inotify instead of periodically checking
-with File::Find.
-
 =over
 
 =cut
@@ -213,12 +208,18 @@ sub _new_daemon {
     return Proc::Daemon->new( %a );
 }
 
+=item start_balancers
+
+Start balancer daemons.
+
+=cut
+
 sub start_balancers {
     # TODO : Currently we only support one daemon.
-    shift->spawn_daemon(@_);
+    shift->_spawn_daemon(@_);
 }
 
-sub spawn_daemon {
+sub _spawn_daemon {
     my $class = shift;
     my $app = shift;
     my $daemon = _new_daemon();
@@ -243,11 +244,26 @@ sub spawn_daemon {
     kill 0, $pid or WARN "Balancer $pid exited, see ".$daemon->{child_STDERR};
 }
 
+=item stop_balancers
+
+Stop balancer daemons.
+
+=cut
+
 sub stop_balancers {
     my $app = shift;
     my $daemon = _new_daemon();
     $daemon->Kill_Daemon or WARN "Couldn't stop balancer (pid file ".$daemon->{pid_file}.")";
 }
+
+=back
+
+=head1 TODO
+
+Maybe use inotify instead of periodically checking
+with File::Find.
+
+=cut
 
 1;
 
