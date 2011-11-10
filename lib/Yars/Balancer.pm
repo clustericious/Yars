@@ -188,8 +188,8 @@ sub init {
 sub _new_daemon {
     my $config = Clustericious::Config->new("Yars");
     my $which = $ENV{YARS_WHICH} || '0';
-    my $root = $ENV{HARNESS_ACTIVE} ? "/tmp/yars.test.$<.$which.run" : "$ENV{HOME}/var/run/yars";
-    my $root_log = $ENV{HARNESS_ACTIVE} ? "/tmp/yars.test.$<.$which.log" : "$ENV{HOME}/var/log/yars";
+    my $root = $ENV{HARNESS_ACTIVE} ? "/tmp/yars.test.$<.$which.rundir" : "$ENV{HOME}/var/run/yars";
+    my $root_log = $ENV{HARNESS_ACTIVE} ? "/tmp/yars.test.$<.$which.logdir" : "$ENV{HOME}/var/log/yars";
     my $args = $config->proc_daemon(
         default => {
             pid_file     => "$root/balancer.pid",

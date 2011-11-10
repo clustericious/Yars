@@ -24,7 +24,7 @@ sub _sys {
     system($cmd)==0 or die "Error running $cmd : $!";
 }
 
-_sys("LOG_FILE=/tmp/yars_tmpdir.log yars start");
+_sys("LOG_FILE=/tmp/yars.test.$<.log yars start");
 
 my $url = "http://localhost:9059";
 
@@ -48,6 +48,6 @@ my $res;
 ok $res = $got->success, "got $url";
 is length($res->body), length($content), "content lengths match";
 
-_sys("LOG_FILE=/tmp/yars_tmpdir.log yars stop");
+_sys("LOG_FILE=/tmp/yars.test.$<.log yars stop");
 
 done_testing();
