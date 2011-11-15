@@ -2,7 +2,7 @@
 abstract: 'Yars Server'
 author: []
 build_requires:
-  Clustericious: 0.67
+  Clustericious: 0.74
   Clustericious::Config: 0.07
   Digest::file: 0
   File::Compare: 0
@@ -12,7 +12,7 @@ build_requires:
   Filesys::Df: 0
   List::MoreUtils: 0
   List::Util: 0
-  Mojolicious: 1.89
+  Mojolicious: 2.26
   Test::More: 0
   Test::Pod::Coverage: 0
   Try::Tiny: 0
@@ -27,17 +27,13 @@ name: Yars
 provides:
   Yars:
     file: lib/Yars.pm
-    version: 0.54
+    version: 0.55
   Yars::Balancer:
     file: lib/Yars/Balancer.pm
-  Yars::Content::Single:
-    file: lib/Yars/Content/Single.pm
-  Yars::Message::Request:
-    file: lib/Yars/Message/Request.pm
   Yars::Routes:
     file: lib/Yars/Routes.pm
   Yars::Tools:
     file: lib/Yars/Tools.pm
 resources:
   license: http://dev.perl.org/licenses/
-version: 0.54
+version: 0.55

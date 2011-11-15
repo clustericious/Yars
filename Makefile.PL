@@ -5,7 +5,7 @@ WriteMakefile
           'NAME' => 'Yars',
           'VERSION_FROM' => 'lib/Yars.pm',
           'PREREQ_PM' => {
-                           'Clustericious' => '0.67',
+                           'Clustericious' => '0.74',
                            'Clustericious::Config' => '0.07',
                            'Digest::file' => 0,
                            'File::Compare' => 0,
@@ -15,7 +15,7 @@ WriteMakefile
                            'Filesys::Df' => 0,
                            'List::MoreUtils' => 0,
                            'List::Util' => 0,
-                           'Mojolicious' => '1.89',
+                           'Mojolicious' => '2.26',
                            'Test::More' => 0,
                            'Test::Pod::Coverage' => 0,
                            'Try::Tiny' => 0
