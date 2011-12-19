@@ -29,7 +29,11 @@ for incoming requests.
 
 sub startup {
     my $self = shift;
-    Mojo::IOLoop->singleton->connection_timeout(3000);
+    if ($Mojolicious::VERSION >= 2.37) {
+        Mojo::IOLoop::Stream->timeout(3000);
+    } else {
+        Mojo::IOLoop->singleton->connection_timeout(3000);
+    }
     $self->hook(
         after_build_tx => sub {
             my ( $tx, $app ) = @_;
