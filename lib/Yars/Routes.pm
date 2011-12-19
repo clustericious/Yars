@@ -43,8 +43,8 @@ ladder sub {
 
 get '/' => sub { shift->render_text("welcome to Yars") } => 'index';
 
-get  '/file/(.filename)/:md5' => [ md5 => qr/[a-z0-9]{32}/ ] => \&_get;
-get  '/file/:md5/(.filename)' => [ md5 => qr/[a-z0-9]{32}/ ] => \&_get => "file";
+get  '/file/(.filename)/:md5' => [ md5 => qr/[a-f0-9]{32}/ ] => \&_get;
+get  '/file/:md5/(.filename)' => [ md5 => qr/[a-f0-9]{32}/ ] => \&_get => "file";
 sub _get {
     my $c        = shift;
     my $filename = $c->stash("filename");
@@ -310,8 +310,8 @@ sub _stash_remotely {
     return 0;
 }
 
-del '/file/(.filename)/:md5' => [ md5 => qr/[a-z0-9]{32}/ ] => \&_del;
-del '/file/:md5/(.filename)' => [ md5 => qr/[a-z0-9]{32}/ ] => \&_del;
+del '/file/(.filename)/:md5' => [ md5 => qr/[a-f0-9]{32}/ ] => \&_del;
+del '/file/:md5/(.filename)' => [ md5 => qr/[a-f0-9]{32}/ ] => \&_del;
 
 sub _del {
     my $c        = shift;
@@ -325,7 +325,7 @@ sub _del {
     if ($server eq Yars::Tools->server_url) {
         DEBUG "This is our file, we will delete it.";
         my $dir  = Yars::Tools->storage_path( $md5 );
-        if (-r "$dir/$filename" || ($dir = Yars::Tools->local_stashed_dir($md5,$filename))) {
+        if (-r "$dir/$filename" || ($dir = Yars::Tools->local_stashed_dir($filename,$md5))) {
             unlink "$dir/$filename" or return $c->render_exception($!);
             Yars::Tools->cleanup_tree($dir);
             return $c->render(status => 200, text =>'ok');
