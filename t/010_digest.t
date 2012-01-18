@@ -17,7 +17,7 @@ $t->app->config->servers(
         disks => [ { root => $root, buckets => [ '0' .. '9', 'A' .. 'F' ] } ]
     }]
 );
-$t->app->config->{url} = $t->ua->test_server;
+$t->app->config->{url} = $t->ua->app_url;
 $t->app->config->servers->[0]{url} = $t->app->config->{url};
 
 my $content = 'Yabba Dabba Dooo!';

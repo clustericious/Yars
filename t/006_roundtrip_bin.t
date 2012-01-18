@@ -21,7 +21,7 @@ $t->app->config->servers(
         }
     ]
 );
-$t->app->config->{url} = $t->ua->test_server;
+$t->app->config->{url} = $t->ua->app_url;
 $t->app->config->servers->[0]{url} = $t->app->config->{url};
 
 local $/ = undef;
