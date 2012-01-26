@@ -385,6 +385,9 @@ post '/disk/status' => sub {
     my $state = $got->{state} or return $c->render_exception("no state found in request");
     my $host = $got->{host};
     if ($host && $host ne Yars::Tools->server_url) {
+        unless (Yars::Tools->server_exists($host)) {
+            return $c->render( status => 400, text => "Server $host does not exist" );
+        }
         WARN "Sending ".$c->req->body;
         my $tx = $c->ua->post("$host/disk/status", $c->req->headers->to_hash, ''.$c->req->body );
         return $c->render_text( $tx->success ? $tx->res->body : 'failed '.$tx->error );

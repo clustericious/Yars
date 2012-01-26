@@ -346,6 +346,18 @@ sub local_stashed_dir {
     return '';
 }
 
+=item server_exists
+
+Does this server exist?
+
+=cut
+
+sub server_exists {
+    my $class = shift;
+    my $server_url = shift;
+    return exists($Servers{$server_url}) ? 1 : 0;
+}
+
 =item server_url
 
 Returns the url of the current server.

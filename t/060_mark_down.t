@@ -106,6 +106,12 @@ is $json->{"$root/one"}{count}, $remaining;
 is $json->{"$root/two"}{count}, $two;
 is $json->{"$root/$_"}{count}, 0 for qw/three four five/;
 
+# Ensure an invalid host causes an exception, not a request loop
+$t->post_ok("/disk/status",
+    { "Content-Type" => "application/json" },
+    Mojo::JSON->new->encode( { host => "http://101.010.0.0", root => "foo/bar", "state" => "up" }))
+           ->status_is(400);
+
 Yars::Balancer->stop_balancers($t->app);
 done_testing();
 
