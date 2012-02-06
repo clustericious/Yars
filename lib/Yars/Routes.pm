@@ -209,6 +209,12 @@ put '/file/(.filename)/:md5' => { md5 => 'calculate' } => sub {
             }
             DEBUG "md5 of content in $abs_path was incorrect; replacing corrupt file"
         }
+        if (my $existing = _other_files_in_path( $assigned_path ) ) {
+            if (_make_link($existing,"$assigned_path/$filename")) {
+                $c->res->headers->location($location);
+                return $c->render(status => 201, text => 'ok'); # CREATED
+            }
+        }
         if (_atomic_write( $assigned_path , $filename, $asset ) ) {
             # Normal situation.
             $c->res->headers->location($location);
@@ -225,6 +231,20 @@ put '/file/(.filename)/:md5' => { md5 => 'calculate' } => sub {
       or _stash_remotely( $c, $filename, $digest, $asset )
       or $c->render_exception("could not store or stash remotely");
 };
+
+sub _other_files_in_path {
+    my $path = shift;
+    my @found = glob ("$path/*") or return;
+    return $found[0];
+}
+
+sub _make_link {
+    my ($old,$new) = @_;
+    DEBUG "Making a hard link for $new";
+    my $status = link($old,$new);
+    WARN "Failed to link $old to $new : $!" unless $status;
+    return $status;
+}
 
 sub _proxy_to {
     my ($c, $url,$filename,$digest,$asset,$temporary) = @_;
