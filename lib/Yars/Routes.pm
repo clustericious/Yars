@@ -362,6 +362,7 @@ sub _del {
         return $c->render(status => 200, text => "ok");
     } else  {
         my ($msg,$code) = $tx->error;
+        return $c->render(status => $code, text => $msg) if $code;
         return $c->render_exception("Error deleting from $server ".$tx->error);
     }
 };
