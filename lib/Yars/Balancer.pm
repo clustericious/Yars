@@ -39,6 +39,7 @@ use File::Copy qw/move/;
 use File::Basename qw/dirname basename/;
 use Cwd qw/getcwd/;
 use Proc::Daemon;
+use Clustericious::Config;
 
 has 'app';
 
@@ -178,7 +179,6 @@ Initialize a daemon, add it to the IOLoop.
 sub init {
     my $self = shift;
     my $config = $self->app->config;
-    my $max_balancers = $config->max_balancers(default => 1);
     my $balance_delay = $config->balance_delay(default => 10);
     Mojo::IOLoop->recurring( $balance_delay => sub { _balance($config) });
     WARN "Starting balancer ($$) with interval $balance_delay";
@@ -186,18 +186,19 @@ sub init {
 }
 
 sub _new_daemon {
+    my $balancer_id = shift || '';
+    # balancer 0 uses the empty string (for backwards compatibility)
     my $config = Clustericious::Config->new("Yars");
     my $which = $ENV{YARS_WHICH} || '0';
     my $root = $ENV{HARNESS_ACTIVE} ? "/tmp/yars.test.$<.$which.rundir" : "$ENV{HOME}/var/run/yars";
     my $root_log = $ENV{HARNESS_ACTIVE} ? "/tmp/yars.test.$<.$which.logdir" : "$ENV{HOME}/var/log/yars";
-    my $args = $config->proc_daemon(
-        default => {
-            pid_file     => "$root/balancer.pid",
-            work_dir     => ($ENV{HARNESS_ACTIVE} ? getcwd() : "$root/balancer"),
-            child_STDOUT => "$root_log/balancer.out.log",
-            child_STDERR => "$root_log/balancer.err.log"
-        }
-    );
+    my $args = $config->proc_daemon( default => 0);
+    $args ||= {
+            pid_file     => "$root/balancer$balancer_id.pid",
+            work_dir     => ($ENV{HARNESS_ACTIVE} ? getcwd() : "$root/balancer$balancer_id"),
+            child_STDOUT => "$root_log/balancer$balancer_id.out.log",
+            child_STDERR => "$root_log/balancer$balancer_id.err.log"
+    };
     -d $args->{work_dir} or do {
         INFO "making $args->{work_dir}";
         mkpath $args->{work_dir};
@@ -215,14 +216,22 @@ Start balancer daemons.
 =cut
 
 sub start_balancers {
-    # TODO : Currently we only support one daemon.
-    shift->_spawn_daemon(@_);
+    my $self = shift;
+    my $app  = shift;
+    my $config = Clustericious::Config->new("Yars");
+    my $max_balancers = $config->max_balancers(default => 1);
+    WARN "Max balancers : $max_balancers";
+    for (0..$max_balancers-1) {
+        $self->_spawn_daemon($app,$_);
+    }
 }
 
 sub _spawn_daemon {
     my $class = shift;
     my $app = shift;
-    my $daemon = _new_daemon();
+    my $balancer_id = shift;
+
+    my $daemon = _new_daemon($balancer_id);
     my $pid = $daemon->Init;
     if (!$pid) {
         #Mojo::IOLoop->singleton(Mojo::IOLoop->new());
@@ -252,8 +261,11 @@ Stop balancer daemons.
 
 sub stop_balancers {
     my $app = shift;
-    my $daemon = _new_daemon();
-    $daemon->Kill_Daemon or WARN "Couldn't stop balancer (pid file ".$daemon->{pid_file}.")";
+    my $config = Clustericious::Config->new("Yars");
+    for ( 0 .. ( $config->max_balancers(default => 1) - 1 ) ) {
+        my $daemon = _new_daemon($_);
+        $daemon->Kill_Daemon or WARN "Couldn't stop balancer (pid file " . $daemon->{pid_file} . ")";
+    }
 }
 
 =back
