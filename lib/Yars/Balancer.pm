@@ -220,7 +220,7 @@ sub start_balancers {
     my $app  = shift;
     my $config = Clustericious::Config->new("Yars");
     my $max_balancers = $config->max_balancers(default => 1);
-    WARN "Max balancers : $max_balancers";
+    INFO "Max balancers : $max_balancers";
     for (0..$max_balancers-1) {
         $self->_spawn_daemon($app,$_);
     }
