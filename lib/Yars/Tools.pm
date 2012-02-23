@@ -311,7 +311,7 @@ sub remote_stashed_server {
 
     my $assigned_server = Yars::Tools->server_for($digest);
     # TODO broadcast these requests all at once
-    for my $server (shuffle keys %Servers) {
+    for my $server (shuffle(keys %Servers)) {
         next if $server eq $OurUrl;
         next if $server eq $assigned_server;
         DEBUG "Checking remote $server for $filename";
@@ -338,7 +338,7 @@ Returns :
 sub local_stashed_dir {
     my $class = shift;
     my ($filename,$md5) = @_;
-    for my $root ( shuffle keys %DiskIsLocal ) {
+    for my $root ( shuffle(keys %DiskIsLocal)) {
         my $dir = Yars::Tools->storage_path($md5,$root);
         TRACE "Checking for $dir/$filename";
         return $dir if -r "$dir/$filename";

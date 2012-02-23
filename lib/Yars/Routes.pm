@@ -294,7 +294,7 @@ sub _stash_locally {
     DEBUG "Stashing $filename locally";
     my $assigned_root = Yars::Tools->disk_for($digest);
     my $wrote;
-    for my $root ( shuffle Yars::Tools->disk_roots ) {
+    for my $root (shuffle(Yars::Tools->disk_roots)) {
         next if $assigned_root && ($root eq $assigned_root);
         unless (Yars::Tools->disk_is_up($root)) {
             DEBUG "local disk $root is down, cannot stash $filename there.";
@@ -322,7 +322,7 @@ sub _stash_remotely {
     # Returns false or renders the response.
     DEBUG "Stashing $filename remotely.";
     my $assigned_server = Yars::Tools->server_for($digest);
-    for my $server (shuffle Yars::Tools->server_urls) {
+    for my $server (shuffle(Yars::Tools->server_urls)) {
         next if $server eq Yars::Tools->server_url;
         next if $server eq $assigned_server;
         _proxy_to( $c, $server, $filename, $digest, $asset, 1 ) and return 1;
