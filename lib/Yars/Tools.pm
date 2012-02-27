@@ -448,17 +448,15 @@ content is the same for both.
 sub content_is_same {
     my $class = shift;
     my ($filename,$asset) = @_;
-    my $tmp;
-    my $asset_path;
+    my $check;
     if ($asset->isa("Mojo::Asset::File")) {
-        $asset_path = $asset->path;
+        $asset->handle->flush;
+        $check = ( compare($filename,$asset->path) == 0 );
     } else {
-        $tmp = File::Temp->new(UNLINK => 0);
-        $asset->move_to("$tmp");
-        $asset_path = "$tmp";
+        # Memory asset.  Assume that if one can fit in memory, two can, too.
+        my $existing = Mojo::Asset::File->new(path => $filename);
+        $check = ( $existing->size == $asset->size && $asset->slurp eq $existing->slurp );
     }
-    my $check = ( compare($filename,$asset_path) == 0 );
-    unlink $tmp if $tmp;
     return $check;
 }
 
