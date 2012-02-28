@@ -16,6 +16,7 @@ package Yars::Tools;
 use Clustericious::Config;
 use List::Util qw/shuffle/;
 use List::MoreUtils qw/uniq/;
+use Hash::MoreUtils qw/safe_reverse/;
 use Clustericious::Log;
 use File::Find::Rule;
 use File::Basename qw/dirname/;
@@ -107,6 +108,13 @@ sub disk_for {
     TRACE "no local disk for $digest in ".(join ' ', keys %Bucket2Root) unless defined($bucket);
     return unless defined($bucket);
     return $Bucket2Root{$bucket};
+}
+
+sub local_buckets {
+    shift->refresh_config unless keys %Bucket2Root;
+    my %r = safe_reverse \%Bucket2Root;
+    do {$_ = [ $_ ] unless ref $_} for values %r;
+    return %r;
 }
 
 sub _state {

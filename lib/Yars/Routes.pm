@@ -370,9 +370,16 @@ sub _del {
 get '/disk/usage' => sub {
     my $c = shift;
     my $count = $c->param("count") ? 1 : 0;
+    if ( my $server = $c->param('server') ) {
+        if (    Yars::Tools->server_exists($server)
+            and Yars::Tools->server_url ne $server ) {
+            return $c->redirect_to("$server/disk/usage?count=$count");
+        }
+    }
+
     my %r;
     for my $disk (Yars::Tools->disk_roots) {
-        if ( my $df = df($disk)) {
+        if (defined( my $df = df($disk))) {
             $r{$disk} = {
                     '1K-blocks'  => $df->{blocks},
                     blocks_used  => $df->{used},
@@ -382,7 +389,10 @@ get '/disk/usage' => sub {
                     space_avail  => Yars::Tools->human_size($df->{bavail}*1024),
                     percent_used => sprintf('%02d',(100*($df->{blocks} - $df->{bavail})/($df->{blocks}))).'%',
                 };
-        };
+        } else {
+            WARN "Error getting usage for disk $disk";
+            WARN "$disk does not exist" unless -d $disk;
+        }
         $r{$disk}{count} = Yars::Tools->count_files($disk) if $count;
     }
     return $c->render_json(\%r) unless $c->param('all');
@@ -404,13 +414,13 @@ post '/disk/status' => sub {
     my $got = $c->parse_autodata;
     my $root = $got->{root} || $got->{disk};
     my $state = $got->{state} or return $c->render_exception("no state found in request");
-    my $host = $got->{host};
-    if ($host && $host ne Yars::Tools->server_url) {
-        unless (Yars::Tools->server_exists($host)) {
-            return $c->render( status => 400, text => "Server $host does not exist" );
+    my $server = $got->{server};
+    if ($server && $server ne Yars::Tools->server_url) {
+        unless (Yars::Tools->server_exists($server)) {
+            return $c->render( status => 400, text => "Server $server does not exist" );
         }
         WARN "Sending ".$c->req->body;
-        my $tx = $c->ua->post("$host/disk/status", $c->req->headers->to_hash, ''.$c->req->body );
+        my $tx = $c->ua->post("$server/disk/status", $c->req->headers->to_hash, ''.$c->req->body );
         return $c->render_text( $tx->success ? $tx->res->body : 'failed '.$tx->error );
     }
     Yars::Tools->disk_is_local($root) or return $c->render_exception("Disk $root is not on ".Yars::Tools->server_url);
@@ -514,5 +524,22 @@ get '/bucket_map' => sub {
     my $c = shift;
     $c->render_json(Yars::Tools->bucket_map)
 };
+
+get '/bucket/usage' => sub {
+    my $c = shift;
+    if ( my $server = $c->param('server') ) {
+        if (    Yars::Tools->server_exists($server)
+            and Yars::Tools->server_url ne $server ) {
+            return $c->redirect_to("$server/bucket/usage");
+        }
+    }
+    my %used;
+    for my $disk (Yars::Tools->disk_roots) {
+        $used{$disk} = [ map /\/([0-9a-f]+)$/, glob "$disk/*" ];
+    }
+    my %assigned = Yars::Tools->local_buckets;
+    $c->render_json({ used => \%used, assigned => \%assigned } );
+};
+
 
 1;
