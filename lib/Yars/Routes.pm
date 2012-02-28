@@ -29,6 +29,7 @@ use Data::Dumper;
 use Yars::Tools;
 use Filesys::Df qw/df/;
 use List::Util qw/shuffle/;
+use List::MoreUtils qw/uniq/;
 use Digest::file qw/digest_file_hex/;
 use File::Basename qw/basename/;
 
@@ -534,10 +535,22 @@ get '/bucket/usage' => sub {
         }
     }
     my %used;
-    for my $disk (Yars::Tools->disk_roots) {
-        $used{$disk} = [ map /\/([0-9a-f]+)$/, glob "$disk/*" ];
-    }
     my %assigned = Yars::Tools->local_buckets;
+
+    # NB: this assumes homogeneous buckets and doesn't
+    # work for > 256 buckets.
+    my $bucket_size = 1;
+    for (keys %assigned) {
+        for (@{ $assigned{$_} }) {
+            $bucket_size = length($_) if length($_) > $bucket_size;
+        }
+    }
+
+    for my $disk (Yars::Tools->disk_roots) {
+        my @dirs = map /\/([0-9a-f]+)$/, glob "$disk/*";
+        my @buckets = uniq map substr($_,0,$bucket_size), @dirs;
+        $used{$disk} = \@buckets;
+    }
     $c->render_json({ used => \%used, assigned => \%assigned } );
 };
 
