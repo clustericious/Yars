@@ -29,13 +29,16 @@ use Clustericious::Config;
 use Hash::MoreUtils qw/safe_reverse/;
 use File::Find::Rule;
 use IO::Dir;
+use Fcntl qw(:DEFAULT :flock);
 use Data::Dumper;
+use File::Basename qw/dirname/;
 use Smart::Comments;
 
 use strict;
 use warnings;
 
 our $conf;
+our $yc = Yars::Client->new();
 
 &main;
 
@@ -62,16 +65,55 @@ sub cleanup_directory {
     DEBUG "Looking for empty directories in $dir";
     my @found = File::Find::Rule->new->directory->exec(\&_is_empty_dir)->in($dir);
     return unless @found;
-    for my $empty (@found) {  ### Cleaning up $dir  ...[%]             done
+    for my $empty (@found) {  ### Cleaning up $dir  ... [%]             done
         TRACE "Cleaning up $empty";
         cleanup_subdir($empty);
     }
 }
 
+sub _lock {
+    my $filename = shift;
+    my $fh;
+    open $fh, ">> $filename" or do {
+        TRACE "Cannot lock $filename : $!";
+        return;
+    };
+    flock( $fh, LOCK_EX | LOCK_NB ) or do {
+        WARN "cannot flock $filename";
+        close $fh;
+        return;
+    };
+    return $fh;
+}
+
+sub _unlock {
+    my $fh = shift;
+    flock $fh, LOCK_UN;
+}
+
+sub upload_file {
+    my $filename = shift;
+    TRACE "Moving $filename";
+    $yc->upload($filename) or do {
+        WARN "Could not upload $filename : ".$yc->errorstring;
+        return;
+    };
+    unlink $filename or do {
+        WARN "Could not unlink $filename : $!";
+        return;
+    };
+    cleanup_subdir(dirname($filename));
+}
+
 sub upload_directory {
     my $dir = shift;
-    WARN "Sending all files in $dir";
-
+    my @found = File::Find::Rule->new->file->in($dir);
+    return unless @found;
+    for my $file (@found) {  ### Uploading files from $dir ... [%]       done
+        my $fh = _lock($file) or next;
+        upload_file($file);
+        _unlock($fh);
+    }
 }
 
 sub check_disk {
