@@ -1,0 +1,111 @@
+#!/usr/bin/env perl
+
+=head1 NAME
+
+yars_fast_balance
+
+=head1 SYNOPSIS
+
+yars_fast_balance
+yars_fast_balance --info
+
+=head1 DESCRIPTION
+
+Attempt to fix all files on this server.
+
+Don't run this unless all disks and
+servers are fully operational.
+
+If they are not, then failures will be
+expensive, and things won't get balanced.
+
+=cut
+
+use Yars::Client;
+use Log::Log4perl qw(:levels);
+use Log::Log4perl::CommandLine ':all', ':loginit' => { level => $INFO };
+use Clustericious::Log;
+use Clustericious::Config;
+use Hash::MoreUtils qw/safe_reverse/;
+use File::Find::Rule;
+use IO::Dir;
+use Data::Dumper;
+use Smart::Comments;
+
+use strict;
+use warnings;
+
+our $conf;
+
+&main;
+
+sub _is_empty_dir {
+  # http://www.perlmonks.org/?node_id=617410
+  my ($shortname, $path, $fullname) = @_;
+  my $dh = IO::Dir->new($fullname) or return;
+  my $count = scalar(grep{!/^\.\.?$/} $dh->read());
+  $dh->close();
+  return($count==0);
+}
+
+sub cleanup_subdir {
+    my ($dir) = @_;
+    while (_is_empty_dir(undef,undef,$dir) ) {
+        last unless $dir =~ m{/[0-9a-f]{2}$};
+        rmdir $dir or do { WARN "cannot rmdir $dir : $!"; last; };
+        $dir =~ s{/[^/]+$}{};
+    }
+}
+
+sub cleanup_directory {
+    my $dir = shift;
+    DEBUG "Looking for empty directories in $dir";
+    my @found = File::Find::Rule->new->directory->exec(\&_is_empty_dir)->in($dir);
+    return unless @found;
+    for my $empty (@found) {  ### Cleaning up $dir  ...[%]             done
+        TRACE "Cleaning up $empty";
+        cleanup_subdir($empty);
+    }
+}
+
+sub upload_directory {
+    my $dir = shift;
+    WARN "Sending all files in $dir";
+
+}
+
+sub check_disk {
+    my $root = shift;
+    my @this = grep { $_->{root} eq $root } map @{ $_->{disks} }, $conf->servers;
+    LOGDIE "Found ".@this." matches for $root" unless @this==1;
+    my $disk = $this[0];
+    my @buckets = @{ $disk->{buckets} };
+    my @wrong;
+    for my $dir (glob "$root/*") {
+        $dir =~ s/^$root\///;
+        next unless $dir =~ /^[0-9a-f]{2}$/;
+        next if grep { $dir =~ /^$_/i } @buckets;
+        push @wrong, $dir;
+    }
+    if (@wrong==0) {
+        INFO "Disk $root : ok";
+        return;
+    }
+    INFO "Disk $root : ".@wrong." stashed directories";
+    for my $dir (@wrong) {
+        cleanup_directory("$root/$dir");
+        upload_directory("$root/$dir");
+    }
+}
+
+sub main {
+    $conf = Clustericious::Config->new("Yars");
+    my @disks = @ARGV;
+    @disks = map $_->{root}, map @{ $_->{disks} }, $conf->servers;
+    LOGDIE "No disks" unless @disks;
+    for my $disk (@disks) {
+       next unless -d $disk;
+       check_disk($disk);
+    }
+}
+
