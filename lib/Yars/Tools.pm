@@ -110,6 +110,12 @@ sub disk_for {
     return $Bucket2Root{$bucket};
 }
 
+=item local_buckets
+
+Get a hash from disk to list of buckets for this server.
+
+=cut
+
 sub local_buckets {
     shift->refresh_config unless keys %Bucket2Root;
     my %r = safe_reverse \%Bucket2Root;
