@@ -65,7 +65,7 @@ sub cleanup_directory {
     DEBUG "Looking for empty directories in $dir";
     my @found = File::Find::Rule->new->directory->exec(\&_is_empty_dir)->in($dir);
     return unless @found;
-    for my $empty (@found) {  ### Cleaning up $dir  ... [%]             done
+    for my $empty (@found) {  ### Cleaning up $dir ... [%]
         TRACE "Cleaning up $empty";
         cleanup_subdir($empty);
     }
@@ -109,7 +109,7 @@ sub upload_directory {
     my $dir = shift;
     my @found = File::Find::Rule->new->file->in($dir);
     return unless @found;
-    for my $file (@found) {  ### Uploading files from $dir ... [%]       done
+    for my $file (@found) {  ### Uploading files from $dir ... [%]
         my $fh = _lock($file) or next;
         upload_file($file);
         _unlock($fh);
