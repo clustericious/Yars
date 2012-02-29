@@ -391,8 +391,8 @@ get '/disk/usage' => sub {
                     percent_used => sprintf('%02d',(100*($df->{blocks} - $df->{bavail})/($df->{blocks}))).'%',
                 };
         } else {
-            WARN "Error getting usage for disk $disk";
-            WARN "$disk does not exist" unless -d $disk;
+            WARN "Error getting usage for disk $disk" if -d $disk;
+            DEBUG "$disk does not exist" unless -d $disk;
         }
         $r{$disk}{count} = Yars::Tools->count_files($disk) if $count;
     }
