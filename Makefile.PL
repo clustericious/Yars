@@ -13,6 +13,7 @@ WriteMakefile
                            'File::Find' => 0,
                            'File::Find::Rule' => 0,
                            'Filesys::Df' => 0,
+                           'Hash::MoreUtils' => 0,
                            'List::MoreUtils' => 0,
                            'List::Util' => 0,
                            'Mojolicious' => '2.44',

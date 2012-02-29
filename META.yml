@@ -10,6 +10,7 @@ build_requires:
   File::Find: 0
   File::Find::Rule: 0
   Filesys::Df: 0
+  Hash::MoreUtils: 0
   List::MoreUtils: 0
   List::Util: 0
   Mojolicious: 2.44
@@ -27,7 +28,7 @@ name: Yars
 provides:
   Yars:
     file: lib/Yars.pm
-    version: 0.60
+    version: 0.61
   Yars::Balancer:
     file: lib/Yars/Balancer.pm
   Yars::Routes:
@@ -36,4 +37,4 @@ provides:
     file: lib/Yars/Tools.pm
 resources:
   license: http://dev.perl.org/licenses/
-version: 0.60
+version: 0.61
