@@ -94,7 +94,7 @@ sub _unlock {
 sub upload_file {
     my $filename = shift;
     TRACE "Moving $filename";
-    $yc->upload($filename, '--nostash', 1) or do {
+    $yc->upload('--nostash', 1, $filename) or do {
         WARN "Could not upload $filename : ".$yc->errorstring;
         return;
     };
