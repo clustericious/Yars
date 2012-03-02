@@ -179,13 +179,15 @@ put '/file/(.filename)/:md5' => { md5 => 'calculate' } => sub {
         return $c->render_exception("Cannot stash $filename locally");
     }
 
+    DEBUG "Received NoStash for $filename" if $c->req->headers->header('X-Yars-NoStash');
+
     my $assigned_server = Yars::Tools->server_for($digest);
 
     if ( $assigned_server ne Yars::Tools->server_url ) {
         return _proxy_to( $c, $assigned_server, $filename, $digest, $asset )
               || _stash_locally( $c, $filename, $digest, $asset )
               || _stash_remotely( $c, $filename, $digest, $asset )
-              || $c->render_exception("could not proxy or stash");
+              || $c->render(status => 507, text => "Unable to proxy or stash");
     }
 
     my $assigned_disk = Yars::Tools->disk_for($digest);
@@ -226,7 +228,7 @@ put '/file/(.filename)/:md5' => { md5 => 'calculate' } => sub {
     # Local designated disk is down.
     _stash_locally( $c, $filename, $digest, $asset )
       or _stash_remotely( $c, $filename, $digest, $asset )
-      or $c->render_exception("could not store or stash remotely");
+      or $c->render(status => 507, text => "Unable to proxy or stash");
 };
 
 sub _other_files_in_path {
