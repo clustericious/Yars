@@ -224,10 +224,6 @@ put '/file/(.filename)/:md5' => { md5 => 'calculate' } => sub {
     }
 
     # Local designated disk is down.
-    if ($c->req->headers->header('X-Yars-NoStash')) {
-        return $c->render_exception("Local disk is down and NoStash was sent.");
-    }
-
     _stash_locally( $c, $filename, $digest, $asset )
       or _stash_remotely( $c, $filename, $digest, $asset )
       or $c->render_exception("could not store or stash remotely");
@@ -292,6 +288,9 @@ sub _stash_locally {
     my ($c, $filename,$digest, $asset) = @_;
     # Stash this file on a local disk.
     # Returns false or renders the response.
+
+    return 0 if $c->req->headers->header('X-Yars-NoStash');
+
     DEBUG "Stashing $filename locally";
     my $assigned_root = Yars::Tools->disk_for($digest);
     my $wrote;
@@ -321,6 +320,9 @@ sub _stash_remotely {
     my ($c, $filename,$digest,$asset) = @_;
     # Stash this file on a remote disk.
     # Returns false or renders the response.
+
+    return 0 if $c->req->headers->header('X-Yars-NoStash');
+
     DEBUG "Stashing $filename remotely.";
     my $assigned_server = Yars::Tools->server_for($digest);
     for my $server (shuffle(Yars::Tools->server_urls)) {
