@@ -171,7 +171,7 @@ put '/file/(.filename)/:md5' => { md5 => 'calculate' } => sub {
     $md5 = $digest if $md5 eq 'calculate';
 
     if ($digest ne $md5) {
-        WARN "md5 mismatch : $md5 != $digest for $filename";
+        WARN "md5 mismatch : $md5 != $digest for $filename which isa ".(ref $asset);
         return $c->render(text => "incorrect digest, $md5!=$digest", status => 400);
     }
 
