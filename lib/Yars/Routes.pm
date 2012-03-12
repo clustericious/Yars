@@ -170,8 +170,10 @@ put '/file/(.filename)/:md5' => { md5 => 'calculate' } => sub {
 
     $md5 = $digest if $md5 eq 'calculate';
 
-    return $c->render(text => "incorrect digest, $md5!=$digest", status => 400)
-            if $digest ne $md5;
+    if ($digest ne $md5) {
+        WARN "md5 mismatch : $md5 != $digest for $filename";
+        return $c->render(text => "incorrect digest, $md5!=$digest", status => 400);
+    }
 
     if ($c->req->headers->header('X-Yars-Stash')) {
         DEBUG "Stashing a file that is not ours : $digest $filename";
