@@ -75,7 +75,7 @@ sub _get {
     }
     my $b64 = Yars::Tools->hex2b64($computed);
     $c->res->headers->add("Content-MD5", $b64);
-    $c->app->static->root($dir)->serve($c,$filename);
+    $c->app->static->paths([$dir])->serve($c,$filename);
     $c->rendered;
 };
 
@@ -135,7 +135,7 @@ sub _get_from_local_stash {
         return 0;
     }
     $c->res->headers->add("Content-MD5", Yars::Tools->hex2b64($computed));
-    $c->app->static->root($dir)->serve($c,$filename);
+    $c->app->static->paths([$dir])->serve($c,$filename);
     $c->rendered;
     return 1;
 }
