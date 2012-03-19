@@ -81,7 +81,7 @@ for my $url (@locations) {
 _sys("YARS_WHICH=2 yars start");
 
 # And let the balancer to do its thing.
-Mojo::IOLoop->timer(40 => sub { Mojo::IOLoop->stop; });
+Mojo::IOLoop->timer(60 => sub { shift->stop; });
 Mojo::IOLoop->start;
 # Note -- the time above is a guess, may vary depending on the environment.
 
