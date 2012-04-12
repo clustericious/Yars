@@ -20,7 +20,7 @@ $t->app->config->servers(
 $t->app->config->{url} = $t->ua->app_url;
 $t->app->config->servers->[0]{url} = $t->app->config->{url};
 
-my $count = 2;
+my $count = 10;
 
 my @filenames = map "filename_$_", 0..$count-1;
 my @contents  = map "$_"x10, 0..$count-1;
@@ -39,14 +39,39 @@ my $manifest = join "\n", map "$md5s[$_]  some/stuff/$filenames[$_]", 0..$count-
 $manifest .= "\n";
 $manifest .= join "\n", map "$missing_md5s[$_]  not/there/$missing_filenames[$_]", 0..5;
 
+my $j = Mojo::JSON->new();
+
 $t->post_ok(
     '/check/manifest?show_found=1',
     { "Content-Type" => "application/json" },
-    Mojo::JSON->new->encode( { manifest => $manifest } )
+    $j->encode( { manifest => $manifest } )
 )->status_is(200)
  ->json_content_is( {
     missing => [ map +{ filename => $missing_filenames[$_], md5 => $missing_md5s[$_] }, 0..5 ],
     found   => [ map +{ filename => $filenames[$_], md5 => $md5s[$_] }, 0..$count-1 ],
 } );
+
+# Make a file corrupt and check for it.
+my $corrupt_filename = splice @filenames, 2;
+my $corrupt_md5 = splice @md5s, 2;
+my $corrupt_path = join '/', $root, grep defined, ( $corrupt_md5 =~ /(..)/g ), $corrupt_filename;
+ok -e $corrupt_path, "$corrupt_path exists";
+open my $fp, ">>$corrupt_path" or die $!;
+print $fp "extra";
+close $fp;
+
+TODO : {
+local $TODO = "Check md5s";
+$t->post_ok(
+    '/check/manifest?show_found=1&show_corrupt=1',
+    { "Content-Type" => "application/json" },
+    $j->encode( { manifest => $manifest } )
+)->status_is(200)
+ ->json_content_is( {
+    missing => [ map +{ filename => $missing_filenames[$_], md5 => $missing_md5s[$_] }, 0..5 ],
+    found   => [ map +{ filename => $filenames[$_], md5 => $md5s[$_] }, 0..$count-1 ],
+    corrupt => [ { filename => $corrupt_filename, md5 => $corrupt_md5 } ],
+} );
+}
 
 done_testing();
