@@ -80,7 +80,7 @@ sub _dir_is_empty {
     # stolen from File::Find::Rule::DirectoryEmpty
     my $dir = shift;
     opendir( DIR, $dir ) or return;
-    for ( readdir DIR ) {
+    while ( $_ = readdir DIR ) {
         if ( !/^\.\.?$/ ) {
             closedir DIR;
             return 0;

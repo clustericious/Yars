@@ -235,8 +235,16 @@ put '/file/(.filename)/:md5' => { md5 => 'calculate' } => sub {
 
 sub _other_files_in_path {
     my $path = shift;
-    my @found = glob ("$path/*") or return;
-    return $found[0];
+    opendir( DR, $path ) or return;
+    my $found;
+    while ( $_ = readdir DR ) {
+        next if /^\.\.?$/;
+        $found = $_;
+        last;
+    }
+    closedir DR;
+    return unless $found;
+    return "$path/$found";
 }
 
 sub _make_link {
