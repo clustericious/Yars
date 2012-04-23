@@ -28,7 +28,7 @@ name: Yars
 provides:
   Yars:
     file: lib/Yars.pm
-    version: 0.64
+    version: 0.65
   Yars::Balancer:
     file: lib/Yars/Balancer.pm
   Yars::Routes:
@@ -37,4 +37,4 @@ provides:
     file: lib/Yars/Tools.pm
 resources:
   license: http://dev.perl.org/licenses/
-version: 0.64
+version: 0.65
