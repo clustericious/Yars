@@ -52,8 +52,10 @@ sub _get {
     my $md5      = $c->stash("md5");
 
     if (my $secs = $c->param('zombie')) {
+        WARN "zombie alert.  Sleeping for $secs seconds.";
         # test timeout limits
         sleep $secs;
+        WARN "zombie is done sleeping for $secs seconds";
     }
 
     return _head($c, @_) if $c->req->method eq 'HEAD';
