@@ -51,6 +51,11 @@ sub _get {
     my $filename = $c->stash("filename");
     my $md5      = $c->stash("md5");
 
+    if (my $secs = $c->param('zombie')) {
+        # test timeout limits
+        sleep $secs;
+    }
+
     return _head($c, @_) if $c->req->method eq 'HEAD';
 
     my $url = Yars::Tools->server_for($md5);
