@@ -66,11 +66,13 @@ my @contents = <DATA>;
 my @locations;
 my @digests;
 my @filenames;
+my @sizes;
 for my $content (@contents) {
     $i++;
     my $filename = "file_numero_$i";
     push @filenames, $filename;
     push @digests, b($content)->md5_sum;
+    push @sizes, b($content)->size;
     my $tx = $ua->put("$urls[1]/file/$filename", {}, $content);
     my $location = $tx->res->headers->location;
     ok $location, "Got location header";
@@ -84,6 +86,7 @@ $i = 0;
 for my $url (@locations) {
     my $content  = $contents[$i];
     my $filename = $filenames[$i];
+    my $size     = $sizes[$i];
     my $md5      = $digests[ $i++ ];
     $manifest .= "$md5  $filename\n";
     push @filelist, { filename => $filename, md5 => "$md5" };
@@ -97,6 +100,7 @@ for my $url (@locations) {
     {
         my $tx = $ua->head("$urls[0]/file/$md5/$filename");
         ok $tx->success, "head $urls[0]/file/$md5/$filename";
+        is $tx->res->headers->content_length, $size;
     }
 }
 
