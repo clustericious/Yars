@@ -477,6 +477,16 @@ post '/check/manifest' => sub {
         if ($server eq Yars::Tools->server_url) {
             my $dir = Yars::Tools->storage_path($md5);
             my $which = -r "$dir/$filename" ? "found" : "missing";
+
+            if ($which eq 'found' && $c->param('show_corrupt')) {
+                # Check md5, and maybe set $which to "corrupt".
+                my $computed_md5 = digest_file_hex("$dir/$filename",'MD5');
+                if ($computed_md5 ne $md5) {
+                    $which = 'corrupt';
+                    $md5 = $computed_md5;
+                }
+            }
+
             push @{ $ret{$which} }, { filename => $filename, md5 => $md5 };
         } else {
             push @{ $remote{$server} }, { filename => $filename, md5 => $md5 };

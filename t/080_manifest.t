@@ -8,6 +8,7 @@ use Test::Mojo;
 use Mojo::ByteStream qw/b/;
 use File::Temp;
 use Yars;
+use Digest::file qw/digest_file_hex/;
 
 my $t = Test::Mojo->new('Yars');
 my $root = File::Temp->newdir(CLEANUP => 1);
@@ -52,13 +53,14 @@ $t->post_ok(
 } );
 
 # Make a file corrupt and check for it.
-my $corrupt_filename = splice @filenames, 2;
-my $corrupt_md5 = splice @md5s, 2;
+my $corrupt_filename = splice @filenames, 2, 1;
+my $corrupt_md5 = splice @md5s, 2, 1;
 my $corrupt_path = join '/', $root, grep defined, ( $corrupt_md5 =~ /(..)/g ), $corrupt_filename;
 ok -e $corrupt_path, "$corrupt_path exists";
 open my $fp, ">>$corrupt_path" or die $!;
 print $fp "extra";
 close $fp;
+$corrupt_md5 = digest_file_hex($corrupt_path,'MD5');
 
 TODO : {
 local $TODO = "Check md5s";
@@ -69,7 +71,7 @@ $t->post_ok(
 )->status_is(200)
  ->json_content_is( {
     missing => [ map +{ filename => $missing_filenames[$_], md5 => $missing_md5s[$_] }, 0..5 ],
-    found   => [ map +{ filename => $filenames[$_], md5 => $md5s[$_] }, 0..$count-1 ],
+    found   => [ map +{ filename => $filenames[$_], md5 => $md5s[$_] }, 0..$count-2 ],
     corrupt => [ { filename => $corrupt_filename, md5 => $corrupt_md5 } ],
 } );
 }
