@@ -503,7 +503,7 @@ post '/check/manifest' => sub {
             my $got = $res->json;
             push @{ $ret{missing} }, @{ $got->{missing} };
             push @{ $ret{found}   }, @{ $got->{found} };
-            push @{ $ret{corrupt} }, @{ $got->{corrupt} } if $c->param("show_corrupt");
+            push @{ $ret{corrupt} }, @{ $got->{corrupt} || [] } if $c->param("show_corrupt");
         } else {
             ERROR "Failed to connect to $server";
             push @{ $ret{missing} }, @{ $remote{$server} };
