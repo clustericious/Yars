@@ -62,8 +62,6 @@ print $fp "extra";
 close $fp;
 $corrupt_md5 = digest_file_hex($corrupt_path,'MD5');
 
-TODO : {
-local $TODO = "Check md5s";
 $t->post_ok(
     '/check/manifest?show_found=1&show_corrupt=1',
     { "Content-Type" => "application/json" },
@@ -74,6 +72,5 @@ $t->post_ok(
     found   => [ map +{ filename => $filenames[$_], md5 => $md5s[$_] }, 0..$count-2 ],
     corrupt => [ { filename => $corrupt_filename, md5 => $corrupt_md5 } ],
 } );
-}
 
 done_testing();
