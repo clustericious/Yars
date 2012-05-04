@@ -497,12 +497,13 @@ post '/check/manifest' => sub {
         TRACE "Looking for manifest files on $server";
         my $content = Mojo::JSON->new->encode({ files => $remote{$server} });
         my $tx = $c->ua->post(
-            "$server/check/manifest?show_found=1",
+            "$server/check/manifest?show_found=1&show_corrupt=".$c->param("show_corrupt"),
             { "Content-type" => "application/json", "Connection" => "Close" }, $content );
         if (my $res = $tx->success) {
             my $got = $res->json;
             push @{ $ret{missing} }, @{ $got->{missing} };
             push @{ $ret{found}   }, @{ $got->{found} };
+            push @{ $ret{corrupt} }, @{ $got->{corrupt} } if $c->param("show_corrupt");
         } else {
             ERROR "Failed to connect to $server";
             push @{ $ret{missing} }, @{ $remote{$server} };
