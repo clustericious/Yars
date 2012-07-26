@@ -28,6 +28,7 @@ _sys("LOG_FILE=/tmp/yars.test.$<.log yars start");
 
 my $url = "http://localhost:9059";
 
+sleep 3;
 my $ua = Mojo::UserAgent->new();
 is $ua->get($url.'/status')->res->json->{server_url}, $url, "started first server at $url";
 
