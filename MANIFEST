@@ -7,7 +7,6 @@ eg/big_disk_map.conf
 eg/disk_map.conf
 eg/Yars.conf
 lib/Yars.pm
-lib/Yars/Balancer.pm
 lib/Yars/Routes.pm
 lib/Yars/Tools.pm
 Makefile.PL
@@ -24,7 +23,6 @@ t/015_unknown_file.t
 t/020_dual.t
 t/030_diskfail.t
 t/040_hostfail.t
-t/050_balance.t
 t/060_mark_down.t
 t/070_tempdir.t
 t/071_tempdir.t

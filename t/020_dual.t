@@ -33,12 +33,6 @@ sub _normalize {
     return [ sort { $a->{md5} cmp $b->{md5} } @$one ];
 }
 
-# Kill any runaway balancers or daemons.
-for my $pid_file (glob "/tmp/yars.test.$<.*.run/balancer.pid") {
-    my $pid = _slurp($pid_file) or next;
-    diag "killing running balancer $pid";
-    kill 'TERM', $pid;
-}
 for my $which (qw/1 2/) {
     my $pid_file = "/tmp/yars.test.$<.${which}.hypnotoad.pid";
     if (-e $pid_file && kill 0, _slurp($pid_file)) {
@@ -134,30 +128,8 @@ for my $url (@locations) {
 }
 
 
-# Ensure that a balancer is running for each yars.
-my $count;
-for my $pid_file (glob "/tmp/yars.test.$<.*.rundir/balancer.pid") {
-    my $pid = _slurp($pid_file) or next;
-    $count++ if kill 0, $pid;
-}
-
-is $count, 2, "two balancers running";
-
 _sys("YARS_WHICH=1 yars stop");
 _sys("YARS_WHICH=2 yars stop");
-
-# Ensure balancers stopped.
-sleep 1;
-$count = 0;
-for my $pid_file (glob "/tmp/yars.test.$<.*.rundir/balancer.pid") {
-    my $pid = _slurp($pid_file) or next;
-    if (kill 0, $pid) {
-        $count++;
-        diag "Balancer $pid ($pid_file) still running";
-    }
-}
-
-is $count, 0, "no balancers running";
 
 done_testing();
 

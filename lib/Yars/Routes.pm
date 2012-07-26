@@ -44,8 +44,8 @@ ladder sub {
 
 get '/' => sub { shift->render_text("welcome to Yars") } => 'index';
 
-get  '/file/(.filename)/:md5' => [ md5 => qr/[a-f0-9]{32}/ ] => \&_get;
-get  '/file/:md5/(.filename)' => [ md5 => qr/[a-f0-9]{32}/ ] => \&_get => "file";
+get  '/file/#filename/:md5' => [ md5 => qr/[a-f0-9]{32}/ ] => \&_get;
+get  '/file/:md5/#filename' => [ md5 => qr/[a-f0-9]{32}/ ] => \&_get => "file";
 sub _get {
     my $c        = shift;
     my $filename = $c->stash("filename");
@@ -159,7 +159,7 @@ sub _redirect_to_remote_stash {
     return 0;
 }
 
-put '/file/(.filename)/:md5' => { md5 => 'calculate' } => sub {
+put '/file/#filename/:md5' => { md5 => 'calculate' } => sub {
     my $c        = shift;
     my $filename = $c->stash('filename');
     my $md5      = $c->stash('md5');
@@ -352,8 +352,8 @@ sub _stash_remotely {
     return 0;
 }
 
-del '/file/(.filename)/:md5' => [ md5 => qr/[a-f0-9]{32}/ ] => \&_del;
-del '/file/:md5/(.filename)' => [ md5 => qr/[a-f0-9]{32}/ ] => \&_del;
+del '/file/#filename/:md5' => [ md5 => qr/[a-f0-9]{32}/ ] => \&_del;
+del '/file/:md5/#filename' => [ md5 => qr/[a-f0-9]{32}/ ] => \&_del;
 
 sub _del {
     my $c        = shift;

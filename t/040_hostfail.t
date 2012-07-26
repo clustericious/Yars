@@ -81,22 +81,20 @@ for my $url (@locations) {
 # Now start it back up.
 _sys("YARS_WHICH=2 yars start");
 
-# And let the balancer to do its thing.
-Mojo::IOLoop->timer(60 => sub { shift->stop; });
-Mojo::IOLoop->start;
-# Note -- the time above is a guess, may vary depending on the environment.
-
-for my $host (keys %assigned) {
-    my $tx = $ua->get("$host/disk/usage?count=1");
-    my $res;
-    ok $res = $tx->success, "got usage";
-    unless ($res) {
-        diag "failed to get $host/disk/usage?count=1".$tx->error;
-        next;
-    }
-    my $got = $res->json;
-    for my $disk (keys %$got) {
-        is( $got->{$disk}{count}, $assigned{$host}{$disk}{count}, "$host,$disk has the right count ($assigned{$host}{$disk}{count})" );
+TODO: {
+    local $TODO = "Run yars_fast_balance";
+    for my $host (keys %assigned) {
+        my $tx = $ua->get("$host/disk/usage?count=1");
+        my $res;
+        ok $res = $tx->success, "got usage";
+        unless ($res) {
+            diag "failed to get $host/disk/usage?count=1".$tx->error;
+            next;
+        }
+        my $got = $res->json;
+        for my $disk (keys %$got) {
+            is( $got->{$disk}{count}, $assigned{$host}{$disk}{count}, "$host,$disk has the right count ($assigned{$host}{$disk}{count})" );
+        }
     }
 }
 

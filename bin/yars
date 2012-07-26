@@ -21,8 +21,6 @@ $ENV{MOJO_APP} ||= 'Yars';
 sub main {
     my $cmd = $ARGV[0];
     my $app = Yars->new();
-    Yars::Balancer->start_balancers($app) if $cmd && $cmd eq 'start';
-    Yars::Balancer->stop_balancers($app) if $cmd && $cmd eq 'stop';
     $app = Clustericious::Commands->start;
     $app;
 }

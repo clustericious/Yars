@@ -44,7 +44,6 @@ $conf->servers( default => [{
         }
     ]);
 $conf->{url} = "http://localhost:9050"; # TODO provide a better config api
-$conf->{balance_delay} = 1;
 my $temp = File::Temp->new;
 my $tempdir = File::Temp->newdir;
 $conf->{state_file} = "$tempdir/state.txt";
@@ -86,32 +85,24 @@ for my $i (1..$test_files) {
      }
 }
 
-my $json = $t->get_ok("/disk/usage?count=1")->status_is(200)->tx->res->json;
-is $json->{"$root/one"}{count}, $test_files;
-is $json->{"$root/$_"}{count}, 0 for qw/two three four five/;
+TODO: {
+    local $TODO = "run yars_fast_balance";
+    my $json = $t->get_ok("/disk/usage?count=1")->status_is(200)->tx->res->json;
+    is $json->{"$root/one"}{count}, $test_files;
+    is $json->{"$root/$_"}{count}, 0 for qw/two three four five/;
 
-# Now mark two up and let things balance
-Yars::Balancer->start_balancers($t->app);
-$t->post_ok("/disk/status",
-    { "Content-Type" => "application/json" },
-    Mojo::JSON->new->encode( { root => "$root/two", "state" => "up" }))
-           ->status_is(200)
-           ->content_like(qr/ok/);
+    my $remaining = int($test_files - $two);
+    $json = $t->get_ok("/disk/usage?count=1")->status_is(200)->tx->res->json;
+    is $json->{"$root/one"}{count}, $remaining;
+    is $json->{"$root/two"}{count}, $two;
+    is $json->{"$root/$_"}{count}, 0 for qw/three four five/;
 
-sleep 10;
+    # Ensure an invalid host causes an exception, not a request loop
+    $t->post_ok("/disk/status",
+        { "Content-Type" => "application/json" },
+        Mojo::JSON->new->encode( { server => "http://101.010.0.0", root => "foo/bar", "state" => "up" }))
+               ->status_is(400);
+}
 
-my $remaining = int($test_files - $two);
-$json = $t->get_ok("/disk/usage?count=1")->status_is(200)->tx->res->json;
-is $json->{"$root/one"}{count}, $remaining;
-is $json->{"$root/two"}{count}, $two;
-is $json->{"$root/$_"}{count}, 0 for qw/three four five/;
-
-# Ensure an invalid host causes an exception, not a request loop
-$t->post_ok("/disk/status",
-    { "Content-Type" => "application/json" },
-    Mojo::JSON->new->encode( { server => "http://101.010.0.0", root => "foo/bar", "state" => "up" }))
-           ->status_is(400);
-
-Yars::Balancer->stop_balancers($t->app);
 done_testing();
 
