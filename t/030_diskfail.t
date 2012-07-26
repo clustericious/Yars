@@ -41,7 +41,7 @@ for my $which (qw/1 2/) {
 
 my $ua = Mojo::UserAgent->new();
 $ua->max_redirects(3);
-sleep 1;
+sleep 3;
 is $ua->get($urls[0].'/status')->res->json->{server_url}, $urls[0], "started first server at $urls[0]";
 is $ua->get($urls[1].'/status')->res->json->{server_url}, $urls[1], "started second server at $urls[1]";
 

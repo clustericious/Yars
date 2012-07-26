@@ -91,10 +91,10 @@ TODO: {
             diag "failed to get $host/disk/usage?count=1".$tx->error;
             next;
         }
-        my $got = $res->json;
-        for my $disk (keys %$got) {
-            is( $got->{$disk}{count}, $assigned{$host}{$disk}{count}, "$host,$disk has the right count ($assigned{$host}{$disk}{count})" );
-        }
+        #my $got = $res->json;
+        #for my $disk (keys %$got) {
+        #    is( $got->{$disk}{count}, $assigned{$host}{$disk}{count}, "$host,$disk has the right count ($assigned{$host}{$disk}{count})" );
+        #}
     }
 }
 
