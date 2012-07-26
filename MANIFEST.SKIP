@@ -56,3 +56,4 @@
 
 # Avoid log files
 .log$
+^MYMETA\.json$
