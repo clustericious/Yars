@@ -12,6 +12,7 @@ lib/Yars/Tools.pm
 Makefile.PL
 MANIFEST			This list of files
 MANIFEST.SKIP
+META.json
 META.yml
 README
 t/001_basic.t
@@ -36,4 +37,3 @@ t/conf_071/Yars.conf
 t/integrate/001_start.t
 t/integrate/002_stop.t
 t/integrate/conf/Yars.conf
-META.json
