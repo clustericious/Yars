@@ -9,7 +9,6 @@ use File::Basename qw/dirname/;
 use Mojo::ByteStream qw/b/;
 use File::Temp;
 use Yars;
-use Yars::Balancer;
 
 use strict;
 use warnings;

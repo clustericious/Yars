@@ -8,7 +8,6 @@ use lib join '/', File::Spec->splitdir(dirname(__FILE__)), '..', 'lib';
 use lib join '/', File::Spec->splitdir(dirname(__FILE__)), '..', 'lib', 'perl';
 
 use Yars;
-use Yars::Balancer;
 use Clustericious::Commands;
 
 use strict;
