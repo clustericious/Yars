@@ -15,7 +15,7 @@ use Yars::Routes;
 use Yars::Tools;
 use Mojo::ByteStream qw/b/;
 use File::Path qw/mkpath/;
-our $VERSION = '0.71';
+our $VERSION = '0.72';
 
 __PACKAGE__->attr( secret => rand );
 
