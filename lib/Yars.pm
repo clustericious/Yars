@@ -10,14 +10,14 @@ Yars (Yet Another REST Server)
 
 use strict;
 use warnings;
-use base 'Clustericious::App';
+use Mojo::Base 'Clustericious::App';
 use Yars::Routes;
 use Yars::Tools;
 use Mojo::ByteStream qw/b/;
 use File::Path qw/mkpath/;
 our $VERSION = '0.72';
 
-__PACKAGE__->attr( secret => rand );
+has secret => rand;
 
 =item startup
 
