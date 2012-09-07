@@ -30,7 +30,7 @@ name: Yars
 provides:
   Yars:
     file: lib/Yars.pm
-    version: 0.72
+    version: 0.73
   Yars::Routes:
     file: lib/Yars/Routes.pm
     version: 0
@@ -39,4 +39,4 @@ provides:
     version: 0
 resources:
   license: http://dev.perl.org/licenses/
-version: 0.72
+version: 0.73

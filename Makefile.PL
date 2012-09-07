@@ -2,32 +2,32 @@
 use ExtUtils::MakeMaker;
 WriteMakefile
 (
-          'NAME' => 'Yars',
-          'VERSION_FROM' => 'lib/Yars.pm',
-          'PREREQ_PM' => {
-                           'Clustericious' => '0.97',
-                           'Clustericious::Config' => '0.07',
-                           'Digest::file' => 0,
-                           'File::Compare' => 0,
-                           'File::Copy' => 0,
-                           'File::Find' => 0,
-                           'File::Find::Rule' => 0,
-                           'Filesys::Df' => 0,
-                           'Hash::MoreUtils' => 0,
-                           'List::MoreUtils' => 0,
-                           'List::Util' => 0,
-                           'Mojolicious' => '2.62',
-                           'Test::More' => 0,
-                           'Test::Pod::Coverage' => 0,
-                           'Try::Tiny' => 0
-                         },
-          'INSTALLDIRS' => 'site',
-          'EXE_FILES' => [
-                           'bin/yars',
-                           'bin/yars_disk_scan',
-                           'bin/yars_fast_balance',
-                           'bin/yars_generate_diskmap'
-                         ],
-          'PL_FILES' => {}
-        )
+  'NAME' => 'Yars',
+  'VERSION_FROM' => 'lib/Yars.pm',
+  'PREREQ_PM' => {
+                   'Clustericious' => '0.97',
+                   'Clustericious::Config' => '0.07',
+                   'Digest::file' => 0,
+                   'File::Compare' => 0,
+                   'File::Copy' => 0,
+                   'File::Find' => 0,
+                   'File::Find::Rule' => 0,
+                   'Filesys::Df' => 0,
+                   'Hash::MoreUtils' => 0,
+                   'List::MoreUtils' => 0,
+                   'List::Util' => 0,
+                   'Mojolicious' => '2.62',
+                   'Test::More' => 0,
+                   'Test::Pod::Coverage' => 0,
+                   'Try::Tiny' => 0
+                 },
+  'INSTALLDIRS' => 'site',
+  'EXE_FILES' => [
+                   'bin/yars',
+                   'bin/yars_disk_scan',
+                   'bin/yars_fast_balance',
+                   'bin/yars_generate_diskmap'
+                 ],
+  'PL_FILES' => {}
+)
 ;
