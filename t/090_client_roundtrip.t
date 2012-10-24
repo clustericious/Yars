@@ -43,17 +43,26 @@ my $data = "some data $$ ".time;
 my $new = File::Temp->new;
 print $new $data;
 $new->close;
-my $name = "$new";
+my $path = "$new";
+my $filename = basename($path);
 
-ok -e $name, "wrote $name";
+ok -e $path, "wrote $path";
 
-ok $y->upload($name), "uploading $name";
+ok $y->upload($path), "uploading $filename";
 is $y->res->code, '201', 'Created';
 
-my $md5 = digest_file_hex($name,'MD5');
-my $content = $y->get($md5,basename($name));
+my $md5 = digest_file_hex($path,'MD5');
+my $content = $y->get($md5,$filename);
 ok $content, "got content";
 is $content, $data, "got same content";
+
+my $download_dir = File::Temp->newdir(CLEANUP => 1);
+chdir $download_dir or die $!;
+ok $y->download($md5,$filename), "Downloaded $filename";
+ok -e $filename, "Downloaded $filename";
+my $got = join "", IO::File->new("<$filename")->getlines;
+is $got, $data, "got same contents";
+chdir "$download_dir/..";
 
 done_testing ();
 
