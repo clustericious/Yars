@@ -161,7 +161,7 @@ sub disk_is_up {
     my $class = shift;
     my $root = shift;
     return 0 if -d $root && ! -w $root;
-    return 1 if ($class->_state->{disks}{$root} || '') eq 'up';
+    return 1 if ($class->_state->{disks}{$root} || 'up') eq 'up';
     return 0;
 }
 

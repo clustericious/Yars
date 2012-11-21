@@ -4,16 +4,7 @@ package Yars::Routes;
 
 Yars::Routes -- set up the routes for Yars.
 
-=head1 DESCRIPTION
-
-This package defines the API for Yars.
-
-=head1 TODO
-
-Optimize lookups.  Currently we match prefixes
-so that a heterogenous set of prefixes can be
-supported (e.g. "1", "2", "30", "31"..), Data::Trie
-may be useful.
+=head1 ROUTES
 
 =cut
 
@@ -42,7 +33,19 @@ ladder sub {
  1;
 };
 
+=head2 GET /
+
+Get a welcome message.
+
+=cut
+
 get '/' => sub { shift->render_text("welcome to Yars") } => 'index';
+
+=head2 GET /file/#filename/:md5, GET /:md5/#filename
+
+Retrieve a file with the given name and md5.
+
+=cut
 
 get  '/file/#filename/:md5' => [ md5 => qr/[a-f0-9]{32}/ ] => \&_get;
 get  '/file/:md5/#filename' => [ md5 => qr/[a-f0-9]{32}/ ] => \&_get => "file";
@@ -159,6 +162,12 @@ sub _redirect_to_remote_stash {
     return 0;
 }
 
+=head1 PUT /file/#filename/#md5
+
+PUT a file with the given name and md5.
+
+=cut
+
 put '/file/#filename/:md5' => { md5 => 'calculate' } => sub {
     my $c        = shift;
     my $filename = $c->stash('filename');
@@ -193,6 +202,7 @@ put '/file/#filename/:md5' => { md5 => 'calculate' } => sub {
     my $assigned_server = Yars::Tools->server_for($digest);
 
     if ( $assigned_server ne Yars::Tools->server_url ) {
+        TRACE "assigned $assigned_server != ".Yars::Tools->server_url;
         return _proxy_to( $c, $assigned_server, $filename, $digest, $asset )
               || _stash_locally( $c, $filename, $digest, $asset )
               || _stash_remotely( $c, $filename, $digest, $asset )
@@ -201,8 +211,12 @@ put '/file/#filename/:md5' => { md5 => 'calculate' } => sub {
 
     my $assigned_disk = Yars::Tools->disk_for($digest);
 
-    DEBUG "Received $filename assigned to $assigned_server ($assigned_disk)";
+    DEBUG "Received $filename assigned to $assigned_server ($assigned_disk), this is ".Yars::Tools->server_url;
 
+    unless (-d $assigned_disk) {
+        INFO "$assigned_disk does not exist, creating it now";
+        mkdir $assigned_disk or WARN "Failed to mkdir $assigned_disk : $!";
+    }
     if ( Yars::Tools->disk_is_up($assigned_disk) ) {
         my $assigned_path = Yars::Tools->storage_path($digest, $assigned_disk);
         my $abs_path = join '/', $assigned_path, $filename;
@@ -232,6 +246,8 @@ put '/file/#filename/:md5' => { md5 => 'calculate' } => sub {
             $c->res->headers->location($location);
             return $c->render(status => 201, text => 'ok'); # CREATED
        }
+    } else {
+        DEBUG "Disk $assigned_disk is not up";
     }
 
     # Local designated disk is down.
@@ -314,6 +330,7 @@ sub _stash_locally {
     my $assigned_root = Yars::Tools->disk_for($digest);
     my $wrote;
     for my $root (shuffle(Yars::Tools->disk_roots)) {
+        TRACE "Trying $root (assigned : $assigned_root)";
         next if $assigned_root && ($root eq $assigned_root);
         unless (Yars::Tools->disk_is_up($root)) {
             DEBUG "local disk $root is down, cannot stash $filename there.";
@@ -324,6 +341,7 @@ sub _stash_locally {
             $wrote = $root;
             last;
         };
+        TRACE "write failed";
     }
     WARN "Help, all my disks are unwriteable!" unless $wrote;
     # I'm not dead yet!  It's only a flesh wound!
@@ -351,6 +369,12 @@ sub _stash_remotely {
     }
     return 0;
 }
+
+=head1 DELETE /file/#filename/:md5, /file/:md5/#filename
+
+Delete a file with the given name and md5.
+
+=cut
 
 del '/file/#filename/:md5' => [ md5 => qr/[a-f0-9]{32}/ ] => \&_del;
 del '/file/:md5/#filename' => [ md5 => qr/[a-f0-9]{32}/ ] => \&_del;
@@ -388,6 +412,14 @@ sub _del {
         return $c->render_exception("Error deleting from $server ".$tx->error);
     }
 };
+
+=head2 GET /disk/usage
+
+Get a summary of the disk usage.
+
+Send the CGI parameters count=1 to also count the files.
+
+=cut
 
 get '/disk/usage' => sub {
     my $c = shift;
@@ -431,6 +463,13 @@ get '/disk/usage' => sub {
     return $c->render_json(\%all);
 };
 
+=head2 POST /disk/status
+
+Mark disks up or down.  Send the disk root and state (up or down)
+as JSON encoded in the body.
+
+=cut
+
 post '/disk/status' => sub {
     my $c = shift;
     my $got = $c->parse_autodata;
@@ -453,6 +492,15 @@ post '/disk/status' => sub {
     }
     $c->render_text($success ? "ok" : "failed" );
 };
+
+=head2 POST /check/manifest
+
+Given JSON with 'manifest' which is a return-delimited string
+of filenames and md5s (like the output of md5sum), check each
+file for existence on the server (or proxy to the right
+server)
+
+=cut
 
 post '/check/manifest' => sub {
     my $c = shift;
@@ -532,6 +580,12 @@ post '/check/manifest' => sub {
     $c->render_json(\%ret);
 };
 
+=head2 GET /servers/status
+
+Get the status of all the disks on all the servers/
+
+=cut
+
 get '/servers/status' => sub {
     my $c = shift;
     my %disks =
@@ -553,10 +607,22 @@ get '/servers/status' => sub {
     $c->render_json(\%all);
 };
 
+=head2 GET /bucket_map
+
+Get a mapping from buckets to hosts.
+
+=cut
+
 get '/bucket_map' => sub {
     my $c = shift;
     $c->render_json(Yars::Tools->bucket_map)
 };
+
+=head2 GET /bucket/usage
+
+Find the disk usage per bucket.
+
+=cut
 
 get '/bucket/usage' => sub {
     my $c = shift;

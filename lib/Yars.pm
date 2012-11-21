@@ -1,12 +1,133 @@
-package Yars;
-
 =head1 NAME
 
-Yars (Yet Another REST Server)
+Yars -- Yet Another RESTful-Archiving Serivce
+
+=head1 DESCRIPTION
+
+Yars is a simple RESTful server for data storage.
+
+It allows files to be PUT and GET based on their md5 sums
+and filenames, and uses a distributed hash table to store
+the files across any number of hosts and disks.
+
+Files are assigned to disks and hosts based on their md5 sums
+in the following manner : The first two digits of the md5
+is considered the "bucket" for a file.  These 256 buckets
+are distributed among the disks in proportion to the size
+of each disk.  The bucket distribution is done manually
+as part of the configuration, with the aid of an included
+tool, L<yars_generate_diskmap>.
+
+The server is controlled with the command line tool L<yars>.
+
+The basic operations of a running yars cluster are supporting
+requests of the form
+
+  PUT http://$host/file/$md5/$filename
+  GET http://$host/file/$md5/$filename
+  GET http://$host/bucket_map
+
+to store and retrieve files, where $host may be any of the
+hosts in the cluster, and $md5 and $filename are content
+that is to be stored.  See L<Yars::Routes> for documentation
+of other routes.
+
+A client L<Yars::Client> is also available (in a separate
+distribution), for interacting with a yars server.
+
+=head1 EXAMPLE 1
+
+The following sequence of commands will start yars on
+a single host :
+
+    $ mkdir ~/etc
+    $ cat > ~/etc/Yars.conf
+    ---
+    start_mode : 'hypnotoad'
+    url : http://localhost:9999
+    hypnotoad :
+      pid_file : /tmp/yars.pid
+      listen :
+         - http://localhost:9999
+    servers :
+    - url : http://localhost:9999
+      disks :
+        - root : /usr/local/data/disk1
+          buckets : [ <%= join ',', '0'..'f' %> ]
+    ^D
+
+    $ yars start
+
+Now, verify that it works :
+
+    $ GET http://localhost:9999/status
+
+And try to PUT and GET a file :
+
+    echo "hi" | lwp-request -em PUT http://localhost:9999/file/here
+    # (notice the "Location" header
+    GET http://localhost:9999/file/764efa883dda1e11db47671c4a3bbd9e/here
+
+Also you can use L<Yars::Client> :
+
+    echo "hi" > myfile
+    yarsclient upload myfile
+    yarsclient download myfile 764efa883dda1e11db47671c4a3bbd9e
+
+Or more verbose versions :
+
+    yarsclient --trace root upload myfile
+    yarsclient --trace root download myfile 764efa883dda1e11db47671c4a3bbd9e
+
+=head1 EXAMPLE 2
+
+To install Yars on a cluster of several hosts, the configuration
+for each host should be identical, except that the 'url'
+should reflect the host on which the server is running.
+
+To accomplish this, the above configuration may be divided
+into two files, one with the bucket map, and another with
+the server specific information.
+
+    yars1 ~$ cat > ~/etc/Yars.conf :
+    ----
+    extends_config 'disk_map';
+    url : http://yars1:9999
+    hypnotoad :
+      pid_file : /tmp/yars.pid
+      listen :
+         - http://yars1:9999
+
+    yars2 ~$ cat > ~/etc/Yars.conf :
+    ----
+    extends_config 'disk_map';
+    url : http://yars2:9999
+    hypnotoad :
+      pid_file : /tmp/yars.pid
+      listen :
+         - http://yars2:9999
+
+    Then on both servers :
+    $ cat > ~/etc/disk_map.conf :
+    servers :
+    - url : http://yars1:9999
+      disks :
+        - root : /usr/local/data/disk1
+          buckets : [ <%= join ',', '0'..'9' %> ]
+    - url : http://yars2:9999
+      disks :
+        - root : /usr/local/data/disk1
+          buckets : [ <%= join ',', 'a'..'f' %> ]
+
+Then run "yars start" on both servers and voila.
+
+=head1 METHODS
 
 =over
 
 =cut
+
+package Yars;
 
 use strict;
 use warnings;
@@ -57,5 +178,12 @@ sub startup {
     );
     $self->SUPER::startup(@_);
 }
+
+=head1 SEE ALSO
+
+L<Yars::Client>
+
+=cut
+
 
 1;
