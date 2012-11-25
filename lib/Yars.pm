@@ -11,12 +11,16 @@ and filenames, and uses a distributed hash table to store
 the files across any number of hosts and disks.
 
 Files are assigned to disks and hosts based on their md5 sums
-in the following manner : The first two digits of the md5
-is considered the "bucket" for a file.  These 256 buckets
+in the following manner :
+
+The first two digits of the md5 are considered the "bucket" for
+a file.  These 256 buckets
 are distributed among the disks in proportion to the size
 of each disk.  The bucket distribution is done manually
 as part of the configuration, with the aid of an included
-tool, L<yars_generate_diskmap>.
+tool, L<yars_generate_diskmap>.  (It is also possible to
+change the number of digits and thus change the number of
+buckets.)
 
 The server is controlled with the command line tool L<yars>.
 
@@ -32,13 +36,30 @@ hosts in the cluster, and $md5 and $filename are content
 that is to be stored.  See L<Yars::Routes> for documentation
 of other routes.
 
+Failover is handled in the following manner :
+
+If the host to which a file is assigned is not available, then
+the file will be "stashed" on the filesystem for the host
+to which it was sent.  If there is no space there, other
+hosts and disks will be tried until an available one is
+found.  Because of this failover mechanism, the "stash"
+must be checked whenever a GET request is served.  In other
+words, a successful GET will return quickly, but an
+unsuccessful one will take longer because all of the stashes
+on all of the servers must be checked before a 404 Not Found
+is returned.
+
+Another tool L<yars_fast_balance> is provided which takes
+files from stashes and returns them to their correct
+locations.
+
 A client L<Yars::Client> is also available (in a separate
 distribution), for interacting with a yars server.
 
 =head1 EXAMPLE 1
 
 The following sequence of commands will start yars on
-a single host :
+a single host (with 16 buckets) :
 
     $ mkdir ~/etc
     $ cat > ~/etc/Yars.conf
@@ -119,7 +140,8 @@ the server specific information.
         - root : /usr/local/data/disk1
           buckets : [ <%= join ',', 'a'..'f' %> ]
 
-Then run "yars start" on both servers and voila.
+Then run "yars start" on both servers and voila, you
+have an archive.
 
 =head1 METHODS
 
