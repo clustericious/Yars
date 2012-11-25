@@ -143,9 +143,9 @@ the server specific information.
 Then run "yars start" on both servers and voila, you
 have an archive.
 
-=head1 METHODS
-
-=over
+L<Yars> is the application package, it inherits from
+L<Clustericious::App> and overrides the following
+methods :
 
 =cut
 
@@ -162,7 +162,7 @@ our $VERSION = '0.73';
 
 has secret => rand;
 
-=item startup
+=head2 startup
 
 Called by the server to start up, we change
 the object classes to use Yars::Message::Request
