@@ -1,6 +1,6 @@
 =head1 NAME
 
-Yars -- Yet Another RESTful-Archiving Serivce
+Yars -- Yet Another RESTful-Archive Service
 
 =head1 DESCRIPTION
 
@@ -10,31 +10,29 @@ It allows files to be PUT and GET based on their md5 sums
 and filenames, and uses a distributed hash table to store
 the files across any number of hosts and disks.
 
-Files are assigned to disks and hosts based on their md5 sums
+Files are assigned to disks and hosts based on their md5s
 in the following manner :
 
-The first two digits of the md5 are considered the "bucket" for
-a file.  These 256 buckets
-are distributed among the disks in proportion to the size
-of each disk.  The bucket distribution is done manually
-as part of the configuration, with the aid of an included
-tool, L<yars_generate_diskmap>.  (It is also possible to
-change the number of digits and thus change the number of
-buckets.)
+The first N digits of the md5 are considered the "bucket" for
+a file.  e.g. for N=2, 256 buckets are then distributed among
+the disks in proportion to the size of each disk.  The bucket
+distribution is done manually as part of the configuration (with
+the aid of an included tool, L<yars_generate_diskmap>).
 
 The server is controlled with the command line tool L<yars>.
 
 The basic operations of a running yars cluster are supporting
 requests of the form
 
-  PUT http://$host/file/$md5/$filename
+  PUT http://$host/file/$filename
   GET http://$host/file/$md5/$filename
+  HEAD http://$host/file/$md5/$filename
   GET http://$host/bucket_map
 
 to store and retrieve files, where $host may be any of the
-hosts in the cluster, and $md5 and $filename are content
-that is to be stored.  See L<Yars::Routes> for documentation
-of other routes.
+hosts in the cluster, $md5 is the md5 of the content, and
+$filename is a filename for the content to be stored.  See
+L<Yars::Routes> for documentation of other routes.
 
 Failover is handled in the following manner :
 
@@ -43,10 +41,10 @@ the file will be "stashed" on the filesystem for the host
 to which it was sent.  If there is no space there, other
 hosts and disks will be tried until an available one is
 found.  Because of this failover mechanism, the "stash"
-must be checked whenever a GET request is served.  In other
-words, a successful GET will return quickly, but an
+must be checked whenever a GET request is handled.
+A successful GET will return quickly, but an
 unsuccessful one will take longer because all of the stashes
-on all of the servers must be checked before a 404 Not Found
+on all of the servers must be checked before a "404 Not Found"
 is returned.
 
 Another tool L<yars_fast_balance> is provided which takes
@@ -95,7 +93,7 @@ Also you can use L<Yars::Client> :
     yarsclient upload myfile
     yarsclient download myfile 764efa883dda1e11db47671c4a3bbd9e
 
-Or more verbose versions :
+Or to see the requests and responses :
 
     yarsclient --trace root upload myfile
     yarsclient --trace root download myfile 764efa883dda1e11db47671c4a3bbd9e
@@ -142,6 +140,9 @@ the server specific information.
 
 Then run "yars start" on both servers and voila, you
 have an archive.
+
+See also, L<clad>, for a tool to facilitate
+running "yars start" on multiple hosts at once.
 
 L<Yars> is the application package, it inherits from
 L<Clustericious::App> and overrides the following
@@ -200,6 +201,12 @@ sub startup {
     );
     $self->SUPER::startup(@_);
 }
+
+=head1 AUTHORS
+
+ Marty Brandon
+
+ Brian Duggan
 
 =head1 SEE ALSO
 
