@@ -64,9 +64,9 @@ my $got = join "", IO::File->new("<$filename")->getlines;
 is $got, $data, "got same contents";
 chdir "$download_dir/..";
 
-my $status = $y->check_manifest(
-    # XXX TODO
-);
+# TODO
+# my $status = $y->check_manifest($filename);
+# diag explain $status;
 
 done_testing ();
 
