@@ -3,6 +3,7 @@ bin/yars_disk_scan
 bin/yars_fast_balance
 bin/yars_generate_diskmap
 Build.PL
+Changes
 eg/big_disk_map.conf
 eg/disk_map.conf
 eg/Yars.conf
@@ -28,6 +29,7 @@ t/060_mark_down.t
 t/070_tempdir.t
 t/071_tempdir.t
 t/080_manifest.t
+t/090_client.t
 t/999_cleanup.t
 t/999_pod.t
 t/999_pod_coverage.t

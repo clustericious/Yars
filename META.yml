@@ -19,9 +19,9 @@ build_requires:
   Test::Pod::Coverage: 0
   Try::Tiny: 0
 configure_requires:
-  Module::Build: 0.4
+  Module::Build: 0.40
 dynamic_config: 1
-generated_by: 'Module::Build version 0.4, CPAN::Meta::Converter version 2.120921'
+generated_by: 'Module::Build version 0.4003, CPAN::Meta::Converter version 2.112621'
 license: perl
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
@@ -30,7 +30,7 @@ name: Yars
 provides:
   Yars:
     file: lib/Yars.pm
-    version: 0.73
+    version: 0.74
   Yars::Routes:
     file: lib/Yars/Routes.pm
     version: 0
@@ -39,4 +39,4 @@ provides:
     version: 0
 resources:
   license: http://dev.perl.org/licenses/
-version: 0.73
+version: 0.74
