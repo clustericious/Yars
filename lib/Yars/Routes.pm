@@ -162,7 +162,7 @@ sub _redirect_to_remote_stash {
     return 0;
 }
 
-=head1 PUT /file/#filename/#md5
+=head2 PUT /file/#filename/#md5
 
 PUT a file with the given name and md5.
 
@@ -370,7 +370,7 @@ sub _stash_remotely {
     return 0;
 }
 
-=head1 DELETE /file/#filename/:md5, /file/:md5/#filename
+=head2 DELETE /file/#filename/:md5, /file/:md5/#filename
 
 Delete a file with the given name and md5.
 
