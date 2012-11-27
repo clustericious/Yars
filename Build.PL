@@ -9,6 +9,7 @@ my $builder = Module::Build->new(
     license             => 'perl',
     dist_abstract       => "Yars Server",
     dist_version_from   => 'lib/Yars.pm',
+    dist_author         => q{Brian Duggan <brian.duggan@nasa.gov>},
     build_requires => {
         'Test::More'                  => 0,
         'Mojolicious'                 => '2.62',
