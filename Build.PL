@@ -15,6 +15,7 @@ my $builder = Module::Build->new(
         'Mojolicious'                 => '2.62',
         'Clustericious'               => '0.97',
         'Clustericious::Config'       => '0.07',
+        'Clustericious::Log'          => 0,
         'Digest::file'                => 0, # in core
         'Try::Tiny'                   => 0,
         'Test::Pod::Coverage'         => 0,

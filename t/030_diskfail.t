@@ -7,6 +7,8 @@ use File::Basename qw/dirname/;
 use Test::More;
 use Mojo::ByteStream qw/b/;
 use File::Find::Rule;
+use lib dirname(__FILE__);
+use tlib qw/sys/;
 use Yars;
 
 my @urls = ("http://localhost:9051","http://localhost:9052");
@@ -19,11 +21,6 @@ $ENV{PATH} = dirname(__FILE__)."/../blib/script:$ENV{PATH}";
 $ENV{MOJO_MAX_MEMORY_SIZE} = 10;
 my $root = $ENV{YARS_TMP_ROOT} = File::Temp->newdir(CLEANUP => 1);
 
-sub _sys {
-    my $cmd = shift;
-    system($cmd)==0 or die "Error running $cmd : $!";
-}
-
 sub _slurp {
     my $file = shift;
     my @lines = IO::File->new("<$file")->getlines;
@@ -34,9 +31,9 @@ for my $which (qw/1 2/) {
     my $pid_file = "/tmp/yars.test.$<.${which}.hypnotoad.pid";
     if (-e $pid_file && kill 0, _slurp($pid_file)) {
         diag "killing running yars $which";
-        _sys("MOJO_MAX_MEMORY_SIZE=1 LOG_FILE=/tmp/yars.test.$<.$which.log YARS_WHICH=$which yars stop");
+        sys("MOJO_MAX_MEMORY_SIZE=1 LOG_FILE=/tmp/yars.test.$<.$which.log YARS_WHICH=$which yars stop");
     }
-    _sys("MOJO_MAX_MEMORY_SIZE=1 LOG_FILE=/tmp/yars.test.$<.$which.log YARS_WHICH=$which yars start");
+    sys("MOJO_MAX_MEMORY_SIZE=1 LOG_FILE=/tmp/yars.test.$<.$which.log YARS_WHICH=$which yars start");
 }
 
 my $ua = Mojo::UserAgent->new();
@@ -90,8 +87,8 @@ for my $url (@locations) {
 
 }
 
-_sys("YARS_WHICH=1 yars stop");
-_sys("YARS_WHICH=2 yars stop");
+sys("YARS_WHICH=1 yars stop");
+sys("YARS_WHICH=2 yars stop");
 
 done_testing();
 
