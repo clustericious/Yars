@@ -15,7 +15,6 @@ my @urls = ("http://localhost:9051","http://localhost:9052");
 
 $ENV{CLUSTERICIOUS_CONF_DIR} = dirname(__FILE__).'/conf3';
 $ENV{CLUSTERICIOUS_TEST_CONF_DIR} = $ENV{CLUSTERICIOUS_CONF_DIR};
-$ENV{PATH} = dirname(__FILE__)."/../blib/script:$ENV{PATH}";
 #$ENV{LOG_LEVEL} = "TRACE";
 $ENV{MOJO_MAX_MEMORY_SIZE} = 10;
 my $root = $ENV{YARS_TMP_ROOT} = File::Temp->newdir(CLEANUP => 1);
