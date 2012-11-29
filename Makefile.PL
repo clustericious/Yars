@@ -7,6 +7,7 @@ WriteMakefile
   'PREREQ_PM' => {
                    'Clustericious' => '0.97',
                    'Clustericious::Config' => '0.07',
+                   'Clustericious::Log' => 0,
                    'Digest::file' => 0,
                    'File::Compare' => 0,
                    'File::Copy' => 0,

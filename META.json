@@ -1,7 +1,7 @@
 {
    "abstract" : "Yars Server",
    "author" : [
-      "unknown"
+      "Brian Duggan <brian.duggan@nasa.gov>"
    ],
    "dynamic_config" : 1,
    "generated_by" : "Module::Build version 0.4003, CPAN::Meta::Converter version 2.112621",
@@ -18,6 +18,7 @@
          "requires" : {
             "Clustericious" : "0.97",
             "Clustericious::Config" : "0.07",
+            "Clustericious::Log" : 0,
             "Digest::file" : 0,
             "File::Compare" : 0,
             "File::Copy" : 0,
@@ -42,7 +43,7 @@
    "provides" : {
       "Yars" : {
          "file" : "lib/Yars.pm",
-         "version" : "0.74"
+         "version" : "0.75"
       },
       "Yars::Routes" : {
          "file" : "lib/Yars/Routes.pm",
@@ -59,5 +60,5 @@
          "http://dev.perl.org/licenses/"
       ]
    },
-   "version" : "0.74"
+   "version" : "0.75"
 }

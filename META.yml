@@ -1,10 +1,11 @@
 ---
 abstract: 'Yars Server'
 author:
-  - unknown
+  - 'Brian Duggan <brian.duggan@nasa.gov>'
 build_requires:
   Clustericious: 0.97
   Clustericious::Config: 0.07
+  Clustericious::Log: 0
   Digest::file: 0
   File::Compare: 0
   File::Copy: 0
@@ -30,7 +31,7 @@ name: Yars
 provides:
   Yars:
     file: lib/Yars.pm
-    version: 0.74
+    version: 0.75
   Yars::Routes:
     file: lib/Yars/Routes.pm
     version: 0
@@ -39,4 +40,4 @@ provides:
     version: 0
 resources:
   license: http://dev.perl.org/licenses/
-version: 0.74
+version: 0.75
