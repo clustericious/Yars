@@ -24,12 +24,12 @@ sub _slurp {
 }
 
 for my $which (qw/1 2/) {
-    my $pid_file = "/tmp/yars.test.${which}.hypnotoad.pid";
+    my $pid_file = "$root/yars.test.${which}.hypnotoad.pid";
     if (-e $pid_file && kill 0, _slurp($pid_file)) {
         diag "killing running yars $which";
-        sys("LOG_FILE=/tmp/yars.test.$<.log YARS_WHICH=$which yars stop");
+        sys("LOG_FILE=$root/yars.test.$<.log YARS_WHICH=$which yars stop");
     }
-    sys("LOG_FILE=/tmp/yars.test.$<.log YARS_WHICH=$which yars start");
+    sys("LOG_FILE=$root/yars.test.$<.log YARS_WHICH=$which yars start");
 }
 
 my $ua = Mojo::UserAgent->new();

@@ -19,7 +19,8 @@ $ENV{CLUSTERICIOUS_TEST_CONF_DIR} = $ENV{CLUSTERICIOUS_CONF_DIR};
 my $root = $ENV{YARS_TMP_ROOT} = File::Temp->newdir(CLEANUP => 1);
 $ENV{LOG_LEVEL} = 'TRACE';
 
-sys("LOG_FILE=/tmp/yars.test.$<.log yars start");
+my $tmp = File::Temp->newdir(CLEANUP => 1);
+sys("LOG_FILE=$tmp/yars.test.$<.log yars start");
 
 my $url = "http://localhost:9059";
 
@@ -44,6 +45,6 @@ my $res;
 ok $res = $got->success, "got $url";
 is length($res->body), length($content), "content lengths match";
 
-sys("LOG_FILE=/tmp/yars.test.$<.log yars stop");
+sys("LOG_FILE=$tmp/yars.test.$<.log yars stop");
 
 done_testing();

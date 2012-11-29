@@ -26,12 +26,12 @@ sub _slurp {
 }
 
 for my $which (qw/1 2/) {
-    my $pid_file = "/tmp/yars.test.$<.${which}.hypnotoad.pid";
+    my $pid_file = "$root/yars.test.$<.${which}.hypnotoad.pid";
     if (-e $pid_file && kill 0, _slurp($pid_file)) {
         diag "killing running yars $which";
-        sys("MOJO_MAX_MEMORY_SIZE=1 LOG_FILE=/tmp/yars.test.$<.$which.log YARS_WHICH=$which yars stop");
+        sys("MOJO_MAX_MEMORY_SIZE=1 LOG_FILE=$root/yars.test.$<.$which.log YARS_WHICH=$which yars stop");
     }
-    sys("MOJO_MAX_MEMORY_SIZE=1 LOG_FILE=/tmp/yars.test.$<.$which.log YARS_WHICH=$which yars start");
+    sys("MOJO_MAX_MEMORY_SIZE=1 LOG_FILE=$root/yars.test.$<.$which.log YARS_WHICH=$which yars start");
 }
 
 my $ua = Mojo::UserAgent->new();

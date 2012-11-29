@@ -37,7 +37,7 @@ my $location = $t->tx->res->headers->location;
 ok $location, "got location header";
 like $location, qr[.*$digest.*], "location had digest";
 
-$ENV{MOJO_TMPDIR} = "/tmp";
+$ENV{MOJO_TMPDIR} = $ENV{TMPDIR} || "/tmp";
 my $got = $t->get_ok("/file/$filename/$digest")->status_is(200)->tx->success->body;
 
 ok $got eq $content, "got content";
