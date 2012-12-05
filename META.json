@@ -43,7 +43,7 @@
    "provides" : {
       "Yars" : {
          "file" : "lib/Yars.pm",
-         "version" : "0.75"
+         "version" : "0.76"
       },
       "Yars::Routes" : {
          "file" : "lib/Yars/Routes.pm",
@@ -60,5 +60,5 @@
          "http://dev.perl.org/licenses/"
       ]
    },
-   "version" : "0.75"
+   "version" : "0.76"
 }
