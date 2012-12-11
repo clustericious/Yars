@@ -159,7 +159,7 @@ use Yars::Routes;
 use Yars::Tools;
 use Mojo::ByteStream qw/b/;
 use File::Path qw/mkpath/;
-our $VERSION = '0.76';
+our $VERSION = '0.77';
 
 has secret => rand;
 

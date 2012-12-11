@@ -4,7 +4,7 @@
       "Brian Duggan <brian.duggan@nasa.gov>"
    ],
    "dynamic_config" : 1,
-   "generated_by" : "Module::Build version 0.4003, CPAN::Meta::Converter version 2.112621",
+   "generated_by" : "Module::Build version 0.4003, CPAN::Meta::Converter version 2.120630",
    "license" : [
       "perl_5"
    ],
@@ -18,20 +18,20 @@
          "requires" : {
             "Clustericious" : "0.97",
             "Clustericious::Config" : "0.07",
-            "Clustericious::Log" : 0,
-            "Digest::file" : 0,
-            "File::Compare" : 0,
-            "File::Copy" : 0,
-            "File::Find" : 0,
-            "File::Find::Rule" : 0,
-            "Filesys::Df" : 0,
-            "Hash::MoreUtils" : 0,
-            "List::MoreUtils" : 0,
-            "List::Util" : 0,
+            "Clustericious::Log" : "0",
+            "Digest::file" : "0",
+            "File::Compare" : "0",
+            "File::Copy" : "0",
+            "File::Find" : "0",
+            "File::Find::Rule" : "0",
+            "Filesys::Df" : "0",
+            "Hash::MoreUtils" : "0",
+            "List::MoreUtils" : "0",
+            "List::Util" : "0",
             "Mojolicious" : "2.62",
-            "Test::More" : 0,
-            "Test::Pod::Coverage" : 0,
-            "Try::Tiny" : 0
+            "Test::More" : "0",
+            "Test::Pod::Coverage" : "0",
+            "Try::Tiny" : "0"
          }
       },
       "configure" : {
@@ -43,7 +43,7 @@
    "provides" : {
       "Yars" : {
          "file" : "lib/Yars.pm",
-         "version" : "0.76"
+         "version" : "0.77"
       },
       "Yars::Routes" : {
          "file" : "lib/Yars/Routes.pm",
@@ -60,5 +60,5 @@
          "http://dev.perl.org/licenses/"
       ]
    },
-   "version" : "0.76"
+   "version" : "0.77"
 }
