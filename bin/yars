@@ -1,11 +1,7 @@
-#!/usr/bin/env perl
+#!/usr/bin/perl
 
-use File::Basename 'dirname';
-use File::Spec;
-
-use lib join '/', File::Spec->splitdir(dirname(__FILE__)), 'lib';
-use lib join '/', File::Spec->splitdir(dirname(__FILE__)), '..', 'lib';
-use lib join '/', File::Spec->splitdir(dirname(__FILE__)), '..', 'lib', 'perl';
+use FindBin;
+use lib "$FindBin::Bin/../lib";
 
 use Yars;
 use Clustericious::Commands;
@@ -23,6 +19,5 @@ sub main {
     $app = Clustericious::Commands->start;
     $app;
 }
-
 
 
