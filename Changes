@@ -1,4 +1,8 @@
 Release history for Yars
+0.77 2012-12-05
+     Use /usr/bin/perl instead of /usr/bin/env perl
+     for system tests to work.
+
 0.76 2012-12-05
      More fixes to tests.
 
