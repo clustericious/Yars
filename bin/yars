@@ -1,0 +1,55 @@
+#!/usr/bin/perl
+
+# PODNAME: yars
+# ABSTRACT: Yet Another RESTful-Archive Service
+our $VERSION = '0.78'; # VERSION
+
+
+use FindBin;
+use lib "$FindBin::Bin/../lib";
+
+use Yars;
+use Clustericious::Commands;
+
+use strict;
+use warnings;
+
+$ENV{MOJO_APP} ||= 'Yars';
+
+&main;
+
+sub main {
+    my $cmd = $ARGV[0];
+    my $app = Yars->new();
+    $app = Clustericious::Commands->start;
+    $app;
+}
+
+__END__
+
+=pod
+
+=head1 NAME
+
+yars - Yet Another RESTful-Archive Service
+
+=head1 VERSION
+
+version 0.78
+
+=head1 SEE ALSO
+
+L<Yars>, L<Yars::Client>, L<yarsclient>
+
+=head1 AUTHOR
+
+Graham Ollis <plicease@cpan.org>
+
+=head1 COPYRIGHT AND LICENSE
+
+This software is copyright (c) 2013 by NASA GSFC.
+
+This is free software; you can redistribute it and/or modify it under
+the same terms as the Perl 5 programming language system itself.
+
+=cut

@@ -1,0 +1,16 @@
+Revision history for Yars
+
+0.78      2013-04-30 12:40:26 EST5EDT
+0.77 2012-12-05
+     Use /usr/bin/perl instead of /usr/bin/env perl
+     for system tests to work.
+
+0.76 2012-12-05
+     More fixes to tests.
+
+0.75 2012-11-29
+     Improved portability of tests
+
+0.74 2012-11-25
+     First public release
+
