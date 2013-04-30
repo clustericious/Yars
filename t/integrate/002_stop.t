@@ -1,5 +1,3 @@
-#!/usr/bin/env perl
-
 use strict;
 use warnings;
 
@@ -9,7 +7,10 @@ use Test::More;
 $ENV{CLUSTERICIOUS_CONF_DIR} = dirname(__FILE__).'/conf';
 $ENV{CLUSTERICIOUS_TEST_CONF_DIR} = $ENV{CLUSTERICIOUS_CONF_DIR};
 $ENV{PERL5LIB} = join ':', @INC;
-$ENV{PATH} = dirname(__FILE__)."/../../blib/script:$ENV{PATH}";
+my $script = do {
+  my $dir = dirname(__FILE__);
+  -f "$dir/../../blib/script/yars" ? "$dir/../../blib/script/yars" : "$dir/../../bin/yars";
+};
 #$ENV{LOG_LEVEL} = "TRACE";
 $ENV{YARS_TMP_ROOT} = "/dev/null";
 
@@ -18,8 +19,8 @@ sub _sys {
     system($cmd)==0 or die "Error running $cmd : $!";
 }
 
-_sys("YARS_WHICH=1 yars stop");
-_sys("YARS_WHICH=2 yars stop");
+_sys("YARS_WHICH=1 $^X $script stop");
+_sys("YARS_WHICH=2 $^X $script stop");
 sub _slurp {
     my $file = shift;
     my @lines = IO::File->new("<$file")->getlines;

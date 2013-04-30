@@ -1,7 +1,9 @@
-#!perl
+use strict;
+use warnings;
+use FindBin ();
+BEGIN { require "$FindBin::Bin/etc/setup_legacy.pl" }
 
-# t/060_mark_down.t
-
+use File::HomeDir::Test;
 use Test::More;
 use Test::Mojo;
 use File::Path qw/mkpath/;
@@ -9,9 +11,6 @@ use File::Basename qw/dirname/;
 use Mojo::ByteStream qw/b/;
 use File::Temp;
 use Yars;
-
-use strict;
-use warnings;
 
 my $test_files = 20;
 my $root = File::Temp->newdir(CLEANUP => 1);
