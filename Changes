@@ -1,6 +1,11 @@
 Revision history for Yars
 
+0.79      2013-04-30 12:57:02 EST5EDT
+     Remove extranious dep
+
 0.78      2013-04-30 12:40:26 EST5EDT
+     Compatability, bug check Mojolicious 3.84 (require 3.86)
+
 0.77 2012-12-05
      Use /usr/bin/perl instead of /usr/bin/env perl
      for system tests to work.

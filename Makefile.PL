@@ -66,7 +66,7 @@ my %WriteMakefileArgs = (
     "Test::More" => 0,
     "YAML" => 0
   },
-  "VERSION" => "0.78",
+  "VERSION" => "0.79",
   "test" => {
     "TESTS" => "t/*.t t/integrate/*.t"
   }
