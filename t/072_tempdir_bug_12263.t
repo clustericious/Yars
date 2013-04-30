@@ -2,6 +2,11 @@ use strict;
 use warnings;
 use autodie;
 use v5.10;
+BEGIN { 
+  delete $ENV{HARNESS_ACTIVE}; 
+  delete $ENV{CLUSTERICIOUS_CONF_DIR};
+  $ENV{LOG_LEVEL} //= "ERROR";
+};
 use File::HomeDir::Test;
 use File::HomeDir;
 use Test::More;
