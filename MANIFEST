@@ -16,6 +16,7 @@ MANIFEST.SKIP
 META.json
 META.yml
 README
+dist.ini
 t/001_basic.t
 t/005_roundtrip.t
 t/006_roundtrip_bin.t
@@ -28,6 +29,7 @@ t/040_hostfail.t
 t/060_mark_down.t
 t/070_tempdir.t
 t/071_tempdir.t
+t/072_tempdir_bug_12263.t
 t/080_manifest.t
 t/090_client.t
 t/999_cleanup.t
