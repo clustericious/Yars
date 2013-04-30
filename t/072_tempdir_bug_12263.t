@@ -25,7 +25,7 @@ $Yars::VERSION //= '0.77';
 # rather than $TMPDIR and then moved to $disk_root/xx/xx/xx/...
 
 if(eval q{ use Monkey::Patch; use Yars::Client; *patch_class = \&Monkey::Patch::patch_class; 1 })
-{ plan tests => 5 }
+{ plan tests => 6 }
 else
 { plan skip_all => 'test requires Monkey::Patch and Yars::Client' }
 
@@ -88,6 +88,7 @@ $t->get_ok("http://localhost:$port/version")
 like $t->tx->res->json->[0], qr{^(\d+\.\d+|dev)$}, "version = " . $t->tx->res->json->[0];
 
 my $tmpdir;
+my $path;
 
 do {
 
@@ -117,7 +118,25 @@ do {
         $tmpdir = eval { $self->tmpdir; }; diag $@ if $@;
       }
     }
-    $self->$original(@rest);
+    my @ret;
+    my $ret;
+    if(wantarray) {
+      @ret = $self->$original(@rest);
+    } else {
+      $ret = $self->$original(@rest);
+    }
+    if(defined $refaddr && refaddr($self) == $refaddr)
+    {
+      if(defined $path)
+      {
+        die unless $self->path eq $path;
+      }
+      else
+      {
+        $path = $self->path;
+      }
+    }
+    wantarray ? return(@ret) : return($ret);
   });
 
   $client->upload($sample_filename);
@@ -126,4 +145,5 @@ do {
 
 ok( -e File::Spec->catfile( $home, qw( data disk_5 5e b6 3b bb e0 1e ee d0 93 cb 22 bb 8f 5a cd c3 sample.txt )), 'file uploaded');
 ok( -e File::Spec->catfile( $tmpdir, qw( right.txt )), 'used correct tmp directory ' . ($tmpdir//'undef'));
+like $path, qr{disk_5}, 'path = ' . $path;
 
