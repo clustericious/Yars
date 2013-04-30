@@ -120,5 +120,5 @@ do {
 };
 
 ok( -e File::Spec->catfile( $home, qw( data disk_5 5e b6 3b bb e0 1e ee d0 93 cb 22 bb 8f 5a cd c3 sample.txt )), 'file uploaded');
-ok( -e File::Spec->catfile( $tmpdir, qw( right.txt )), 'used correct tmp directory');
+ok( -e File::Spec->catfile( $tmpdir, qw( right.txt )), 'used correct tmp directory ' . ($tmpdir//'undef'));
 
