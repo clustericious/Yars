@@ -1,11 +1,14 @@
 use strict;
 use warnings;
+use autodie;
+use v5.10;
 use File::HomeDir::Test;
 use File::HomeDir;
 use Test::More;
 use Test::Mojo;
 use Mojolicious;
 use File::Spec;
+use Scalar::Util qw( refaddr );
 use YAML ();
 
 # this change to Mojolicious in version 3.85 broke the way we set the temp directory:
@@ -27,16 +30,17 @@ mkdir(File::Spec->catdir($home, 'data', "disk_$_")) for (0..9,'a'..'f');
 YAML::DumpFile(File::Spec->catfile($home, 'etc', 'Yars.conf') => {
   url => 'http://localhost',
 });
-mkdir(File::Spec->catdir($home, qw( data disk_c tmp )));
+mkdir(File::Spec->catdir($home, qw( data disk_5 tmp )));
 do {
   my $fh;
-  open($fh, '>', File::Spec->catfile($home, qw( data disk_c tmp right.txt )));
+  open($fh, '>', File::Spec->catfile($home, qw( data disk_5 tmp right.txt )));
   close $fh;
 };
 
 my $t = Test::Mojo->new('Yars');
 my $port = $t->ua->app_url->port;
 $ENV{MOJO_TMPDIR} = File::Spec->catdir($home, 'tmp');
+$ENV{MOJO_MAX_MEMORY_SIZE} = 5;            # Force temp files.
 do { 
   my $fh;
   open($fh, '>', File::Spec->catfile($home, qw( tmp wrong.txt )));
@@ -58,12 +62,14 @@ YAML::DumpFile(File::Spec->catfile($home, 'etc', 'Yars.conf'), {
   } ],
 });
 
-my $sample_filename = File::Spec->catfile($home, 'sample', 'sample.yml');
-YAML::DumpFile($sample_filename, {
-  name => 'Optimus Prime',
-  list => [ 1..512 ],
-  hash => { map {; $_ => 1 } ( 'a'..'z','A'..'Z' ) },
-});
+my $sample_filename = File::Spec->catfile($home, 'sample', 'sample.txt');
+do {
+  my $fh;
+  open($fh, '>', $sample_filename);
+  binmode $fh;
+  print $fh 'hello world';
+  close $fh;
+};
 
 my $client = do {
   my $c = Yars::Client->new;
@@ -79,20 +85,40 @@ like $t->tx->res->json->[0], qr{^(\d+\.\d+|dev)$}, "version = " . $t->tx->res->j
 my $tmpdir;
 
 do {
+
+  my $refaddr;
+
+  $t->app->hook(after_build_tx => sub {
+    my ( $tx, $app ) = @_;
+    $tx->req->content->on(body => sub {
+      my $content = shift;
+      $content->asset->on(upgrade => sub {
+          my ( $mem, $file ) = @_;
+          $refaddr = refaddr $file if $tx->req->url =~ m{/file/sample.txt/};
+      });
+    })
+  });
+
   my $patch1 = patch_class('Mojo::Asset::File', handle => sub {
     my($original, $self, @rest) = @_;
-    $tmpdir = eval { $self->tmpdir; }; diag $@ if $@;
+    if(defined $refaddr && refaddr($self) == $refaddr)
+    {
+      if(defined $tmpdir)
+      {
+        die unless $tmpdir eq $self->tmpdir;
+      }
+      else
+      {
+        $tmpdir = eval { $self->tmpdir; }; diag $@ if $@;
+      }
+    }
     $self->$original(@rest);
   });
-  
-  my $patch2 = patch_class('Mojo::Asset::File', tmpdir => sub {
-    my($original, $self, $new_value) = @_;
-    $self->$original($new_value);
-  });
-  
+
   $client->upload($sample_filename);
   
 };
 
-ok( -e File::Spec->catfile( $home, qw( data disk_c c6 51 3a 77 f5 47 ee c1 b8 b1 22 3b d1 0d a9 2f sample.yml )), 'file uploaded');
+ok( -e File::Spec->catfile( $home, qw( data disk_5 5e b6 3b bb e0 1e ee d0 93 cb 22 bb 8f 5a cd c3 sample.txt )), 'file uploaded');
 ok( -e File::Spec->catfile( $tmpdir, qw( right.txt )), 'used correct tmp directory');
+
