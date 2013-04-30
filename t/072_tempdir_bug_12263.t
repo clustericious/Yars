@@ -12,6 +12,9 @@ use Mojolicious;
 use File::Spec;
 use Scalar::Util qw( refaddr );
 use YAML ();
+use Yars;
+
+$Yars::VERSION //= '0.77';
 
 # this change to Mojolicious in version 3.85 broke the way we set the temp directory:
 # https://github.com/kraih/mojo/commit/eff7e8dce836c75e21c1c1b3456fb3f8a9992ecb

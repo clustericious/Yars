@@ -1,8 +1,8 @@
 #!/usr/bin/perl
 
-=head1 NAME
-
-yars_generate_diskmap -- generate a mapping from servers + hosts to buckets for yars.
+# PODNAME: yars_generate_diskmap
+# ABSTRACT: generate a mapping from servers + hosts to buckets for yars.
+# VERSION
 
 =head1 SYNOPSIS
 

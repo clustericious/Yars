@@ -1,5 +1,9 @@
 #!/usr/bin/perl
 
+# PODNAME: yars_fast_balance
+# ABSTRACT: Fix all files
+# VERSION
+
 =head1 NAME
 
 yars_fast_balance

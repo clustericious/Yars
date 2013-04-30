@@ -1,5 +1,15 @@
 #!/usr/bin/perl
 
+# PODNAME: yars
+# ABSTRACT: Yet Another RESTful-Archive Service
+# VERSION
+
+=head1 SEE ALSO
+
+L<Yars>, L<Yars::Client>, L<yarsclient>
+
+=cut
+
 use FindBin;
 use lib "$FindBin::Bin/../lib";
 

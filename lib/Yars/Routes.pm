@@ -1,8 +1,7 @@
 package Yars::Routes;
 
-=head1 NAME
-
-Yars::Routes -- set up the routes for Yars.
+# ABSTRACT: set up the routes for Yars.
+# VERSION
 
 =head1 ROUTES
 

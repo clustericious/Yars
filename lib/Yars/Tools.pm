@@ -1,6 +1,7 @@
-=head1 NAME
+package Yars::Tools;
 
-Yars::Tools -- various utility functions dealing with servers, hosts, etc
+# ABSTRACT: various utility functions dealing with servers, hosts, etc
+# VERSION
 
 =head1 DESCRIPTION
 
@@ -12,7 +13,6 @@ Just some useful functions here.
 
 =cut
 
-package Yars::Tools;
 use Clustericious::Config;
 use List::Util qw/shuffle/;
 use List::MoreUtils qw/uniq/;

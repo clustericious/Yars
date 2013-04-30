@@ -1,6 +1,15 @@
-=head1 NAME
+package Yars;
 
-Yars -- Yet Another RESTful-Archive Service
+use strict;
+use warnings;
+use Mojo::Base 'Clustericious::App';
+use Yars::Routes;
+use Yars::Tools;
+use Mojo::ByteStream qw/b/;
+use File::Path qw/mkpath/;
+
+# ABSTRACT: Yet Another RESTful-Archive Service
+# VERSION
 
 =head1 DESCRIPTION
 
@@ -149,17 +158,6 @@ L<Clustericious::App> and overrides the following
 methods :
 
 =cut
-
-package Yars;
-
-use strict;
-use warnings;
-use Mojo::Base 'Clustericious::App';
-use Yars::Routes;
-use Yars::Tools;
-use Mojo::ByteStream qw/b/;
-use File::Path qw/mkpath/;
-our $VERSION = '0.77';
 
 has secret => rand;
 

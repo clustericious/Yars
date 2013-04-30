@@ -1,8 +1,8 @@
 #!/usr/bin/perl
 
-=head1 NAME
-
-yars_disk_scan -- scan a disk for corruption and report corrupt files to stdout
+# PODNAME: yars_disk_scan
+# ABSTRACT: scan a disk for corruption and report corrupt files to stdout
+# VERSION
 
 =head1 SYNOPSIS
 
