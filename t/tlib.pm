@@ -4,7 +4,9 @@ no strict 'refs';
 
 sub import {
     my ($pkg,$filename,$line) = caller();
-    my $yars_exe = $^X.' '.dirname($filename).'/../blib/script/yars';
+    my $dir = dirname $filename;
+    my $script = -f "$dir/../blib/script/yars" ? "$dir/../blib/script/yars" : "$dir/../bin/yars";
+    my $yars_exe = "$^X $script";
     *{"$pkg".'::sys'} = sub {
         my $cmd = shift;
         $cmd =~ s/\byars(?= )/$yars_exe/;
