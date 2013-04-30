@@ -9,8 +9,6 @@ Just some useful functions here.
 
 =head1 FUNCTIONS
 
-=over
-
 =cut
 
 use Clustericious::Config;
@@ -38,7 +36,7 @@ our %DiskIsLocal; # Our disk roots (values are just 1)
 our %Servers;     # All servers
 our $StateFile;   # Name of file with disk states.
 
-=item refresh_config
+=head2 refresh_config
 
 Refresh the configuration data cached in memory.
 
@@ -90,7 +88,7 @@ sub _dir_is_empty {
     return 1;
 }
 
-=item disk_for
+=head2 disk_for
 
 Given an md5 digest, calculate the root directory of this file.
 Undef is returned if this file does not belong on the current host.
@@ -110,7 +108,7 @@ sub disk_for {
     return $Bucket2Root{$bucket};
 }
 
-=item local_buckets
+=head2 local_buckets
 
 Get a hash from disk to list of buckets for this server.
 
@@ -149,7 +147,7 @@ sub _write_state {
     return 1;
 }
 
-=item disk_is_up
+=head2 disk_is_up
 
 Given a disk root, return true unless the disk is marked down.
 A disk is down if the state file indicates it, or if it exists
@@ -165,7 +163,7 @@ sub disk_is_up {
     return 0;
 }
 
-=item disk_is_down
+=head2 disk_is_down
 
 Disk is not up.
 
@@ -175,7 +173,7 @@ sub disk_is_down {
     return not shift->disk_is_up(@_);
 }
 
-=item disk_is_local
+=head2 disk_is_local
 
 Return true iff the disk is on this server.
 
@@ -187,7 +185,7 @@ sub disk_is_local {
     return $DiskIsLocal{$root};
 }
 
-=item server_is_up, server_is_down
+=head2 server_is_up, server_is_down
 
 Check to see if a remote server is up or down.
 
@@ -236,7 +234,7 @@ sub _touch {
     return 1;
 }
 
-=item mark_disk_down, mark_disk_up
+=head2 mark_disk_down, mark_disk_up
 
 Mark a disk as up or down.
 
@@ -267,7 +265,7 @@ sub mark_disk_up {
     return 0;
 }
 
-=item server_for
+=head2 server_for
 
 Given an md5, return the url for the server for this file.
 
@@ -285,7 +283,7 @@ sub server_for {
     return $found;
 }
 
-=item bucket_map
+=head2 bucket_map
 
 Return a map from bucket prefix to server url.
 
@@ -295,7 +293,7 @@ sub bucket_map {
     return \%Bucket2Url;
 }
 
-=item storage_path
+=head2 storage_path
 
 Calculate the directory of an md5 on disk.
 Optionally pass a second parameter to force it onto a particular disk.
@@ -309,7 +307,7 @@ sub storage_path {
     return join "/", $root, ( grep length, split /(..)/, $digest );
 }
 
-=item remote_stashed_server
+=head2 remote_stashed_server
 
 Find a server which is stashing this file, if one exists.
 Parameters :
@@ -338,7 +336,7 @@ sub remote_stashed_server {
     return '';
 }
 
-=item local_stashed_dir
+=head2 local_stashed_dir
 
 Find a local directory stashing this file, if one exists.
 Parameters :
@@ -360,7 +358,7 @@ sub local_stashed_dir {
     return '';
 }
 
-=item server_exists
+=head2 server_exists
 
 Does this server exist?
 
@@ -372,7 +370,7 @@ sub server_exists {
     return exists($Servers{$server_url}) ? 1 : 0;
 }
 
-=item server_url
+=head2 server_url
 
 Returns the url of the current server.
 
@@ -382,7 +380,7 @@ sub server_url {
     return $OurUrl;
 }
 
-=item disk_roots
+=head2 disk_roots
 
 Return all the local directory roots, in a random order.
 
@@ -392,7 +390,7 @@ sub disk_roots {
     return keys %DiskIsLocal;
 }
 
-=item server_urls
+=head2 server_urls
 
 Return all the other urls, in a random order.
 
@@ -402,7 +400,7 @@ sub server_urls {
     return keys %Servers;
 }
 
-=item cleanup_tree
+=head2 cleanup_tree
 
 Given a direcory, traverse upwards until encountering
 a local disk root or a non-empty directory, and remove
@@ -420,7 +418,7 @@ sub cleanup_tree {
      }
 }
 
-=item count_files
+=head2 count_files
 
 Count the number of files in a directory tree.
 
@@ -434,7 +432,7 @@ sub count_files {
     return scalar @list;
 }
 
-=item human_size
+=head2 human_size
 
 Given a size, format it like df -kh
 
@@ -452,7 +450,7 @@ sub human_size {
     return sprintf( "%.0f%s", $val + 0.5, $unit );
 }
 
-=item content_is_same
+=head2 content_is_same
 
 Given a filename and an Asset, return true iff the
 content is the same for both.
@@ -474,7 +472,7 @@ sub content_is_same {
     return $check;
 }
 
-=item hex2b64, b642hex
+=head2 hex2b64, b642hex
 
 Convert from hex to base 64.
 
@@ -495,6 +493,11 @@ sub b642hex {
     return unpack 'H*', b($b64)->b64_decode;
 }
 
+=head1 SEE ALSO
+
+L<Yars>, L<Yars::Client>
+
+=cut
 
 1;
 

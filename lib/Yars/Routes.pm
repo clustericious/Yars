@@ -651,5 +651,10 @@ get '/bucket/usage' => sub {
     $c->render_json({ used => \%used, assigned => \%assigned } );
 };
 
+=head1 SEE ALSO
+
+L<Yars>, L<Yars::Client>
+
+=cut
 
 1;

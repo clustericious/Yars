@@ -202,15 +202,16 @@ sub startup {
 
 =head1 AUTHORS
 
- Marty Brandon
+Current maintainer: Graham Ollis <plicease@cpan.org>
 
- Brian Duggan
+Previous maintainer: Marty Brandon
+
+Original author: Brian Duggan
 
 =head1 SEE ALSO
 
 L<Yars::Client>
 
 =cut
-
 
 1;
