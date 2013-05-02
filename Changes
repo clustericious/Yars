@@ -1,6 +1,7 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+  - Portability: use File::HomeDir instead of $ENV{HOME}
 
 0.80      2013-05-02 06:17:18 EST5EDT
   - move integration tests into the xt directory
