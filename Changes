@@ -1,6 +1,7 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+  - move integration tests into the xt directory
 
 0.79      2013-04-30 12:57:02 EST5EDT
      Remove extranious dep
