@@ -9,7 +9,7 @@ use Mojo::ByteStream qw/b/;
 use File::Path qw/mkpath/;
 
 # ABSTRACT: Yet Another RESTful-Archive Service
-our $VERSION = '0.79'; # VERSION
+our $VERSION = '0.80'; # VERSION
 
 
 has secret => rand;
@@ -59,7 +59,7 @@ Yars - Yet Another RESTful-Archive Service
 
 =head1 VERSION
 
-version 0.79
+version 0.80
 
 =head1 DESCRIPTION
 

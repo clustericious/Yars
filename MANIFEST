@@ -39,7 +39,7 @@ t/conf3/Yars.conf
 t/conf_071/Yars.conf
 t/etc/setup.pl
 t/etc/setup_legacy.pl
-t/integrate/001_start.t
-t/integrate/002_stop.t
-t/integrate/conf/Yars.conf
 t/tlib.pm
+xt/integrate/001_start.t
+xt/integrate/002_stop.t
+xt/integrate/conf/Yars.conf
