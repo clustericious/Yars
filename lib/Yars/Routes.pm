@@ -23,9 +23,6 @@ use List::MoreUtils qw/uniq/;
 use Digest::file qw/digest_file_hex/;
 use File::Basename qw/basename/;
 
-# default max download size of 50 GB
-$ENV{MOJO_MAX_MESSAGE_SIZE} ||= 1073741824 * 50;
-
 ladder sub {
  my $c = shift;
  Yars::Tools->refresh_config($c->config);

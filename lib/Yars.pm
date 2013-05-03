@@ -8,6 +8,7 @@ use Yars::Tools;
 use Mojo::ByteStream qw/b/;
 use File::Path qw/mkpath/;
 use Log::Log4perl qw(:easy);
+use Number::Bytes::Human qw( format_bytes parse_bytes );
 
 # ABSTRACT: Yet Another RESTful-Archive Service
 # VERSION
@@ -210,6 +211,11 @@ sub startup {
             WARN "error in stop: $@" if $@;
         });
     }
+    
+    my $max_size = parse_bytes($self->config->max_message_size_server(default => 53687091200));
+    INFO "max message size = " . format_bytes($max_size) . " ($max_size)";
+    
+    $ENV{MOJO_MAX_MESSAGE_SIZE} = $max_size;
 }
 
 =head1 AUTHORS
