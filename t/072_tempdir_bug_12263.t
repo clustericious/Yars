@@ -85,7 +85,7 @@ Yars::Tools->refresh_config;
 
 $t->get_ok("http://localhost:$port/version")
   ->status_is(200);
-like $t->tx->res->json->[0], qr{^(\d+\.\d+|dev)$}, "version = " . $t->tx->res->json->[0];
+like $t->tx->res->json->[0], qr{^(\d+\.\d+(_\d+)?|dev)$}, "version = " . $t->tx->res->json->[0];
 
 my $tmpdir;
 my $path;
