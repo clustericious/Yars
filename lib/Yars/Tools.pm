@@ -1,7 +1,7 @@
 package Yars::Tools;
 
 # ABSTRACT: various utility functions dealing with servers, hosts, etc
-our $VERSION = '0.80'; # VERSION
+our $VERSION = '0.80_01'; # VERSION
 
 
 use Clustericious::Config;
@@ -19,6 +19,7 @@ use File::Compare;
 use JSON::XS;
 use File::stat qw/stat/;
 use Mojo::ByteStream qw/b/;
+use File::HomeDir;
 use strict;
 use warnings;
 
@@ -51,7 +52,7 @@ sub refresh_config {
  }
 our $default_dir = $ENV{HARNESS_ACTIVE}
   ? File::Temp->newdir( "/tmp/yars.test.$<.XXXXXX" )
-  : "$ENV{HOME}/var/run/yars";
+  : File::HomeDir->my_home . "/var/run/yars";
  $StateFile = $config->state_file(default => "$default_dir/state.txt");
  -e $StateFile or do {
     INFO "Writing new state file ($StateFile)";
@@ -373,7 +374,7 @@ Yars::Tools - various utility functions dealing with servers, hosts, etc
 
 =head1 VERSION
 
-version 0.80
+version 0.80_01
 
 =head1 DESCRIPTION
 

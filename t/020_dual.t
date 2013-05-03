@@ -7,16 +7,25 @@ use File::HomeDir::Test;
 use File::Basename qw/dirname/;
 use Test::More;
 use Mojo::ByteStream qw/b/;
+use Mojo::IOLoop::Server;
 use lib dirname(__FILE__);
 use tlib qw/sys/;
 use Yars;
+use File::Spec;
+use Clustericious::Config;
 
-my @urls = ("http://localhost:9051","http://localhost:9052");
+$ENV{YARS_PORT1} = Mojo::IOLoop::Server->generate_port;
+$ENV{YARS_PORT2} = Mojo::IOLoop::Server->generate_port;
 
-$ENV{CLUSTERICIOUS_CONF_DIR} = dirname(__FILE__).'/conf2';
+my @urls = ("http://localhost:$ENV{YARS_PORT1}","http://localhost:$ENV{YARS_PORT2}");
+note "url1 $urls[0]";
+note "url2 $urls[1]";
+
+$ENV{CLUSTERICIOUS_CONF_DIR} = dirname(__FILE__).'/conf4';
 $ENV{CLUSTERICIOUS_TEST_CONF_DIR} = $ENV{CLUSTERICIOUS_CONF_DIR};
 my $root = $ENV{YARS_TMP_ROOT} = File::Temp->newdir(CLEANUP => 1);
 $ENV{LOG_LEVEL} = "WARN";
+note "root = $root";
 
 sub _slurp {
     my $file = shift;
@@ -29,25 +38,26 @@ sub _normalize {
     return [ sort { $a->{md5} cmp $b->{md5} } @$one ];
 }
 
+my $yars_exe = File::Spec->catfile(dirname(__FILE__), File::Spec->updir, 'bin', 'yars');
+note "exe = $yars_exe";
+
 for my $which (qw/1 2/) {
-    my $pid_file = "$root/yars.test.$<.${which}.hypnotoad.pid";
-    if (-e $pid_file && kill 0, _slurp($pid_file)) {
-        diag "killing running yars $which";
-        sys("LOG_FILE=$root/yars.test.$<.log YARS_WHICH=$which yars stop");
-    }
-    sys("LOG_FILE=$root/yars.test.$<.log YARS_WHICH=$which yars start");
+    local $ENV{LOG_FILE}   = File::Spec->catfile(File::Spec->tmpdir, "yars-020_dual.t.$<.$which.log");
+    local $ENV{YARS_WHICH} = $which;
+    system($^X, $yars_exe, 'start');
 }
 
 my $ua = Mojo::UserAgent->new();
 $ua->max_redirects(3);
-sleep 10;
-is $ua->get($urls[0].'/status')->res->json->{server_url}, $urls[0], "started first server at $urls[0]";
-is $ua->get($urls[1].'/status')->res->json->{server_url}, $urls[1], "started second server at $urls[1]";
+is eval { $ua->get($urls[0].'/status')->res->json->{server_url} }, $urls[0], "started first server at $urls[0]";
+diag $@ if $@;
+is eval { $ua->get($urls[1].'/status')->res->json->{server_url} }, $urls[1], "started second server at $urls[1]";
+diag $@ if $@;
 
 my $status = $ua->get($urls[0].'/servers/status')->res->json;
 is_deeply($status, {
-        "http://localhost:9051" => { "$root/one" => "up" },
-        "http://localhost:9052" => { "$root/two" => "up" },
+        "http://localhost:$ENV{YARS_PORT1}" => { "$root/one" => "up" },
+        "http://localhost:$ENV{YARS_PORT2}" => { "$root/two" => "up" },
     }
 );
 
@@ -122,10 +132,6 @@ for my $url (@locations) {
         is $tx->res->code, 404, "Not found after deleting";
     }
 }
-
-
-sys("YARS_WHICH=1 yars stop");
-sys("YARS_WHICH=2 yars stop");
 
 done_testing();
 

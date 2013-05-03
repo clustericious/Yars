@@ -26,6 +26,7 @@ my %WriteMakefileArgs = (
   "NAME" => "Yars",
   "PREREQ_PM" => {
     "Clustericious" => "0.97",
+    "Clustericious::Command::stop" => 0,
     "Clustericious::Commands" => 0,
     "Clustericious::Config" => "0.07",
     "Clustericious::Log" => 0,
@@ -36,6 +37,7 @@ my %WriteMakefileArgs = (
     "File::Basename" => 0,
     "File::Compare" => 0,
     "File::Find::Rule" => 0,
+    "File::HomeDir" => 0,
     "File::Path" => 0,
     "File::Temp" => 0,
     "File::stat" => 0,
@@ -56,9 +58,9 @@ my %WriteMakefileArgs = (
     "Yars::Client" => 0
   },
   "TEST_REQUIRES" => {
-    "File::HomeDir" => 0,
     "File::HomeDir::Test" => 0,
     "File::Spec" => 0,
+    "Mojo::IOLoop::Server" => 0,
     "Mojolicious" => 0,
     "Scalar::Util" => 0,
     "Sys::Hostname" => 0,
@@ -66,7 +68,7 @@ my %WriteMakefileArgs = (
     "Test::More" => 0,
     "YAML" => 0
   },
-  "VERSION" => "0.80",
+  "VERSION" => "0.80_01",
   "test" => {
     "TESTS" => "t/*.t"
   }

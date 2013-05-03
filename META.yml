@@ -3,9 +3,9 @@ abstract: 'Yet Another RESTful-Archive Service'
 author:
   - 'Graham Ollis <plicease@cpan.org>'
 build_requires:
-  File::HomeDir: 0
   File::HomeDir::Test: 0
   File::Spec: 0
+  Mojo::IOLoop::Server: 0
   Mojolicious: 0
   Scalar::Util: 0
   Sys::Hostname: 0
@@ -24,6 +24,7 @@ meta-spec:
 name: Yars
 requires:
   Clustericious: 0.97
+  Clustericious::Command::stop: 0
   Clustericious::Commands: 0
   Clustericious::Config: 0.07
   Clustericious::Log: 0
@@ -34,6 +35,7 @@ requires:
   File::Basename: 0
   File::Compare: 0
   File::Find::Rule: 0
+  File::HomeDir: 0
   File::Path: 0
   File::Temp: 0
   File::stat: 0
@@ -52,4 +54,4 @@ requires:
   Smart::Comments: 0
   Try::Tiny: 0
   Yars::Client: 0
-version: 0.80
+version: 0.80_01

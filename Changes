@@ -1,5 +1,11 @@
 Revision history for Yars
 
+0.80_01   2013-05-03 16:34:52 EST5EDT
+  - Less sleepy tests
+  - use ephermeral ports for 020_dual.t to see if that plays nice
+    with cpan testers
+  - Portability: use File::HomeDir instead of $ENV{HOME}
+
 0.80      2013-05-02 06:17:18 EST5EDT
   - move integration tests into the xt directory
 
