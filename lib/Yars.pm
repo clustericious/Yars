@@ -178,9 +178,13 @@ sub startup {
     } else {
         Mojo::IOLoop->singleton->connection_timeout(3000);
     }
+
+    my $max_size = 53687091200;
+
     $self->hook(
         after_build_tx => sub {
             my ( $tx, $app ) = @_;
+            $tx->req->max_message_size($max_size);
             $tx->req->content->on(body => sub {
                     my $content = shift;
                     my $md5_b64 = $content->headers->header('Content-MD5') or return;
@@ -212,10 +216,8 @@ sub startup {
         });
     }
     
-    my $max_size = parse_bytes($self->config->max_message_size_server(default => 53687091200));
+    $max_size = parse_bytes($self->config->max_message_size_server(default => 53687091200));
     INFO "max message size = " . format_bytes($max_size) . " ($max_size)";
-    
-    $ENV{MOJO_MAX_MESSAGE_SIZE} = $max_size;
 }
 
 =head1 AUTHORS
