@@ -1,6 +1,8 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+
+0.80_01   2013-05-03 16:34:52 EST5EDT
   - Less sleepy tests
   - use ephermeral ports for 020_dual.t to see if that plays nice
     with cpan testers
