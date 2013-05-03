@@ -7,6 +7,7 @@ use Yars::Routes;
 use Yars::Tools;
 use Mojo::ByteStream qw/b/;
 use File::Path qw/mkpath/;
+use Log::Log4perl qw(:easy);
 
 # ABSTRACT: Yet Another RESTful-Archive Service
 # VERSION
@@ -197,7 +198,18 @@ sub startup {
             );
         }
     );
+    
     $self->SUPER::startup(@_);
+
+    if(my $time = $self->config->{test_expiration}) {
+        require Clustericious::Command::stop;
+        WARN "this process will stop after $time seconds";
+        Mojo::IOLoop->timer($time => sub { 
+            WARN "self terminating after $time seconds";
+            eval { Clustericious::Command::stop->run };
+            WARN "error in stop: $@" if $@;
+        });
+    }
 }
 
 =head1 AUTHORS
