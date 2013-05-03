@@ -2,7 +2,7 @@
 
 # PODNAME: yars
 # ABSTRACT: Yet Another RESTful-Archive Service
-our $VERSION = '0.80_01'; # VERSION
+our $VERSION = '0.80_02'; # VERSION
 
 
 use FindBin;
@@ -35,7 +35,7 @@ yars - Yet Another RESTful-Archive Service
 
 =head1 VERSION
 
-version 0.80_01
+version 0.80_02
 
 =head1 SEE ALSO
 

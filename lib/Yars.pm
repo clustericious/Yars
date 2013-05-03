@@ -10,7 +10,7 @@ use File::Path qw/mkpath/;
 use Log::Log4perl qw(:easy);
 
 # ABSTRACT: Yet Another RESTful-Archive Service
-our $VERSION = '0.80_01'; # VERSION
+our $VERSION = '0.80_02'; # VERSION
 
 
 has secret => rand;
@@ -71,7 +71,7 @@ Yars - Yet Another RESTful-Archive Service
 
 =head1 VERSION
 
-version 0.80_01
+version 0.80_02
 
 =head1 DESCRIPTION
 

@@ -54,4 +54,4 @@ requires:
   Smart::Comments: 0
   Try::Tiny: 0
   Yars::Client: 0
-version: 0.80_01
+version: 0.80_02

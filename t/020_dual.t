@@ -5,7 +5,7 @@ BEGIN { require "$FindBin::Bin/etc/setup_legacy.pl" }
 
 use File::HomeDir::Test;
 use File::Basename qw/dirname/;
-use Test::More;
+use Test::More tests => 97;
 use Mojo::ByteStream qw/b/;
 use Mojo::IOLoop::Server;
 use lib dirname(__FILE__);
@@ -49,10 +49,23 @@ for my $which (qw/1 2/) {
 
 my $ua = Mojo::UserAgent->new();
 $ua->max_redirects(3);
-is eval { $ua->get($urls[0].'/status')->res->json->{server_url} }, $urls[0], "started first server at $urls[0]";
-diag $@ if $@;
-is eval { $ua->get($urls[1].'/status')->res->json->{server_url} }, $urls[1], "started second server at $urls[1]";
-diag $@ if $@;
+eval {
+  is $ua->get($urls[0].'/status')->res->json->{server_url}, $urls[0], "started first server at $urls[0]";
+  is $ua->get($urls[1].'/status')->res->json->{server_url}, $urls[1], "started second server at $urls[1]";
+};
+if(my $error = @_)
+{
+  diag "FAILED: with $error";
+  foreach my $which (1..2)
+  {
+    use autodie;
+    diag "LOG $which";
+    open(my $fh, '<', File::Spec->catfile(File::Spec->tmpdir, "yars-020_dual.t.$<.$which.log"));
+    diag <$fh>;
+    close $fh;
+  }
+  exit;
+}
 
 my $status = $ua->get($urls[0].'/servers/status')->res->json;
 is_deeply($status, {
