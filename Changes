@@ -1,6 +1,8 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+
+0.80_04   2013-05-04 17:08:25 EST5EDT
   - fixed prereq
   - tests can now be run in parallel
   - tests should pass even if the perl in path != the build perl
