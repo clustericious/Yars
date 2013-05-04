@@ -4,9 +4,12 @@ use Test::More;
 use File::Spec ();
 use Mojo::IOLoop::Server ();
 use File::Basename qw( dirname );
+use Time::HiRes ();
 
 $ENV{HARNESS_ACTIVE} = 1;
 delete $ENV{CLUSTERICIOUS_CONF_DIR};
+
+my $yars_exe;
 
 sub two_urls
 {
@@ -24,7 +27,7 @@ sub two_urls
   note "url1 $urls[0]";
   note "url2 $urls[1]";
 
-  my $yars_exe = File::Spec->catfile(dirname(__FILE__), $up, $up, 'blib', 'script', 'yars');
+  $yars_exe = File::Spec->catfile(dirname(__FILE__), $up, $up, 'blib', 'script', 'yars');
   unless(-e $yars_exe)
   {
     use autodie;
@@ -42,15 +45,63 @@ sub two_urls
     chmod 0700, $yars_exe;
   }
 
-  for my $which (qw/1 2/) {
-    local $ENV{LOG_FILE}   = File::Spec->catfile(File::Spec->tmpdir, "yars-test.$<.$which.log");
-    note "log = $ENV{LOG_FILE}";
-    local $ENV{YARS_WHICH} = $which;
-    note "% $^X $yars_exe start";
-    system($^X, $yars_exe, 'start');
-  }
+  start_a_yars($_) for 1..2;
 
   ($root, @urls);
+}
+
+sub stop_a_yars
+{
+  my $which = shift;
+  local $ENV{LOG_FILE}           = File::Spec->catfile(File::Spec->tmpdir, "yars-test.$<.$which.log");
+  local $ENV{YARS_TEST_PID_FILE} = File::Spec->catfile(File::Spec->tmpdir, "yars-test.$<.$$.$which.pid");
+  local $ENV{YARS_TEST_LCK_FILE} = File::Spec->catfile(File::Spec->tmpdir, "yars-test.$<.$$.$which.lock");
+  local $ENV{YARS_WHICH}         = $which;
+  note "stop $which";
+  system($^X, $yars_exe, 'stop');
+  note "stopped";
+}
+
+sub start_a_yars
+{
+  my $which = shift;
+  local $ENV{LOG_FILE}   = File::Spec->catfile(File::Spec->tmpdir, "yars-test.$<.$which.log");
+  local $ENV{YARS_TEST_PID_FILE} = File::Spec->catfile(File::Spec->tmpdir, "yars-test.$<.$$.$which.pid");
+  local $ENV{YARS_TEST_LCK_FILE} = File::Spec->catfile(File::Spec->tmpdir, "yars-test.$<.$$.$which.lock");
+  local $ENV{YARS_WHICH} = $which;
+  note "start $which";
+  system($^X, $yars_exe, 'start');
+  note "started";
+  
+  my $retry = 100;
+  my $sleep = 0.1;
+  my $port = $ENV{"YARS_PORT$ENV{YARS_WHICH}"};
+  note "waiting for port $port";
+  while($retry--) {
+    return if check_port($port);
+    Time::HiRes::sleep($sleep);
+  }
+  die "not listening to port";
+}
+
+sub check_port
+{
+  my $port = shift;
+  require IO::Socket::INET;
+  my $sock = IO::Socket::INET->new(
+    Proto    => 'tcp',
+    PeerAddr => '127.0.0.1',
+    PeerPort => $port,
+  );
+  if($sock)
+  {
+    close $sock;
+    return 1;
+  }
+  else
+  {
+    return 0;
+  }
 }
 
 1;
