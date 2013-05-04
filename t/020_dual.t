@@ -8,8 +8,6 @@ use File::Basename qw/dirname/;
 use Test::More tests => 97;
 use Mojo::ByteStream qw/b/;
 use Mojo::IOLoop::Server;
-use lib dirname(__FILE__);
-use tlib qw/sys/;
 use Yars;
 use File::Spec;
 use Clustericious::Config;
@@ -38,12 +36,27 @@ sub _normalize {
     return [ sort { $a->{md5} cmp $b->{md5} } @$one ];
 }
 
-my $yars_exe = File::Spec->catfile(dirname(__FILE__), File::Spec->updir, 'bin', 'yars');
-note "exe = $yars_exe";
+my $yars_exe = File::Spec->catfile(dirname(__FILE__), File::Spec->updir, 'blib', 'script', 'yars');
+unless(-e $yars_exe)
+{
+  mkdir(File::Spec->catdir($root,'bin'));
+  my $in;
+  my $out;
+  $yars_exe = File::Spec->catfile($root, 'bin', 'yars.pl');
+  open($in,  '<', File::Spec->catfile(dirname(__FILE__), File::Spec->updir, 'bin', 'yars'));
+  open($out, '>', $yars_exe);
+  my $shebang = <$in>;
+  print $out "#!$^X\n";
+  while(<$in>) { print $out $_ }
+  close $in;
+  close $out;
+  chmod 0700, $yars_exe;
+}
 
 for my $which (qw/1 2/) {
     local $ENV{LOG_FILE}   = File::Spec->catfile(File::Spec->tmpdir, "yars-020_dual.t.$<.$which.log");
     local $ENV{YARS_WHICH} = $which;
+    note "% $^X $yars_exe start";
     system($^X, $yars_exe, 'start');
 }
 

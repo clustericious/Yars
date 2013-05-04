@@ -10,9 +10,6 @@ L<Yars>, L<Yars::Client>, L<yarsclient>
 
 =cut
 
-use FindBin;
-use lib "$FindBin::Bin/../lib";
-
 use Yars;
 use Clustericious::Commands;
 
