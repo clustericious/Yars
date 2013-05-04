@@ -8,7 +8,7 @@ use Mojo::ByteStream qw/b/;
 use Yars;
 use Clustericious::Config;
 
-my($root, @urls) = two_urls('conf4');
+my($root, @urls) = two_urls('conf2');
 
 sub _normalize {
     my ($one) = @_;
