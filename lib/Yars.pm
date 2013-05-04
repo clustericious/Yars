@@ -8,9 +8,10 @@ use Yars::Tools;
 use Mojo::ByteStream qw/b/;
 use File::Path qw/mkpath/;
 use Log::Log4perl qw(:easy);
+use Number::Bytes::Human qw( format_bytes parse_bytes );
 
 # ABSTRACT: Yet Another RESTful-Archive Service
-our $VERSION = '0.80_02'; # VERSION
+our $VERSION = '0.80_03'; # VERSION
 
 
 has secret => rand;
@@ -23,9 +24,13 @@ sub startup {
     } else {
         Mojo::IOLoop->singleton->connection_timeout(3000);
     }
+
+    my $max_size = 53687091200;
+
     $self->hook(
         after_build_tx => sub {
             my ( $tx, $app ) = @_;
+            $tx->req->max_message_size($max_size);
             $tx->req->content->on(body => sub {
                     my $content = shift;
                     my $md5_b64 = $content->headers->header('Content-MD5') or return;
@@ -56,6 +61,9 @@ sub startup {
             WARN "error in stop: $@" if $@;
         });
     }
+    
+    $max_size = parse_bytes($self->config->max_message_size_server(default => 53687091200));
+    INFO "max message size = " . format_bytes($max_size) . " ($max_size)";
 }
 
 
@@ -71,7 +79,7 @@ Yars - Yet Another RESTful-Archive Service
 
 =head1 VERSION
 
-version 0.80_02
+version 0.80_03
 
 =head1 DESCRIPTION
 

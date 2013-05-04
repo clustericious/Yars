@@ -5,6 +5,7 @@ author:
 build_requires:
   File::HomeDir::Test: 0
   File::Spec: 0
+  FindBin: 0
   Mojo::IOLoop::Server: 0
   Mojolicious: 0
   Scalar::Util: 0
@@ -16,7 +17,7 @@ build_requires:
 configure_requires:
   ExtUtils::MakeMaker: 6.30
 dynamic_config: 0
-generated_by: 'Dist::Zilla version 4.300034, CPAN::Meta::Converter version 2.130880'
+generated_by: 'Dist::Zilla version 4.300031, CPAN::Meta::Converter version 2.120921'
 license: perl
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
@@ -40,7 +41,6 @@ requires:
   File::Temp: 0
   File::stat: 0
   Filesys::Df: 0
-  FindBin: 0
   Hash::MoreUtils: 0
   IO::Dir: 0
   JSON::XS: 0
@@ -51,7 +51,8 @@ requires:
   Mojo::Base: 0
   Mojo::ByteStream: 0
   Mojolicious: 3.86
+  Number::Bytes::Human: 0
   Smart::Comments: 0
   Try::Tiny: 0
   Yars::Client: 0
-version: 0.80_02
+version: 0.80_03
