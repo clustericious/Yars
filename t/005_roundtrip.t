@@ -4,7 +4,7 @@ use FindBin ();
 BEGIN { require "$FindBin::Bin/etc/setup_legacy.pl" }
 
 use File::HomeDir::Test;
-use Test::More;
+use Test::More tests => 55;
 use Test::Mojo;
 use Mojo::ByteStream qw/b/;
 use File::Temp;
@@ -78,5 +78,3 @@ $t->app->config->servers->[0]{url} = $t->app->config->{url};
     $t->delete_ok($coke);
     $t->delete_ok($pepsi);
 }
-
-done_testing();

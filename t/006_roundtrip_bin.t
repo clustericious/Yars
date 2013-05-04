@@ -3,7 +3,7 @@
 use strict;
 use warnings;
 
-use Test::More;
+use Test::More tests => 7;
 use Test::Mojo;
 use Mojo::ByteStream qw/b/;
 use File::Temp;

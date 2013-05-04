@@ -3,7 +3,7 @@
 use strict;
 use warnings;
 
-use Test::More;
+use Test::More tests => 12;
 use Test::Mojo;
 use Mojo::ByteStream qw/b/;
 use File::Temp;
@@ -46,4 +46,3 @@ is $t->tx->res->headers->header("Content-MD5"), $header;
 
 $t->delete_ok("/file/$filename/$digest")->status_is(200);
 
-done_testing();

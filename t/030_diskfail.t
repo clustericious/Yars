@@ -3,7 +3,7 @@ use warnings;
 use FindBin ();
 BEGIN { require "$FindBin::Bin/etc/legacy.pl" }
 use File::HomeDir::Test;
-use Test::More;
+use Test::More tests => 911;
 use Mojo::ByteStream qw/b/;
 use File::Find::Rule;
 use Yars;
@@ -78,8 +78,6 @@ for my $url (@locations) {
     }
 
 }
-
-done_testing();
 
 __DATA__
 head -100 /usr/share/dict/words

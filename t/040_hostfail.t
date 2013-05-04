@@ -3,7 +3,7 @@ use warnings;
 use FindBin ();
 BEGIN { require "$FindBin::Bin/etc/legacy.pl" }
 use Mojo::ByteStream qw/b/;
-use Test::More;
+use Test::More tests => 368;
 use Yars;
 
 my($root, @urls) = two_urls('conf3');
@@ -66,8 +66,6 @@ TODO: {
         #}
     }
 }
-
-done_testing();
 
 __DATA__
 tail -100 /usr/share/dict/words

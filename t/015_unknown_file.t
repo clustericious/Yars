@@ -3,7 +3,7 @@
 use strict;
 use warnings;
 
-use Test::More;
+use Test::More tests => 2;
 use Test::Mojo;
 use File::Temp;
 use Yars;
@@ -21,5 +21,3 @@ my $content = 'We\'re gonna be late for the lodge meeting Fred.';
 
 $t->get_ok("/file/barney/5551212", {}, $content)->status_is(404);
 
-
-done_testing();
