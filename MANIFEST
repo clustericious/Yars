@@ -36,8 +36,8 @@ t/999_pod.t
 t/999_pod_coverage.t
 t/conf2/Yars.conf
 t/conf3/Yars.conf
-t/conf4/Yars.conf
 t/conf_071/Yars.conf
+t/etc/legacy.pl
 t/etc/setup.pl
 t/etc/setup_legacy.pl
 t/tlib.pm

@@ -1,38 +1,18 @@
-#!/usr/bin/env perl
-
 use strict;
 use warnings;
-
-use File::Basename qw/dirname/;
-use Test::More;
+use FindBin ();
+BEGIN { require "$FindBin::Bin/etc/legacy.pl" }
+use File::HomeDir::Test;
+use Test::More tests => 911;
 use Mojo::ByteStream qw/b/;
 use File::Find::Rule;
-use lib dirname(__FILE__);
-use tlib qw/sys/;
 use Yars;
 
-my @urls = ("http://localhost:9051","http://localhost:9052");
-
-$ENV{CLUSTERICIOUS_CONF_DIR} = dirname(__FILE__).'/conf3';
-$ENV{CLUSTERICIOUS_TEST_CONF_DIR} = $ENV{CLUSTERICIOUS_CONF_DIR};
-#$ENV{LOG_LEVEL} = "TRACE";
 $ENV{MOJO_MAX_MEMORY_SIZE} = 10;
-my $root = $ENV{YARS_TMP_ROOT} = File::Temp->newdir(CLEANUP => 1);
-
-sub _slurp {
-    my $file = shift;
-    my @lines = IO::File->new("<$file")->getlines;
-    return join '', @lines;
-}
-
-for my $which (qw/1 2/) {
-    my $pid_file = "$root/yars.test.$<.${which}.hypnotoad.pid";
-    if (-e $pid_file && kill 0, _slurp($pid_file)) {
-        diag "killing running yars $which";
-        sys("MOJO_MAX_MEMORY_SIZE=1 LOG_FILE=$root/yars.test.$<.$which.log YARS_WHICH=$which yars stop");
-    }
-    sys("MOJO_MAX_MEMORY_SIZE=1 LOG_FILE=$root/yars.test.$<.$which.log YARS_WHICH=$which yars start");
-}
+my($root, @urls) = do {
+  local $ENV{MOJO_MAX_MEMORY_SIZE} = 1;
+  two_urls('conf3');
+};
 
 my $ua = Mojo::UserAgent->new();
 $ua->max_redirects(3);
@@ -43,8 +23,6 @@ eval {
 if(my $error = $@)
 {
   diag "FAILED: with $error";
-  sys("YARS_WHICH=1 yars stop");
-  sys("YARS_WHICH=2 yars stop");
   foreach my $which (1..2)
   {
     use autodie;
@@ -100,11 +78,6 @@ for my $url (@locations) {
     }
 
 }
-
-sys("YARS_WHICH=1 yars stop");
-sys("YARS_WHICH=2 yars stop");
-
-done_testing();
 
 __DATA__
 head -100 /usr/share/dict/words

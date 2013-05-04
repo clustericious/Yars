@@ -1,36 +1,12 @@
-#!/usr/bin/env perl
-
 use strict;
 use warnings;
-
+use FindBin ();
+BEGIN { require "$FindBin::Bin/etc/legacy.pl" }
 use Mojo::ByteStream qw/b/;
-use File::Basename qw/dirname/;
-use Test::More;
-use lib dirname(__FILE__);
-use tlib qw/sys/;
+use Test::More tests => 368;
 use Yars;
 
-my @urls = ("http://localhost:9051","http://localhost:9052");
-
-$ENV{CLUSTERICIOUS_CONF_DIR} = dirname(__FILE__).'/conf3';
-$ENV{CLUSTERICIOUS_TEST_CONF_DIR} = $ENV{CLUSTERICIOUS_CONF_DIR};
-$ENV{LOG_LEVEL} = "WARN";
-my $root = $ENV{YARS_TMP_ROOT} = File::Temp->newdir(CLEANUP => 1);
-
-sub _slurp {
-    my $file = shift;
-    my @lines = IO::File->new("<$file")->getlines;
-    return join '', @lines;
-}
-
-for my $which (qw/1 2/) {
-    my $pid_file = "$root/yars.test.${which}.hypnotoad.pid";
-    if (-e $pid_file && kill 0, _slurp($pid_file)) {
-        diag "killing running yars $which";
-        sys("LOG_FILE=$root/yars.test.$<.log YARS_WHICH=$which yars stop");
-    }
-    sys("LOG_FILE=$root/yars.test.$<.log YARS_WHICH=$which yars start");
-}
+my($root, @urls) = two_urls('conf3');
 
 my $ua = Mojo::UserAgent->new();
 is $ua->get($urls[0].'/status')->res->json->{server_url}, $urls[0], "started first server at $urls[0]";
@@ -55,8 +31,7 @@ for my $content (@contents) {
     ok $tx->success, "put $filename to $urls[0]/file/$filename";
     push @locations, $location;
     if ($i==20) {
-        # Make a host unreachable
-        sys("YARS_WHICH=2 yars stop");
+        stop_a_yars(2);
     }
 }
 
@@ -73,7 +48,7 @@ for my $url (@locations) {
 }
 
 # Now start it back up.
-sys("YARS_WHICH=2 yars start");
+start_a_yars(2);
 
 TODO: {
     local $TODO = "Run yars_fast_balance";
@@ -91,11 +66,6 @@ TODO: {
         #}
     }
 }
-
-sys("YARS_WHICH=1 yars stop");
-sys("YARS_WHICH=2 yars stop");
-
-done_testing();
 
 __DATA__
 tail -100 /usr/share/dict/words

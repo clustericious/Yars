@@ -1,63 +1,18 @@
 use strict;
 use warnings;
 use FindBin ();
-BEGIN { require "$FindBin::Bin/etc/setup_legacy.pl" }
-
+BEGIN { require "$FindBin::Bin/etc/legacy.pl" }
 use File::HomeDir::Test;
-use File::Basename qw/dirname/;
 use Test::More tests => 97;
 use Mojo::ByteStream qw/b/;
-use Mojo::IOLoop::Server;
 use Yars;
-use File::Spec;
 use Clustericious::Config;
 
-$ENV{YARS_PORT1} = Mojo::IOLoop::Server->generate_port;
-$ENV{YARS_PORT2} = Mojo::IOLoop::Server->generate_port;
-
-my @urls = ("http://localhost:$ENV{YARS_PORT1}","http://localhost:$ENV{YARS_PORT2}");
-note "url1 $urls[0]";
-note "url2 $urls[1]";
-
-$ENV{CLUSTERICIOUS_CONF_DIR} = dirname(__FILE__).'/conf4';
-$ENV{CLUSTERICIOUS_TEST_CONF_DIR} = $ENV{CLUSTERICIOUS_CONF_DIR};
-my $root = $ENV{YARS_TMP_ROOT} = File::Temp->newdir(CLEANUP => 1);
-$ENV{LOG_LEVEL} = "WARN";
-note "root = $root";
-
-sub _slurp {
-    my $file = shift;
-    my @lines = IO::File->new("<$file")->getlines;
-    return join '', @lines;
-}
+my($root, @urls) = two_urls('conf2');
 
 sub _normalize {
     my ($one) = @_;
     return [ sort { $a->{md5} cmp $b->{md5} } @$one ];
-}
-
-my $yars_exe = File::Spec->catfile(dirname(__FILE__), File::Spec->updir, 'blib', 'script', 'yars');
-unless(-e $yars_exe)
-{
-  mkdir(File::Spec->catdir($root,'bin'));
-  my $in;
-  my $out;
-  $yars_exe = File::Spec->catfile($root, 'bin', 'yars.pl');
-  open($in,  '<', File::Spec->catfile(dirname(__FILE__), File::Spec->updir, 'bin', 'yars'));
-  open($out, '>', $yars_exe);
-  my $shebang = <$in>;
-  print $out "#!$^X\n";
-  while(<$in>) { print $out $_ }
-  close $in;
-  close $out;
-  chmod 0700, $yars_exe;
-}
-
-for my $which (qw/1 2/) {
-    local $ENV{LOG_FILE}   = File::Spec->catfile(File::Spec->tmpdir, "yars-020_dual.t.$<.$which.log");
-    local $ENV{YARS_WHICH} = $which;
-    note "% $^X $yars_exe start";
-    system($^X, $yars_exe, 'start');
 }
 
 my $ua = Mojo::UserAgent->new();
@@ -66,19 +21,6 @@ eval {
   is $ua->get($urls[0].'/status')->res->json->{server_url}, $urls[0], "started first server at $urls[0]";
   is $ua->get($urls[1].'/status')->res->json->{server_url}, $urls[1], "started second server at $urls[1]";
 };
-if(my $error = @_)
-{
-  diag "FAILED: with $error";
-  foreach my $which (1..2)
-  {
-    use autodie;
-    diag "LOG $which";
-    open(my $fh, '<', File::Spec->catfile(File::Spec->tmpdir, "yars-020_dual.t.$<.$which.log"));
-    diag <$fh>;
-    close $fh;
-  }
-  exit;
-}
 
 my $status = $ua->get($urls[0].'/servers/status')->res->json;
 is_deeply($status, {

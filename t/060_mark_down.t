@@ -4,7 +4,7 @@ use FindBin ();
 BEGIN { require "$FindBin::Bin/etc/setup_legacy.pl" }
 
 use File::HomeDir::Test;
-use Test::More;
+use Test::More tests => 72;
 use Test::Mojo;
 use File::Path qw/mkpath/;
 use File::Basename qw/dirname/;
@@ -102,5 +102,4 @@ TODO: {
                ->status_is(400);
 }
 
-done_testing();
 

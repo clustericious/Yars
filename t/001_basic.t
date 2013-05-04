@@ -3,7 +3,7 @@
 use strict;
 use warnings;
 
-use Test::More;
+use Test::More tests => 5;
 use Test::Mojo;
 use File::Temp;
 use_ok('Yars');
@@ -23,5 +23,3 @@ $t->app->config->servers->[0]{url} = $url;
 $t->get_ok('/')->status_is(200)->content_type_like('/text\/html/')
   ->content_like(qr/welcome/i);
 
-
-done_testing();

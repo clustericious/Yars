@@ -2,7 +2,7 @@
 
 # PODNAME: yars_disk_scan
 # ABSTRACT: scan a disk for corruption and report corrupt files to stdout
-our $VERSION = '0.80_03'; # VERSION
+our $VERSION = '0.80_04'; # VERSION
 
 
 use Clustericious::Config;
@@ -59,7 +59,7 @@ yars_disk_scan - scan a disk for corruption and report corrupt files to stdout
 
 =head1 VERSION
 
-version 0.80_03
+version 0.80_04
 
 =head1 SYNOPSIS
 

@@ -1,7 +1,7 @@
 package Yars::Routes;
 
 # ABSTRACT: set up the routes for Yars.
-our $VERSION = '0.80_03'; # VERSION
+our $VERSION = '0.80_04'; # VERSION
 
 
 use strict;
@@ -602,7 +602,7 @@ Yars::Routes - set up the routes for Yars.
 
 =head1 VERSION
 
-version 0.80_03
+version 0.80_04
 
 =head1 ROUTES
 

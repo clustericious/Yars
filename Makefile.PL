@@ -15,12 +15,14 @@ my %WriteMakefileArgs = (
     "File::HomeDir::Test" => 0,
     "File::Spec" => 0,
     "FindBin" => 0,
+    "IO::Socket::INET" => 0,
     "Mojo::IOLoop::Server" => 0,
     "Mojolicious" => 0,
     "Scalar::Util" => 0,
     "Sys::Hostname" => 0,
     "Test::Mojo" => 0,
     "Test::More" => 0,
+    "Time::HiRes" => 0,
     "YAML" => 0
   },
   "CONFIGURE_REQUIRES" => {
@@ -63,12 +65,12 @@ my %WriteMakefileArgs = (
     "Mojo::Base" => 0,
     "Mojo::ByteStream" => 0,
     "Mojolicious" => "3.86",
-    "Number::Bytes::Human" => 0,
+    "Number::Bytes::Human" => "0.09",
     "Smart::Comments" => 0,
     "Try::Tiny" => 0,
     "Yars::Client" => 0
   },
-  "VERSION" => "0.80_03",
+  "VERSION" => "0.80_04",
   "test" => {
     "TESTS" => "t/*.t"
   }
