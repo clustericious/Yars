@@ -1,6 +1,7 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+  - properly cleanup processes after test
 
 0.80_04   2013-05-04 17:08:25 EST5EDT
   - fixed prereq

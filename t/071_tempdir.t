@@ -9,6 +9,7 @@ use File::Temp;
 use Yars;
 use Mojo::IOLoop::Server;
 use Time::HiRes ();
+use File::Spec ();
 
 $ENV{MOJO_MAX_MEMORY_SIZE} = 100;            # Force temp files.
 $ENV{MOJO_TMPDIR}          = "/tmp/nosuchdir";
@@ -21,7 +22,7 @@ $ENV{YARS_TEST_PID_FILE} = File::Spec->catfile(File::Spec->tmpdir, "yars-test.$<
 
 my $tmp = File::Temp->newdir(CLEANUP => 1);
 do {
-  local $ENV{LOG_FILE} = "$tmp/yars.test.$<.log";
+  local $ENV{LOG_FILE} = File::Spec->catfile(File::Spec->tmpdir, "yars.test.$<.log");
   my $yars_exe = yars_exe;
   system($^X, $yars_exe, 'start');
 
@@ -59,4 +60,3 @@ my $res;
 ok $res = $got->success, "got $url";
 is length($res->body), length($content), "content lengths match";
 
-done_testing();
