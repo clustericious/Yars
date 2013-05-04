@@ -2,7 +2,7 @@
 
 # PODNAME: yars_fast_balance
 # ABSTRACT: Fix all files
-our $VERSION = '0.80_04'; # VERSION
+our $VERSION = '0.80_05'; # VERSION
 
 
 use Yars::Client;
@@ -145,7 +145,7 @@ yars_fast_balance - Fix all files
 
 =head1 VERSION
 
-version 0.80_04
+version 0.80_05
 
 =head1 SYNOPSIS
 

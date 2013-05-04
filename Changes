@@ -1,5 +1,8 @@
 Revision history for Yars
 
+0.80_05   2013-05-04 18:26:46 EST5EDT
+  - properly cleanup processes after test
+
 0.80_04   2013-05-04 17:08:25 EST5EDT
   - fixed prereq
   - tests can now be run in parallel
