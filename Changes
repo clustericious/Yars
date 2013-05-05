@@ -1,6 +1,7 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+  - Minor timing fixes
 
 0.80_05   2013-05-04 18:26:46 EST5EDT
   - properly cleanup processes after test

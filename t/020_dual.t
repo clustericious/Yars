@@ -101,7 +101,7 @@ for my $url (@locations) {
     }
 }
 
-done_testing();
+stop_a_yars($_) for 1..2;
 
 __DATA__
 this is one file
