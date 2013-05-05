@@ -70,7 +70,7 @@ my %WriteMakefileArgs = (
     "Try::Tiny" => 0,
     "Yars::Client" => 0
   },
-  "VERSION" => "0.80_05",
+  "VERSION" => "0.80_06",
   "test" => {
     "TESTS" => "t/*.t"
   }

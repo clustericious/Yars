@@ -1,5 +1,8 @@
 Revision history for Yars
 
+0.80_06   2013-05-04 22:13:33 EST5EDT
+  - Minor timing fixes
+
 0.80_05   2013-05-04 18:26:46 EST5EDT
   - properly cleanup processes after test
 

@@ -9,6 +9,7 @@ use File::Find::Rule;
 use Yars;
 
 $ENV{MOJO_MAX_MEMORY_SIZE} = 10;
+$ENV{YARS_TEST_EXPIRATION} = 120;
 my($root, @urls) = do {
   local $ENV{MOJO_MAX_MEMORY_SIZE} = 1;
   two_urls('conf3');
@@ -78,6 +79,8 @@ for my $url (@locations) {
     }
 
 }
+
+stop_a_yars($_) for 1..2;
 
 __DATA__
 head -100 /usr/share/dict/words

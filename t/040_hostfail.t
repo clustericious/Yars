@@ -6,6 +6,7 @@ use Mojo::ByteStream qw/b/;
 use Test::More tests => 368;
 use Yars;
 
+$ENV{YARS_TEST_EXPIRATION} = 120;
 my($root, @urls) = two_urls('conf3');
 
 my $ua = Mojo::UserAgent->new();
@@ -66,6 +67,8 @@ TODO: {
         #}
     }
 }
+
+stop_a_yars($_) for 1..2;
 
 __DATA__
 tail -100 /usr/share/dict/words
