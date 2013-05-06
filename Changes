@@ -1,6 +1,7 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+  - promote to production
 
 0.80_06   2013-05-04 22:13:33 EST5EDT
   - Minor timing fixes
