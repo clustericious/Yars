@@ -20,6 +20,7 @@ t/001_basic.t
 t/005_roundtrip.t
 t/006_roundtrip_bin.t
 t/007_md5_collision.t
+t/008_start.t
 t/010_digest.t
 t/015_unknown_file.t
 t/020_dual.t
@@ -39,7 +40,6 @@ t/conf3/Yars.conf
 t/conf_071/Yars.conf
 t/etc/legacy.pl
 t/etc/setup.pl
-t/etc/setup_legacy.pl
 t/tlib.pm
 xt/integrate/001_start.t
 xt/integrate/002_stop.t

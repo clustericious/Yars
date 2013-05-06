@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 use FindBin ();
-BEGIN { require "$FindBin::Bin/etc/setup_legacy.pl" }
+BEGIN { require "$FindBin::Bin/etc/legacy.pl" }
 
 use File::HomeDir::Test;
 use Test::More tests => 72;

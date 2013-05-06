@@ -72,7 +72,7 @@
          }
       }
    },
-   "release_status" : "testing",
-   "version" : "0.80_06"
+   "release_status" : "stable",
+   "version" : "0.81"
 }
 
