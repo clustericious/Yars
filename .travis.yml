@@ -4,3 +4,6 @@ install:
 script: HARNESS_IS_VERBOSE=1 YC_LIVE_TESTS=1 prove -lv t
 perl:
   - "5.16"
+  - "5.14"
+  - "5.12"
+  - "5.10"
