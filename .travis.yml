@@ -1,6 +1,6 @@
 language: perl
 install:
-  - cpanm -n Clustericious Clustericious::Config Clustericious::Log Data::Dumper Digest::file IO::Uncompress::Gunzip Log::Log4perl Log::Log4perl::CommandLine Number::Bytes::Human Yars::Client Hash::MoreUtils Filesys::Df
+  - cpanm -n Clustericious Clustericious::Config Clustericious::Log Data::Dumper Digest::file IO::Uncompress::Gunzip Log::Log4perl Log::Log4perl::CommandLine Number::Bytes::Human Yars::Client Hash::MoreUtils Filesys::Df Monkey::Patch
 script: HARNESS_IS_VERBOSE=1 YC_LIVE_TESTS=1 prove -lv t
 perl:
   - "5.16"
