@@ -1,6 +1,7 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+  - Mojolicious 4.0 compatability
 
 0.81      2013-05-06 08:31:53 EST5EDT
   - promote to production

@@ -173,7 +173,9 @@ for incoming requests.
 
 sub startup {
     my $self = shift;
-    if ($Mojolicious::VERSION >= 2.37) {
+    if ($Mojolicious::VERSION >= 4.0) {
+        # FIXME
+    } elsif ($Mojolicious::VERSION >= 2.37) {
         Mojo::IOLoop::Stream->timeout(3000);
     } else {
         Mojo::IOLoop->singleton->connection_timeout(3000);
