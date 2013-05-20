@@ -174,7 +174,10 @@ for incoming requests.
 sub startup {
     my $self = shift;
     if ($Mojolicious::VERSION >= 4.0) {
-        # FIXME
+        $self->hook(before_dispatch => sub {
+          my($c) = @_;
+          Mojo::IOLoop->stream($c->tx->connection)->timeout(3000);
+        });
     } elsif ($Mojolicious::VERSION >= 2.37) {
         Mojo::IOLoop::Stream->timeout(3000);
     } else {
