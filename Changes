@@ -1,5 +1,8 @@
 Revision history for Yars
 
+0.82      2013-05-24 04:47:14 America/New_York
+  - Mojolicious 4.0 compatability
+
 0.81      2013-05-06 08:31:53 EST5EDT
   - promote to production
 

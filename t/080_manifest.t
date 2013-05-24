@@ -48,7 +48,7 @@ $t->post_ok(
     { "Content-Type" => "application/json" },
     $j->encode( { manifest => $manifest } )
 )->status_is(200)
- ->json_content_is( {
+ ->json_is('', {
     missing => [ map +{ filename => $missing_filenames[$_], md5 => $missing_md5s[$_] }, 0..5 ],
     found   => [ map +{ filename => $filenames[$_], md5 => $md5s[$_] }, 0..$count-1 ],
 } );
@@ -68,7 +68,7 @@ $t->post_ok(
     { "Content-Type" => "application/json" },
     $j->encode( { manifest => $manifest } )
 )->status_is(200)
- ->json_content_is( {
+ ->json_is('', {
     missing => [ map +{ filename => $missing_filenames[$_], md5 => $missing_md5s[$_] }, 0..5 ],
     found   => [ map +{ filename => $filenames[$_], md5 => $md5s[$_] }, 0..$count-2 ],
     corrupt => [ { filename => $corrupt_filename, md5 => $corrupt_md5 } ],

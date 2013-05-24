@@ -48,7 +48,7 @@ $conf->{state_file} = "$tempdir/state.txt";
 
 $t->get_ok('/'."got /");
 
-$t->get_ok('/servers/status')->status_is(200)->json_content_is(
+$t->get_ok('/servers/status')->status_is(200)->json_is('',
     {
         "http://localhost:9050" =>
           { map {( "$root/$_" => "up" )} qw/one two three four five/ }
@@ -60,7 +60,7 @@ _mark_down($t,"three");
 mkpath "$root/four";
 chmod 0555, "$root/four";
 
-$t->get_ok('/servers/status')->status_is(200)->json_content_is(
+$t->get_ok('/servers/status')->status_is(200)->json_is('',
     {
         "http://localhost:9050" =>
           {
