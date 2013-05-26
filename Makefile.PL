@@ -25,7 +25,7 @@ my %WriteMakefileArgs = (
   "LICENSE" => "perl",
   "NAME" => "Yars",
   "PREREQ_PM" => {
-    "Clustericious" => "0.97",
+    "Clustericious" => "0.9920",
     "Clustericious::Command::stop" => 0,
     "Clustericious::Commands" => 0,
     "Clustericious::Config" => "0.07",
@@ -71,7 +71,7 @@ my %WriteMakefileArgs = (
     "Time::HiRes" => 0,
     "YAML" => 0
   },
-  "VERSION" => "0.82",
+  "VERSION" => "0.83",
   "test" => {
     "TESTS" => "t/*.t"
   }
