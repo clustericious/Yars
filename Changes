@@ -1,5 +1,7 @@
 Revision history for Yars
 
+0.83_01   2013-06-17 12:35:14 America/New_York
+
 0.83      2013-05-25 22:04:54 America/New_York
   - Require Clustericious 0.9920 for Mojolicious 4.0 compatability
 

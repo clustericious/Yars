@@ -1,7 +1,7 @@
 package Yars::Routes;
 
 # ABSTRACT: set up the routes for Yars.
-our $VERSION = '0.83'; # VERSION
+our $VERSION = '0.83_01'; # VERSION
 
 
 use strict;
@@ -593,7 +593,6 @@ get '/bucket/usage' => sub {
 1;
 
 __END__
-
 =pod
 
 =head1 NAME
@@ -602,7 +601,7 @@ Yars::Routes - set up the routes for Yars.
 
 =head1 VERSION
 
-version 0.83
+version 0.83_01
 
 =head1 ROUTES
 
@@ -668,3 +667,4 @@ This is free software; you can redistribute it and/or modify it under
 the same terms as the Perl 5 programming language system itself.
 
 =cut
+

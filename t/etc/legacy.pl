@@ -85,6 +85,22 @@ sub stop_a_yars
 
 }
 
+sub dump_log_files
+{
+  my $dir;
+  opendir($dir, File::Spec->tmpdir);
+  my @list = grep /^yars-test.*\.log$/, readdir $dir;
+  closedir $dir; 
+  foreach my $fn (map { File::Spec->catfile(File::Spec->tmpdir, $_) } @list)
+  {
+    diag "== $fn ==";
+    open my $fh, '<', $fn;
+    local $/;
+    diag <$fh>;
+    close $fh;
+  }
+}
+
 sub start_a_yars
 {
   my $which = shift;
@@ -93,7 +109,27 @@ sub start_a_yars
   local $ENV{YARS_WHICH} = $which;
   note "start $which";
   my $yars_exe = yars_exe();
+  
   system($^X, $yars_exe, 'start');
+  if($?)
+  {
+    diag "yars start FAILED ($^X, $yars_exe, 'start')";
+    if($? == -1)
+    {
+      diag "failed to execute: $!\n";
+    }
+    elsif($? & 127) 
+    {
+      diag "died with siganl " . ($? & 127);
+    }
+    else
+    {
+      diag "child exited with " . ($?>>8);
+    }
+    dump_log_files();
+    die "test won't work without yars";
+  }
+  
   note "started";
   
   my $retry = 100;
@@ -104,6 +140,7 @@ sub start_a_yars
     return if check_port($port);
     Time::HiRes::sleep($sleep);
   }
+  dump_log_files();
   die "not listening to port";
 }
 

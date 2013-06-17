@@ -2,7 +2,7 @@
 
 # PODNAME: yars_fast_balance
 # ABSTRACT: Fix all files
-our $VERSION = '0.83'; # VERSION
+our $VERSION = '0.83_01'; # VERSION
 
 
 use Yars::Client;
@@ -135,8 +135,8 @@ sub main {
     }
 }
 
-__END__
 
+__END__
 =pod
 
 =head1 NAME
@@ -145,7 +145,7 @@ yars_fast_balance - Fix all files
 
 =head1 VERSION
 
-version 0.83
+version 0.83_01
 
 =head1 SYNOPSIS
 
@@ -178,3 +178,4 @@ This is free software; you can redistribute it and/or modify it under
 the same terms as the Perl 5 programming language system itself.
 
 =cut
+

@@ -2,7 +2,7 @@
 
 # PODNAME: yars_disk_scan
 # ABSTRACT: scan a disk for corruption and report corrupt files to stdout
-our $VERSION = '0.83'; # VERSION
+our $VERSION = '0.83_01'; # VERSION
 
 
 use Clustericious::Config;
@@ -49,8 +49,8 @@ sub main {
     }
 }
 
-__END__
 
+__END__
 =pod
 
 =head1 NAME
@@ -59,7 +59,7 @@ yars_disk_scan - scan a disk for corruption and report corrupt files to stdout
 
 =head1 VERSION
 
-version 0.83
+version 0.83_01
 
 =head1 SYNOPSIS
 
@@ -83,3 +83,4 @@ This is free software; you can redistribute it and/or modify it under
 the same terms as the Perl 5 programming language system itself.
 
 =cut
+

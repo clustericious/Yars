@@ -11,16 +11,29 @@ use ExtUtils::MakeMaker 6.30;
 my %WriteMakefileArgs = (
   "ABSTRACT" => "Yet Another RESTful-Archive Service",
   "AUTHOR" => "Graham Ollis <plicease\@cpan.org>",
-  "BUILD_REQUIRES" => {},
+  "BUILD_REQUIRES" => {
+    "File::HomeDir::Test" => 0,
+    "File::Spec" => 0,
+    "FindBin" => 0,
+    "IO::Socket::INET" => 0,
+    "Mojo::IOLoop::Server" => 0,
+    "Mojolicious" => 0,
+    "Scalar::Util" => 0,
+    "Sys::Hostname" => 0,
+    "Test::Mojo" => 0,
+    "Test::More" => 0,
+    "Time::HiRes" => 0,
+    "YAML" => 0
+  },
   "CONFIGURE_REQUIRES" => {
     "ExtUtils::MakeMaker" => "6.30"
   },
   "DISTNAME" => "Yars",
   "EXE_FILES" => [
-    "bin/yars_fast_balance",
-    "bin/yars_generate_diskmap",
+    "bin/yars",
     "bin/yars_disk_scan",
-    "bin/yars"
+    "bin/yars_fast_balance",
+    "bin/yars_generate_diskmap"
   ],
   "LICENSE" => "perl",
   "NAME" => "Yars",
@@ -57,39 +70,12 @@ my %WriteMakefileArgs = (
     "Try::Tiny" => 0,
     "Yars::Client" => 0
   },
-  "TEST_REQUIRES" => {
-    "File::HomeDir::Test" => 0,
-    "File::Spec" => 0,
-    "FindBin" => 0,
-    "IO::Socket::INET" => 0,
-    "Mojo::IOLoop::Server" => 0,
-    "Mojolicious" => 0,
-    "Scalar::Util" => 0,
-    "Sys::Hostname" => 0,
-    "Test::Mojo" => 0,
-    "Test::More" => 0,
-    "Time::HiRes" => 0,
-    "YAML" => 0
-  },
-  "VERSION" => "0.83",
+  "VERSION" => "0.83_01",
   "test" => {
     "TESTS" => "t/*.t"
   }
 );
 
-
-unless ( eval { ExtUtils::MakeMaker->VERSION(6.63_03) } ) {
-  my $tr = delete $WriteMakefileArgs{TEST_REQUIRES};
-  my $br = $WriteMakefileArgs{BUILD_REQUIRES};
-  for my $mod ( keys %$tr ) {
-    if ( exists $br->{$mod} ) {
-      $br->{$mod} = $tr->{$mod} if $tr->{$mod} > $br->{$mod};
-    }
-    else {
-      $br->{$mod} = $tr->{$mod};
-    }
-  }
-}
 
 unless ( eval { ExtUtils::MakeMaker->VERSION(6.56) } ) {
   my $br = delete $WriteMakefileArgs{BUILD_REQUIRES};

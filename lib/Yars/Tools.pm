@@ -1,7 +1,7 @@
 package Yars::Tools;
 
 # ABSTRACT: various utility functions dealing with servers, hosts, etc
-our $VERSION = '0.83'; # VERSION
+our $VERSION = '0.83_01'; # VERSION
 
 
 use Clustericious::Config;
@@ -364,8 +364,8 @@ sub b642hex {
 
 1;
 
-__END__
 
+__END__
 =pod
 
 =head1 NAME
@@ -374,7 +374,7 @@ Yars::Tools - various utility functions dealing with servers, hosts, etc
 
 =head1 VERSION
 
-version 0.83
+version 0.83_01
 
 =head1 DESCRIPTION
 
@@ -502,3 +502,4 @@ This is free software; you can redistribute it and/or modify it under
 the same terms as the Perl 5 programming language system itself.
 
 =cut
+
