@@ -24,8 +24,8 @@ eval {
 
 my $status = $ua->get($urls[0].'/servers/status')->res->json;
 is_deeply($status, {
-        "http://localhost:$ENV{YARS_PORT1}" => { "$root/one" => "up" },
-        "http://localhost:$ENV{YARS_PORT2}" => { "$root/two" => "up" },
+        "http://127.0.0.1:$ENV{YARS_PORT1}" => { "$root/one" => "up" },
+        "http://127.0.0.1:$ENV{YARS_PORT2}" => { "$root/two" => "up" },
     }
 );
 

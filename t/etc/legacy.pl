@@ -53,7 +53,7 @@ sub two_urls
   $ENV{YARS_PORT2} = Mojo::IOLoop::Server->generate_port;
   my $root = $ENV{YARS_TMP_ROOT} = File::Temp->newdir(CLEANUP => 1);
 
-  my @urls = ("http://localhost:$ENV{YARS_PORT1}","http://localhost:$ENV{YARS_PORT2}");
+  my @urls = ("http://127.0.0.1:$ENV{YARS_PORT1}","http://127.0.0.1:$ENV{YARS_PORT2}");
   note "url1 $urls[0]";
   note "url2 $urls[1]";
 
