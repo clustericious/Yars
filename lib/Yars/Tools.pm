@@ -27,6 +27,7 @@ use JSON::XS;
 use File::stat qw/stat/;
 use Mojo::ByteStream qw/b/;
 use File::HomeDir;
+use File::Spec;
 use strict;
 use warnings;
 
@@ -63,7 +64,7 @@ sub refresh_config {
     }
  }
 our $default_dir = $ENV{HARNESS_ACTIVE}
-  ? File::Temp->newdir( "/tmp/yars.test.$<.XXXXXX" )
+  ? File::Temp->newdir( File::Spec->catdir( File::Spec->tmpdir, "yars.test.$<.XXXXXX" ))
   : File::HomeDir->my_home . "/var/run/yars";
  $StateFile = $config->state_file(default => "$default_dir/state.txt");
  -e $StateFile or do {

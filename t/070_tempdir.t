@@ -7,11 +7,13 @@ use Test::More tests => 12;
 use Test::Mojo;
 use Mojo::ByteStream qw/b/;
 use File::Temp;
+use File::Spec;
+use File::Basename qw( dirname );
 use Yars;
 
 $ENV{MOJO_MAX_MEMORY_SIZE} = 100; # Force temp files.
 #$ENV{MOJO_TMPDIR} = "/dev/null"; # should be computed during request
-$ENV{MOJO_TMPDIR} = "/tmp/nodir";
+$ENV{MOJO_TMPDIR} = File::Spec->catdir( dirname(__FILE__), 'nosuchdir' );
 
 my $t = Test::Mojo->new('Yars');
 my $root = File::Temp->newdir(CLEANUP => 1);
@@ -37,7 +39,7 @@ my $location = $t->tx->res->headers->location;
 ok $location, "got location header";
 like $location, qr[.*$digest.*], "location had digest";
 
-$ENV{MOJO_TMPDIR} = $ENV{TMPDIR} || "/tmp";
+$ENV{MOJO_TMPDIR} = File::Spec->tmpdir;
 my $got = $t->get_ok("/file/$filename/$digest")->status_is(200)->tx->success->body;
 
 ok $got eq $content, "got content";

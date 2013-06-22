@@ -12,7 +12,7 @@ use Time::HiRes ();
 use File::Spec ();
 
 $ENV{MOJO_MAX_MEMORY_SIZE} = 100;            # Force temp files.
-$ENV{MOJO_TMPDIR}          = "/tmp/nosuchdir";
+$ENV{MOJO_TMPDIR}          = File::Spec->catdir( dirname(__FILE__), 'nosuchdir' );
 $ENV{CLUSTERICIOUS_CONF_DIR}      = dirname(__FILE__) . '/conf_071';
 $ENV{CLUSTERICIOUS_TEST_CONF_DIR} = $ENV{CLUSTERICIOUS_CONF_DIR};
 my $root = $ENV{YARS_TMP_ROOT} = File::Temp->newdir(CLEANUP => 1);
@@ -54,7 +54,7 @@ my $location = $tx->res->headers->location;
 ok $location, "got location header";
 like $location, qr[.*$digest.*], "location had digest";
 
-$ENV{MOJO_TMPDIR} = "/tmp";
+$ENV{MOJO_TMPDIR} = File::Spec->tmpdir;
 my $got = $ua->get("$url/file/$filename/$digest");
 my $res;
 ok $res = $got->success, "got $url";
