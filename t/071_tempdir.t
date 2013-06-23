@@ -5,14 +5,14 @@ BEGIN { require "$FindBin::Bin/etc/legacy.pl" }
 use Test::More tests => 6;
 use Test::Mojo;
 use Mojo::ByteStream qw/b/;
-use File::Temp;
+use File::Temp qw( tempdir );
 use Yars;
 use Mojo::IOLoop::Server;
 use Time::HiRes ();
 use File::Spec ();
 
 $ENV{MOJO_MAX_MEMORY_SIZE} = 100;            # Force temp files.
-$ENV{MOJO_TMPDIR}          = File::Spec->catdir( dirname(__FILE__), 'nosuchdir' );
+$ENV{MOJO_TMPDIR}          = File::Spec->catdir( tempdir( CLEANUP => 1), 'nosuchdir' );
 $ENV{CLUSTERICIOUS_CONF_DIR}      = dirname(__FILE__) . '/conf_071';
 $ENV{CLUSTERICIOUS_TEST_CONF_DIR} = $ENV{CLUSTERICIOUS_CONF_DIR};
 my $root = $ENV{YARS_TMP_ROOT} = File::Temp->newdir(CLEANUP => 1);
