@@ -6,14 +6,14 @@ use warnings;
 use Test::More tests => 12;
 use Test::Mojo;
 use Mojo::ByteStream qw/b/;
-use File::Temp;
+use File::Temp qw( tempdir );
 use File::Spec;
 use File::Basename qw( dirname );
 use Yars;
 
 $ENV{MOJO_MAX_MEMORY_SIZE} = 100; # Force temp files.
 #$ENV{MOJO_TMPDIR} = "/dev/null"; # should be computed during request
-$ENV{MOJO_TMPDIR} = File::Spec->catdir( dirname(__FILE__), 'nosuchdir' );
+$ENV{MOJO_TMPDIR} = File::Spec->catdir( tempdir( CLEANUP => 1 ), 'nosuchdir' );
 
 my $t = Test::Mojo->new('Yars');
 my $root = File::Temp->newdir(CLEANUP => 1);
