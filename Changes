@@ -1,6 +1,7 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+  - use fewer resources during testing
 
 0.83_04   2013-06-22 20:06:51 America/New_York
   - don't hardcode /tmp anymore
