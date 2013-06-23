@@ -13,7 +13,6 @@ my %WriteMakefileArgs = (
   "AUTHOR" => "Graham Ollis <plicease\@cpan.org>",
   "BUILD_REQUIRES" => {
     "File::HomeDir::Test" => 0,
-    "File::Spec" => 0,
     "FindBin" => 0,
     "IO::Socket::INET" => 0,
     "Mojo::IOLoop::Server" => 0,
@@ -52,6 +51,7 @@ my %WriteMakefileArgs = (
     "File::Find::Rule" => 0,
     "File::HomeDir" => 0,
     "File::Path" => 0,
+    "File::Spec" => 0,
     "File::Temp" => 0,
     "File::stat" => 0,
     "Filesys::Df" => 0,
@@ -70,7 +70,7 @@ my %WriteMakefileArgs = (
     "Try::Tiny" => 0,
     "Yars::Client" => 0
   },
-  "VERSION" => "0.83_03",
+  "VERSION" => "0.83_04",
   "test" => {
     "TESTS" => "t/*.t"
   }

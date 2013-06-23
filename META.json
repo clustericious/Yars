@@ -35,6 +35,7 @@
             "File::Find::Rule" : "0",
             "File::HomeDir" : "0",
             "File::Path" : "0",
+            "File::Spec" : "0",
             "File::Temp" : "0",
             "File::stat" : "0",
             "Filesys::Df" : "0",
@@ -57,7 +58,6 @@
       "test" : {
          "requires" : {
             "File::HomeDir::Test" : "0",
-            "File::Spec" : "0",
             "FindBin" : "0",
             "IO::Socket::INET" : "0",
             "Mojo::IOLoop::Server" : "0",
@@ -73,6 +73,6 @@
       }
    },
    "release_status" : "testing",
-   "version" : "0.83_03"
+   "version" : "0.83_04"
 }
 
