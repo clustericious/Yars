@@ -41,7 +41,18 @@ do {
 my $url = "http://localhost:$ENV{YARS_PORT}";
 
 my $ua = Mojo::UserAgent->new();
-is $ua->get($url.'/status')->res->json->{server_url}, $url, "started first server at $url";
+do {
+  my $res = eval { $ua->get($url.'/status')->res };
+  diag $@ if $@;
+  is eval { $res->json->{server_url} }, $url, "started first server at $url";
+  if(my $error = $@)
+  {
+    diag $@;
+    diag "response is:";
+    diag eval { $res->as_string };
+    diag $@ if $@;
+  }
+};
 
 my $content = 'x' x 1_000_000;
 my $digest = b($content)->md5_sum->to_string;
