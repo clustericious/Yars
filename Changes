@@ -1,6 +1,7 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+  - added testing diagnostic
 
 0.83_05   2013-06-22 22:59:29 America/New_York
   - use fewer resources during testing
