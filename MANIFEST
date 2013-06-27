@@ -16,6 +16,7 @@ eg/disk_map.conf
 lib/Yars.pm
 lib/Yars/Routes.pm
 lib/Yars/Tools.pm
+t/000_diag.t
 t/001_basic.t
 t/005_roundtrip.t
 t/006_roundtrip_bin.t
