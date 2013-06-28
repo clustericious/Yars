@@ -49,7 +49,7 @@ do {
   {
     diag $@;
     diag "response is:";
-    diag eval { $res->as_string };
+    diag eval { $res->to_string };
     diag $@ if $@;
   }
 };
