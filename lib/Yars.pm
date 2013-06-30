@@ -176,7 +176,9 @@ sub startup {
     if ($Mojolicious::VERSION >= 4.0) {
         $self->hook(before_dispatch => sub {
           my($c) = @_;
-          Mojo::IOLoop->stream($c->tx->connection)->timeout(3000);
+          my $stream = Mojo::IOLoop->stream($c->tx->connection);
+          return unless defined $stream;
+          $stream->timeout(3000);
         });
     } elsif ($Mojolicious::VERSION >= 2.37) {
         Mojo::IOLoop::Stream->timeout(3000);
