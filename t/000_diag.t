@@ -1,6 +1,27 @@
 use strict;
 use warnings;
-use Test::More tests => 1;
+use Test::More;
+
+my @mod_list = qw(
+  Clustericious
+  Clustericious::Config
+  Clustericious::Log
+  Data::Dumper
+  File::HomeDir
+  Filesys::Df
+  Hash::MoreUtils
+  JSON::XS
+  List::MoreUtils
+  Log::Log4perl
+  Log::Log4perl::CommandLine
+  Mojolicious
+  Number::Bytes::Human
+  Smart::Comments
+  Try::Tiny
+  Yars::Client
+);
+
+plan tests => scalar @mod_list;
 
 diag "";
 diag "$^X $^V";
@@ -16,7 +37,11 @@ if($^O =~ /bsd$/)
   diag "% sysctl hw.physmem";
   diag `sysctl hw.physmem`;
 }
-diag "% ulimit -a";
-diag `sh -c 'ulimit -a'`;
 
-pass 'okay';
+foreach my $mod (@mod_list)
+{
+  use_ok $mod;
+  my $version = eval qq{ \$${mod}::VERSION } // 'unknown';
+  diag "$mod $version";
+}
+

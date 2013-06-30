@@ -7,9 +7,11 @@ build_requires:
   FindBin: 0
   IO::Socket::INET: 0
   Mojo::IOLoop::Server: 0
+  Mojo::UserAgent: 0
   Mojolicious: 0
   Scalar::Util: 0
   Sys::Hostname: 0
+  Test::Clustericious::Config: 0
   Test::Mojo: 0
   Test::More: 0
   Time::HiRes: 0
@@ -28,7 +30,7 @@ requires:
   Clustericious: 0.9925
   Clustericious::Command::stop: 0
   Clustericious::Commands: 0
-  Clustericious::Config: 0.07
+  Clustericious::Config: 0.20
   Clustericious::Log: 0
   Clustericious::RouteBuilder: 0
   Data::Dumper: 0
@@ -57,4 +59,8 @@ requires:
   Smart::Comments: 0
   Try::Tiny: 0
   Yars::Client: 0
-version: 0.83_08
+resources:
+  bugtracker: https://github.com/plicease/yars/issues
+  homepage: http://perl.wdlabs.com/Yars/
+  repository: git://github.com/plicease/yars.git
+version: 0.83_09

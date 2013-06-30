@@ -29,8 +29,8 @@ t/030_diskfail.t
 t/040_hostfail.t
 t/060_mark_down.t
 t/070_tempdir.t
-t/071_tempdir.t
 t/072_tempdir_bug_12263.t
+t/073_tempdir.t
 t/080_manifest.t
 t/090_client.t
 t/999_cleanup.t

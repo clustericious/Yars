@@ -1,5 +1,8 @@
 Revision history for Yars
 
+0.83_09   2013-06-30 18:15:57 America/New_York
+  - retire problematic 071_tempdir test (replacement is 073_tempdir)
+
 0.83_08   2013-06-28 11:35:40 America/New_York
   - fixed testing diagnostic
 

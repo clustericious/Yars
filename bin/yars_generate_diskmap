@@ -2,7 +2,7 @@
 
 # PODNAME: yars_generate_diskmap
 # ABSTRACT: generate a mapping from servers + hosts to buckets for yars.
-our $VERSION = '0.83_08'; # VERSION
+our $VERSION = '0.83_09'; # VERSION
 
 
 use strict;
@@ -82,7 +82,7 @@ yars_generate_diskmap - generate a mapping from servers + hosts to buckets for y
 
 =head1 VERSION
 
-version 0.83_08
+version 0.83_09
 
 =head1 SYNOPSIS
 

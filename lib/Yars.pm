@@ -11,7 +11,7 @@ use Log::Log4perl qw(:easy);
 use Number::Bytes::Human qw( format_bytes parse_bytes );
 
 # ABSTRACT: Yet Another RESTful-Archive Service
-our $VERSION = '0.83_08'; # VERSION
+our $VERSION = '0.83_09'; # VERSION
 
 
 has secret => rand;
@@ -22,7 +22,9 @@ sub startup {
     if ($Mojolicious::VERSION >= 4.0) {
         $self->hook(before_dispatch => sub {
           my($c) = @_;
-          Mojo::IOLoop->stream($c->tx->connection)->timeout(3000);
+          my $stream = Mojo::IOLoop->stream($c->tx->connection);
+          return unless defined $stream;
+          $stream->timeout(3000);
         });
     } elsif ($Mojolicious::VERSION >= 2.37) {
         Mojo::IOLoop::Stream->timeout(3000);
@@ -83,7 +85,7 @@ Yars - Yet Another RESTful-Archive Service
 
 =head1 VERSION
 
-version 0.83_08
+version 0.83_09
 
 =head1 DESCRIPTION
 
