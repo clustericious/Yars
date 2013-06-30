@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 12;
+use Test::More tests => 13;
 use Test::Mojo;
 use Test::Clustericious::Config;
 use Mojo::UserAgent;
@@ -9,7 +9,13 @@ use Mojo::ByteStream qw( b );
 
 my $home = home_directory_ok;
 
-$ENV{MOJO_MAX_MEMORY_SIZE} = 100; # force temp files
+# max size should be smaller than the file
+# PUT / GET messages, but larger than the 
+# status, etc. messages in this test
+# 100 was good enough on twin, but not acpsdev2
+# 200 was good on acpsdev2, went with 500
+# to be sure
+$ENV{MOJO_MAX_MEMORY_SIZE} = 500; # force temp files
 $ENV{MOJO_TMPDIR} = "$home/nosuchdir";
 
 my $t = Test::Mojo->new;
@@ -17,6 +23,12 @@ $t->ua(do {
 
   my $ua = Mojo::UserAgent->new;
   my $data_root = create_directory_ok 'data';
+  my $client_tmp = create_directory_ok 'tmp';
+  
+  $ua->on(start => sub {
+    my($ua, $tx) = @_;
+    $tx->req->content->asset->auto_upgrade(0);
+  });
 
   create_config_ok 'Yars', {
     url => $ua->app_url,
