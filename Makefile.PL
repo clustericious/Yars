@@ -12,6 +12,8 @@ my %WriteMakefileArgs = (
   "ABSTRACT" => "Yet Another RESTful-Archive Service",
   "AUTHOR" => "Graham Ollis <plicease\@cpan.org>",
   "BUILD_REQUIRES" => {
+    "Mojo::IOLoop" => 0,
+    "Mojolicious" => 0,
     "Test::More" => 0,
     "YAML::XS" => 0
   },
@@ -49,7 +51,7 @@ my %WriteMakefileArgs = (
     "Try::Tiny" => 0,
     "Yars::Client" => 0
   },
-  "VERSION" => "0.83_10",
+  "VERSION" => "0.83_11",
   "test" => {
     "TESTS" => "t/*.t"
   }

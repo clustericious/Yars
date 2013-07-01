@@ -45,6 +45,8 @@
       },
       "test" : {
          "requires" : {
+            "Mojo::IOLoop" : "0",
+            "Mojolicious" : "0",
             "Test::More" : "0",
             "YAML::XS" : "0",
             "perl" : "v5.10.0"
@@ -63,6 +65,6 @@
          "web" : "https://github.com/plicease/yars"
       }
    },
-   "version" : "0.83_10"
+   "version" : "0.83_11"
 }
 

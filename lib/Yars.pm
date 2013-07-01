@@ -11,7 +11,7 @@ use Log::Log4perl qw(:easy);
 use Number::Bytes::Human qw( format_bytes parse_bytes );
 
 # ABSTRACT: Yet Another RESTful-Archive Service
-our $VERSION = '0.83_10'; # VERSION
+our $VERSION = '0.83_11'; # VERSION
 
 
 has secret => rand;
@@ -19,18 +19,27 @@ has secret => rand;
 
 sub startup {
     my $self = shift;
-    require Mojolicious;
     if ($Mojolicious::VERSION >= 4.0) {
         $self->hook(before_dispatch => sub {
-          my($c) = @_;
-          my $stream = Mojo::IOLoop->stream($c->tx->connection);
-          return unless defined $stream;
-          $stream->timeout(3000);
+            my($c) = @_;
+            my $stream = Mojo::IOLoop->stream($c->tx->connection);
+            return unless defined $stream;
+            $stream->timeout(3000);
         });
-    } elsif ($Mojolicious::VERSION >= 2.37) {
-        Mojo::IOLoop::Stream->timeout(3000);
+    #} elsif ($Mojolicious::VERSION >= 2.37) {
     } else {
-        Mojo::IOLoop->singleton->connection_timeout(3000);
+        eval { Mojo::IOLoop::Stream->timeout(3000) };
+        if(my $error = $@) {
+            WARN "error trying to set timeout: $@";
+            WARN "Mojolicious version $Mojolicious::VERSION";
+            WARN "Will try Mojo 4.x mode";
+            $self->hook(before_dispatch => sub {
+                my($c) = @_;
+                my $stream = Mojo::IOLoop->stream($c->tx->connection);
+                return unless defined $stream;
+                $stream->timeout(3000);
+            });
+        }
     }
 
     my $max_size = 53687091200;
@@ -86,7 +95,7 @@ Yars - Yet Another RESTful-Archive Service
 
 =head1 VERSION
 
-version 0.83_10
+version 0.83_11
 
 =head1 DESCRIPTION
 

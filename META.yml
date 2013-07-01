@@ -3,6 +3,8 @@ abstract: 'Yet Another RESTful-Archive Service'
 author:
   - 'Graham Ollis <plicease@cpan.org>'
 build_requires:
+  Mojo::IOLoop: 0
+  Mojolicious: 0
   Test::More: 0
   YAML::XS: 0
   perl: v5.10.0
@@ -40,4 +42,4 @@ resources:
   bugtracker: https://github.com/plicease/yars/issues
   homepage: http://perl.wdlabs.com/Yars/
   repository: git://github.com/plicease/yars.git
-version: 0.83_10
+version: 0.83_11
