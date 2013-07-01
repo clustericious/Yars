@@ -11,7 +11,7 @@ use Log::Log4perl qw(:easy);
 use Number::Bytes::Human qw( format_bytes parse_bytes );
 
 # ABSTRACT: Yet Another RESTful-Archive Service
-our $VERSION = '0.83_09'; # VERSION
+our $VERSION = '0.83_10'; # VERSION
 
 
 has secret => rand;
@@ -19,6 +19,7 @@ has secret => rand;
 
 sub startup {
     my $self = shift;
+    require Mojolicious;
     if ($Mojolicious::VERSION >= 4.0) {
         $self->hook(before_dispatch => sub {
           my($c) = @_;
@@ -85,7 +86,7 @@ Yars - Yet Another RESTful-Archive Service
 
 =head1 VERSION
 
-version 0.83_09
+version 0.83_10
 
 =head1 DESCRIPTION
 

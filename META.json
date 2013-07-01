@@ -22,32 +22,20 @@
       "runtime" : {
          "requires" : {
             "Clustericious" : "0.9925",
-            "Clustericious::Command::stop" : "0",
             "Clustericious::Commands" : "0",
             "Clustericious::Config" : "0.20",
             "Clustericious::Log" : "0",
-            "Clustericious::RouteBuilder" : "0",
-            "Data::Dumper" : "0",
             "Digest::file" : "0",
             "Fcntl" : "0",
-            "File::Basename" : "0",
-            "File::Compare" : "0",
             "File::Find::Rule" : "0",
-            "File::HomeDir" : "0",
+            "File::HomeDir" : "0.91",
             "File::Path" : "0",
-            "File::Spec" : "0",
-            "File::Temp" : "0",
-            "File::stat" : "0",
             "Filesys::Df" : "0",
             "Hash::MoreUtils" : "0",
-            "IO::Dir" : "0",
             "JSON::XS" : "0",
             "List::MoreUtils" : "0",
-            "List::Util" : "0",
             "Log::Log4perl" : "0",
             "Log::Log4perl::CommandLine" : "0",
-            "Mojo::Base" : "0",
-            "Mojo::ByteStream" : "0",
             "Mojolicious" : "3.86",
             "Number::Bytes::Human" : "0.09",
             "Smart::Comments" : "0",
@@ -57,19 +45,8 @@
       },
       "test" : {
          "requires" : {
-            "File::HomeDir::Test" : "0",
-            "FindBin" : "0",
-            "IO::Socket::INET" : "0",
-            "Mojo::IOLoop::Server" : "0",
-            "Mojo::UserAgent" : "0",
-            "Mojolicious" : "0",
-            "Scalar::Util" : "0",
-            "Sys::Hostname" : "0",
-            "Test::Clustericious::Config" : "0",
-            "Test::Mojo" : "0",
             "Test::More" : "0",
-            "Time::HiRes" : "0",
-            "YAML" : "0",
+            "YAML::XS" : "0",
             "perl" : "v5.10.0"
          }
       }
@@ -86,6 +63,6 @@
          "web" : "https://github.com/plicease/yars"
       }
    },
-   "version" : "0.83_09"
+   "version" : "0.83_10"
 }
 

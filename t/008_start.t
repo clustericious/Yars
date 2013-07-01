@@ -6,7 +6,7 @@ use File::HomeDir;
 use File::Spec;
 use Test::More tests => 6;
 use Mojo::IOLoop::Server ();
-use YAML qw( DumpFile );
+use YAML::XS qw( DumpFile );
 use Yars;
 
 my $port = Mojo::IOLoop::Server->generate_port;
