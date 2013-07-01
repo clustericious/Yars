@@ -173,7 +173,6 @@ for incoming requests.
 
 sub startup {
     my $self = shift;
-    $self->SUPER::startup(@_);
 
     require Mojolicious;
     if ($Mojolicious::VERSION >= 4.0) {
