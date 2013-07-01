@@ -42,12 +42,15 @@ sub new
   my($class, $config) = @_;
   WARN "No url found in config file" unless $config->url;
   bless {
-    bucket_to_url  => { }, # map buckets to server urls
-    bucket_to_root => { }, # map buckets to disk roots
-    disk_is_local  => { }, # our disk roots (values are just 1)
-    servers        => { }, # all servers
-    our_url        => '',  # our server url
-    state_file     => '',  # name of file with disk states
+    bucket_to_url                => { }, # map buckets to server urls
+    bucket_to_root               => { }, # map buckets to disk roots
+    disk_is_local                => { }, # our disk roots (values are just 1)
+    servers                      => { }, # all servers
+    our_url                      => '',  # our server url
+    state_file                   => '',  # name of file with disk states
+    ua                           => '',  # UserAgent
+    server_status_cache          => {},
+    server_status_cache_lifetime => 3,
   }, $class;
 }
 
@@ -140,17 +143,14 @@ sub local_buckets {
 
 sub _state {
     my $self = shift;
-    # FIXME remove global
-    our $mod_time;
-    our $cached;
     $self->refresh_config() unless $self->{state_file} && -e $self->{state_file};
-    return $cached if $mod_time && $mod_time == stat($self->{state_file})->mtime;
+    return $self->{_state}->{cached} if $self->{_state}->{mod_time} && $self->{_state}->{mod_time} == stat($self->{state_file})->mtime;
     # FIXME remove global
     our $j ||= JSON::XS->new;
     -e $self->{state_file} or LOGDIE "Missing state file " . $self->{state_file};
-    $cached = $j->decode(Mojo::Asset::File->new(path => $self->{state_file})->slurp);
-    $mod_time = stat($self->{state_file})->mtime;
-    return $cached;
+    $self->{_state}->{cached} = $j->decode(Mojo::Asset::File->new(path => $self->{state_file})->slurp);
+    $self->{_state}->{mod_time} = stat($self->{state_file})->mtime;
+    return $self->{_state}->{cached};
 }
 
 sub _write_state {
@@ -211,31 +211,27 @@ Check to see if a remote server is up or down.
 
 =cut
 
-# FIXME remove global
-our $UA;
-our %serverStatusCache;
-our $serverStatusCacheLifetime = 3; # cache results for three seconds
 sub server_is_up {
     # TODO use state file for this
-    my $class = shift;
+    my $self = shift;
     my $server_url = shift;
-    if (exists($serverStatusCache{$server_url}) && $serverStatusCache{$server_url}{checked} > time - $serverStatusCacheLifetime) {
-        return $serverStatusCache{$server_url}{result};
+    if (exists($self->{server_status_cache}->{$server_url}) && $self->{server_status_cache}->{$server_url}{checked} > time - $self->{server_status_cache_lifetime}) {
+        return $self->{server_status_cache}->{$server_url}{result};
     }
-    $UA ||= Mojo::UserAgent->new;
+    $self->{ua} ||= Mojo::UserAgent->new;
     TRACE "Checking $server_url/status";
-    my $tx = $UA->get( "$server_url/status" );
-    $serverStatusCache{$server_url}{checked} = time;
+    my $tx = $self->{ua}->get( "$server_url/status" );
+    $self->{server_status_cache}->{$server_url}{checked} = time;
     if (my $res = $tx->success) {
         my $got = $res->json;
         if (defined($got->{server_version}) && length($got->{server_version})) {
-            return ($serverStatusCache{$server_url}{result} = 1);
+            return ($self->{server_status_cache}->{$server_url}{result} = 1);
         }
         TRACE "/status did not return version, got : ".Dumper($got);
-        return ($serverStatusCache{$server_url}{result} = 0);
+        return ($self->{server_status_cache}->{$server_url}{result} = 0);
     }
     TRACE "Server $server_url is not up : response was ".$tx->error;
-    return ($serverStatusCache{$server_url}{result} = 0);
+    return ($self->{server_status_cache}->{$server_url}{result} = 0);
 }
 sub server_is_down {
     return not shift->server_is_up(@_);
