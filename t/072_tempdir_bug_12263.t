@@ -11,7 +11,7 @@ use Test::Mojo;
 use Mojolicious;
 use File::Spec;
 use Scalar::Util qw( refaddr );
-use YAML ();
+use YAML::XS qw( DumpFile );
 use Yars;
 
 $Yars::VERSION //= '0.77';
@@ -32,7 +32,7 @@ else
 my $home = File::HomeDir->my_home;
 mkdir(File::Spec->catdir($home, $_)) for qw( etc data tmp sample );
 mkdir(File::Spec->catdir($home, 'data', "disk_$_")) for (0..9,'a'..'f');
-YAML::DumpFile(File::Spec->catfile($home, 'etc', 'Yars.conf') => {
+DumpFile(File::Spec->catfile($home, 'etc', 'Yars.conf') => {
   url => 'http://localhost',
 });
 mkdir(File::Spec->catdir($home, qw( data disk_5 tmp )));
@@ -52,7 +52,7 @@ do {
   close $fh;
 };
 
-YAML::DumpFile(File::Spec->catfile($home, 'etc', 'Yars.conf'), {
+DumpFile(File::Spec->catfile($home, 'etc', 'Yars.conf'), {
   url => "http://localhost:$port",
   servers => [ {
     url => "http://localhost:$port",
