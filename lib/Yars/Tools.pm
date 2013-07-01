@@ -51,6 +51,7 @@ sub new
     ua                           => '',  # UserAgent
     server_status_cache          => {},
     server_status_cache_lifetime => 3,
+    default_dir                  => '',
   }, $class;
 }
 
@@ -79,8 +80,7 @@ sub refresh_config {
         }
     }
   }
-  # FIXME: remove global
-  our $default_dir = $ENV{HARNESS_ACTIVE}
+  my $default_dir = $self->{default_dir} ||= $ENV{HARNESS_ACTIVE}
   ? File::Temp->newdir( File::Spec->catdir( File::Spec->tmpdir, "yars.test.$<.XXXXXX" ))
   : File::HomeDir->my_home . "/var/run/yars";
   
@@ -146,7 +146,6 @@ sub _state {
     my $self = shift;
     $self->refresh_config() unless $self->{state_file} && -e $self->{state_file};
     return $self->{_state}->{cached} if $self->{_state}->{mod_time} && $self->{_state}->{mod_time} == stat($self->{state_file})->mtime;
-    # FIXME remove global
     our $j ||= JSON::XS->new;
     -e $self->{state_file} or LOGDIE "Missing state file " . $self->{state_file};
     $self->{_state}->{cached} = $j->decode(Mojo::Asset::File->new(path => $self->{state_file})->slurp);
@@ -158,7 +157,6 @@ sub _write_state {
     my $self = shift;
     my $state = shift;
     my $dir = dirname($self->{state_file});
-    # FIXME remove global
     our $j ||= JSON::XS->new;
     mkpath $dir;
     my $temp = File::Temp->new(DIR => $dir, UNLINK => 0);
