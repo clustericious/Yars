@@ -31,11 +31,6 @@ use File::Spec;
 use strict;
 use warnings;
 
-# FIXME: convert into attributes
-our %DiskIsLocal; # Our disk roots (values are just 1)
-our %Servers;     # All servers
-our $StateFile;   # Name of file with disk states.
-
 =head2 new
 
 Create a new instance of Yars::Tools
@@ -47,9 +42,12 @@ sub new
   my($class, $config) = @_;
   WARN "No url found in config file" unless $config->url;
   bless {
-    bucket_to_url  => { },
-    bucket_to_root => { },
-    our_url        => '',
+    bucket_to_url  => { }, # map buckets to server urls
+    bucket_to_root => { }, # map buckets to disk roots
+    disk_is_local  => { }, # our disk roots (values are just 1)
+    servers        => { }, # all servers
+    our_url        => '',  # our server url
+    state_file     => '',  # name of file with disk states
   }, $class;
 }
 
@@ -67,14 +65,14 @@ sub refresh_config {
  $self->{our_url} ||= $config->url or WARN "No url found in config file";
  TRACE "Our url is " . $self->{our_url};
  for my $server ($config->servers) {
-    $Servers{$server->{url}} = 1;
+    $self->{servers}->{$server->{url}} = 1;
     for my $disk (@{ $server->{disks} }) {
         for my $bucket (@{ $disk->{buckets} }) {
             $self->{bucket_to_url}->{$bucket} = $server->{url};
             next unless $server->{url} eq $self->{our_url};
             $self->{bucket_to_root}->{$bucket} = $disk->{root};
             LOGDIE "Disk root not given" unless defined($disk->{root});
-            $DiskIsLocal{$disk->{root}} = 1;
+            $self->{disk_is_local}->{$disk->{root}} = 1;
         }
     }
  }
@@ -82,13 +80,13 @@ sub refresh_config {
 our $default_dir = $ENV{HARNESS_ACTIVE}
   ? File::Temp->newdir( File::Spec->catdir( File::Spec->tmpdir, "yars.test.$<.XXXXXX" ))
   : File::HomeDir->my_home . "/var/run/yars";
- $StateFile = $config->state_file(default => "$default_dir/state.txt");
- -e $StateFile or do {
-    INFO "Writing new state file ($StateFile)";
-    my %disks = map { ($_ => "up") } keys %DiskIsLocal;
+ my $state_file = $self->{state_file} = $config->state_file(default => "$default_dir/state.txt");
+ -e $state_file or do {
+    INFO "Writing new state file ($state_file)";
+    my %disks = map { ($_ => "up") } keys %{ $self->{disk_is_local} };
     $self->_write_state({disks => \%disks});
  };
- -e $StateFile or LOGDIE "Could not write state file $StateFile";
+ -e $state_file or LOGDIE "Could not write state file $state_file";
  TRACE "bucket2url : ".Dumper($self->{bucket_to_url});
 }
 
@@ -141,31 +139,31 @@ sub local_buckets {
 }
 
 sub _state {
-    my $class = shift;
+    my $self = shift;
     # FIXME remove global
     our $mod_time;
     our $cached;
-    $class->refresh_config() unless $StateFile && -e $StateFile;
-    return $cached if $mod_time && $mod_time == stat($StateFile)->mtime;
+    $self->refresh_config() unless $self->{state_file} && -e $self->{state_file};
+    return $cached if $mod_time && $mod_time == stat($self->{state_file})->mtime;
     # FIXME remove global
     our $j ||= JSON::XS->new;
-    -e $StateFile or LOGDIE "Missing state file $StateFile";
-    $cached = $j->decode(Mojo::Asset::File->new(path => $StateFile)->slurp);
-    $mod_time = stat($StateFile)->mtime;
+    -e $self->{state_file} or LOGDIE "Missing state file " . $self->{state_file};
+    $cached = $j->decode(Mojo::Asset::File->new(path => $self->{state_file})->slurp);
+    $mod_time = stat($self->{state_file})->mtime;
     return $cached;
 }
 
 sub _write_state {
-    my $class = shift;
+    my $self = shift;
     my $state = shift;
-    my $dir = dirname($StateFile);
+    my $dir = dirname($self->{state_file});
     # FIXME remove global
     our $j ||= JSON::XS->new;
     mkpath $dir;
     my $temp = File::Temp->new(DIR => $dir, UNLINK => 0);
     print $temp $j->encode($state);
     $temp->close;
-    rename "$temp", $StateFile or return 0;
+    rename "$temp", $self->{state_file} or return 0;
     return 1;
 }
 
@@ -202,9 +200,9 @@ Return true iff the disk is on this server.
 =cut
 
 sub disk_is_local {
-    my $class = shift;
+    my $self = shift;
     my $root = shift;
-    return $DiskIsLocal{$root};
+    return $self->{disk_is_local}->{$root};
 }
 
 =head2 server_is_up, server_is_down
@@ -346,7 +344,7 @@ sub remote_stashed_server {
 
     my $assigned_server = $self->server_for($digest);
     # TODO broadcast these requests all at once
-    for my $server (shuffle(keys %Servers)) {
+    for my $server (shuffle(keys %{ $self->{servers} })) {
         next if $server eq $self->{our_url};
         next if $server eq $assigned_server;
         DEBUG "Checking remote $server for $filename";
@@ -373,7 +371,7 @@ Returns :
 sub local_stashed_dir {
     my $self = shift;
     my ($filename,$md5) = @_;
-    for my $root ( shuffle(keys %DiskIsLocal)) {
+    for my $root ( shuffle(keys %{ $self->{disk_is_local} })) {
         my $dir = $self->storage_path($md5,$root);
         TRACE "Checking for $dir/$filename";
         return $dir if -r "$dir/$filename";
@@ -388,9 +386,9 @@ Does this server exist?
 =cut
 
 sub server_exists {
-    my $class = shift;
+    my $self = shift;
     my $server_url = shift;
-    return exists($Servers{$server_url}) ? 1 : 0;
+    return exists($self->{servers}->{$server_url}) ? 1 : 0;
 }
 
 =head2 server_url
@@ -410,7 +408,7 @@ Return all the local directory roots, in a random order.
 =cut
 
 sub disk_roots {
-    return keys %DiskIsLocal;
+    return keys %{ shift->{disk_is_local} };
 }
 
 =head2 server_urls
@@ -420,7 +418,7 @@ Return all the other urls, in a random order.
 =cut
 
 sub server_urls {
-    return keys %Servers;
+    return keys %{ shift->{servers} }
 }
 
 =head2 cleanup_tree
@@ -432,10 +430,10 @@ all empty dirs.
 =cut
 
 sub cleanup_tree {
-    my $class = shift;
+    my $self = shift;
     my ($dir) = @_;
     while (_dir_is_empty($dir)) {
-        last if $DiskIsLocal{$dir};
+        last if $self->{disk_is_local}->{$dir};
         rmdir $dir or do { warn "cannot rmdir $dir : $!"; last; };
         $dir =~ s[/[^/]+$][];
      }
