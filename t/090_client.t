@@ -27,7 +27,7 @@ $t->app->config->servers(
 my $url = $t->ua->app_url;
 $t->app->config->{url} = $url;
 $t->app->config->servers->[0]{url} = $url;
-Yars::Tools->refresh_config($t->app->config);
+$t->app->tools->refresh_config($t->app->config);
 
 my $y = Yars::Client->new(app => 'Yars');
 $y->client($t->ua);

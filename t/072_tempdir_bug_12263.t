@@ -81,7 +81,7 @@ my $client = do {
   $c->client($t->ua);
   $c;
 };
-Yars::Tools->refresh_config;
+$t->app->tools->refresh_config;
 
 $t->get_ok("http://localhost:$port/version")
   ->status_is(200);
