@@ -173,6 +173,7 @@ for incoming requests.
 
 sub startup {
     my $self = shift;
+    require Mojolicious;
     if ($Mojolicious::VERSION >= 4.0) {
         $self->hook(before_dispatch => sub {
           my($c) = @_;
