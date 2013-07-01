@@ -61,13 +61,13 @@ Refresh the configuration data cached in memory.
 =cut
 
 sub refresh_config {
- my $self = shift;
- my $config = shift;
- return 1 if defined($self->{our_url}) && keys %{ $self->{bucket_to_root} } > 0 && keys %{ $self->{bucket_to_url} } > 0;
- $config ||= Clustericious::Config->new("Yars");
- $self->{our_url} ||= $config->url or WARN "No url found in config file";
- TRACE "Our url is " . $self->{our_url};
- for my $server ($config->servers) {
+  my $self = shift;
+  my $config = shift;
+  return 1 if defined($self->{our_url}) && keys %{ $self->{bucket_to_root} } > 0 && keys %{ $self->{bucket_to_url} } > 0;
+  $config ||= Clustericious::Config->new("Yars");
+  $self->{our_url} ||= $config->url or WARN "No url found in config file";
+  TRACE "Our url is " . $self->{our_url};
+  for my $server ($config->servers) {
     $self->{servers}->{$server->{url}} = 1;
     for my $disk (@{ $server->{disks} }) {
         for my $bucket (@{ $disk->{buckets} }) {
@@ -78,19 +78,20 @@ sub refresh_config {
             $self->{disk_is_local}->{$disk->{root}} = 1;
         }
     }
- }
- # FIXME: remove global
-our $default_dir = $ENV{HARNESS_ACTIVE}
+  }
+  # FIXME: remove global
+  our $default_dir = $ENV{HARNESS_ACTIVE}
   ? File::Temp->newdir( File::Spec->catdir( File::Spec->tmpdir, "yars.test.$<.XXXXXX" ))
   : File::HomeDir->my_home . "/var/run/yars";
- my $state_file = $self->{state_file} = $config->state_file(default => "$default_dir/state.txt");
- -e $state_file or do {
+  
+  my $state_file = $self->{state_file} = $config->state_file(default => "$default_dir/state.txt");
+  -e $state_file or do {
     INFO "Writing new state file ($state_file)";
     my %disks = map { ($_ => "up") } keys %{ $self->{disk_is_local} };
     $self->_write_state({disks => \%disks});
- };
- -e $state_file or LOGDIE "Could not write state file $state_file";
- TRACE "bucket2url : ".Dumper($self->{bucket_to_url});
+  };
+  -e $state_file or LOGDIE "Could not write state file $state_file";
+  TRACE "bucket2url : ".Dumper($self->{bucket_to_url});
 }
 
 sub _dir_is_empty {
