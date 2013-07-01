@@ -190,13 +190,7 @@ sub startup {
 
     my $max_size = 53687091200;
 
-    my $tools = 'Yars::Tools';
-
-    $self->hook(
-        before_dispatch => sub {
-            $tools->refresh_config($self->config);
-        }
-    );
+    my $tools;
 
     $self->hook(
         after_build_tx => sub {
@@ -223,6 +217,14 @@ sub startup {
     
     $self->SUPER::startup(@_);
     
+    $tools = Yars::Tools->new($self->config);
+
+    $self->hook(
+        before_dispatch => sub {
+            $tools->refresh_config($self->config);
+        }
+    );
+
     $self->helper( tools => sub { $tools } );
 
     if(my $time = $self->config->{test_expiration}) {

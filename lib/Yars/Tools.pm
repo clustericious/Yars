@@ -31,12 +31,27 @@ use File::Spec;
 use strict;
 use warnings;
 
-our %Bucket2Url;  # map buckets to server urls
-our %Bucket2Root; # map buckets to disk roots
-our $OurUrl;      # Our server url
+# FIXME: convert into attributes
 our %DiskIsLocal; # Our disk roots (values are just 1)
 our %Servers;     # All servers
 our $StateFile;   # Name of file with disk states.
+
+=head2 new
+
+Create a new instance of Yars::Tools
+
+=cut
+
+sub new
+{
+  my($class, $config) = @_;
+  WARN "No url found in config file" unless $config->url;
+  bless {
+    bucket_to_url  => { },
+    bucket_to_root => { },
+    our_url        => '',
+  }, $class;
+}
 
 =head2 refresh_config
 
@@ -45,24 +60,25 @@ Refresh the configuration data cached in memory.
 =cut
 
 sub refresh_config {
- my $class = shift;
+ my $self = shift;
  my $config = shift;
- return 1 if defined($OurUrl) && keys %Bucket2Root > 0 && keys %Bucket2Url > 0;
+ return 1 if defined($self->{our_url}) && keys %{ $self->{bucket_to_root} } > 0 && keys %{ $self->{bucket_to_url} } > 0;
  $config ||= Clustericious::Config->new("Yars");
- $OurUrl = $config->url or WARN "No url found in config file";
- TRACE "Our url is $OurUrl";
+ $self->{our_url} ||= $config->url or WARN "No url found in config file";
+ TRACE "Our url is " . $self->{our_url};
  for my $server ($config->servers) {
     $Servers{$server->{url}} = 1;
     for my $disk (@{ $server->{disks} }) {
         for my $bucket (@{ $disk->{buckets} }) {
-            $Bucket2Url{$bucket} = $server->{url};
-            next unless $server->{url} eq $OurUrl;
-            $Bucket2Root{$bucket} = $disk->{root};
+            $self->{bucket_to_url}->{$bucket} = $server->{url};
+            next unless $server->{url} eq $self->{our_url};
+            $self->{bucket_to_root}->{$bucket} = $disk->{root};
             LOGDIE "Disk root not given" unless defined($disk->{root});
             $DiskIsLocal{$disk->{root}} = 1;
         }
     }
  }
+ # FIXME: remove global
 our $default_dir = $ENV{HARNESS_ACTIVE}
   ? File::Temp->newdir( File::Spec->catdir( File::Spec->tmpdir, "yars.test.$<.XXXXXX" ))
   : File::HomeDir->my_home . "/var/run/yars";
@@ -70,10 +86,10 @@ our $default_dir = $ENV{HARNESS_ACTIVE}
  -e $StateFile or do {
     INFO "Writing new state file ($StateFile)";
     my %disks = map { ($_ => "up") } keys %DiskIsLocal;
-    $class->_write_state({disks => \%disks});
+    $self->_write_state({disks => \%disks});
  };
  -e $StateFile or LOGDIE "Could not write state file $StateFile";
- TRACE "bucket2url : ".Dumper(\%Bucket2Url);
+ TRACE "bucket2url : ".Dumper($self->{bucket_to_url});
 }
 
 sub _dir_is_empty {
@@ -98,16 +114,16 @@ Undef is returned if this file does not belong on the current host.
 =cut
 
 sub disk_for {
-    my $class = shift;
+    my $self = shift;
     my $digest = shift;
-    unless (keys %Bucket2Root) {
-        $class->refresh_config;
-        LOGDIE "No config data" unless keys %Bucket2Root > 0;
+    unless (keys %{ $self->{bucket_to_root} }) {
+        $self->refresh_config;
+        LOGDIE "No config data" unless keys %{ $self->{bucket_to_root} } > 0;
     }
-    my ($bucket) = grep { $digest =~ /^$_/i } keys %Bucket2Root;
-    TRACE "no local disk for $digest in ".(join ' ', keys %Bucket2Root) unless defined($bucket);
+    my ($bucket) = grep { $digest =~ /^$_/i } keys %{ $self->{bucket_to_root} };
+    TRACE "no local disk for $digest in ".(join ' ', keys %{ $self->{bucket_to_root} }) unless defined($bucket);
     return unless defined($bucket);
-    return $Bucket2Root{$bucket};
+    return $self->{bucket_to_root}->{$bucket};
 }
 
 =head2 local_buckets
@@ -117,18 +133,21 @@ Get a hash from disk to list of buckets for this server.
 =cut
 
 sub local_buckets {
-    shift->refresh_config unless keys %Bucket2Root;
-    my %r = safe_reverse \%Bucket2Root;
+    my($self) = @_;
+    $self->refresh_config unless keys %{ $self->{bucket_to_root} };
+    my %r = safe_reverse $self->{bucket_to_root};
     do {$_ = [ $_ ] unless ref $_} for values %r;
     return %r;
 }
 
 sub _state {
     my $class = shift;
+    # FIXME remove global
     our $mod_time;
     our $cached;
     $class->refresh_config() unless $StateFile && -e $StateFile;
     return $cached if $mod_time && $mod_time == stat($StateFile)->mtime;
+    # FIXME remove global
     our $j ||= JSON::XS->new;
     -e $StateFile or LOGDIE "Missing state file $StateFile";
     $cached = $j->decode(Mojo::Asset::File->new(path => $StateFile)->slurp);
@@ -140,6 +159,7 @@ sub _write_state {
     my $class = shift;
     my $state = shift;
     my $dir = dirname($StateFile);
+    # FIXME remove global
     our $j ||= JSON::XS->new;
     mkpath $dir;
     my $temp = File::Temp->new(DIR => $dir, UNLINK => 0);
@@ -193,6 +213,7 @@ Check to see if a remote server is up or down.
 
 =cut
 
+# FIXME remove global
 our $UA;
 our %serverStatusCache;
 our $serverStatusCacheLifetime = 3; # cache results for three seconds
@@ -274,13 +295,13 @@ Given an md5, return the url for the server for this file.
 =cut
 
 sub server_for {
-    my $class = shift;
+    my $self = shift;
     my $digest = shift;
     my $found;
-    Yars::Tools->refresh_config unless keys %Bucket2Url > 0;
+    $self->refresh_config unless keys %{ $self->{bucket_to_url} } > 0;
     for my $i (0..length($digest)) {
-        last if $found = $Bucket2Url{ uc substr($digest,0,$i) };
-        last if $found = $Bucket2Url{ lc substr($digest,0,$i) };
+        last if $found = $self->{bucket_to_url}->{ uc substr($digest,0,$i) };
+        last if $found = $self->{bucket_to_url}->{ lc substr($digest,0,$i) };
     }
     return $found;
 }
@@ -292,7 +313,7 @@ Return a map from bucket prefix to server url.
 =cut
 
 sub bucket_map {
-    return \%Bucket2Url;
+    return shift->{bucket_to_url};
 }
 
 =head2 storage_path
@@ -320,13 +341,13 @@ Parameters :
 =cut
 
 sub remote_stashed_server {
-    my $class = shift;
+    my $self = shift;
     my ($c,$filename,$digest) = @_;
 
-    my $assigned_server = Yars::Tools->server_for($digest);
+    my $assigned_server = $self->server_for($digest);
     # TODO broadcast these requests all at once
     for my $server (shuffle(keys %Servers)) {
-        next if $server eq $OurUrl;
+        next if $server eq $self->{our_url};
         next if $server eq $assigned_server;
         DEBUG "Checking remote $server for $filename";
         my $tx = $c->ua->head( "$server/file/$filename/$digest", { "X-Yars-Check-Stash" => 1, "Connection" => "Close" } );
@@ -350,10 +371,10 @@ Returns :
 =cut
 
 sub local_stashed_dir {
-    my $class = shift;
+    my $self = shift;
     my ($filename,$md5) = @_;
     for my $root ( shuffle(keys %DiskIsLocal)) {
-        my $dir = Yars::Tools->storage_path($md5,$root);
+        my $dir = $self->storage_path($md5,$root);
         TRACE "Checking for $dir/$filename";
         return $dir if -r "$dir/$filename";
     }
@@ -379,7 +400,7 @@ Returns the url of the current server.
 =cut
 
 sub server_url {
-    return $OurUrl;
+    return shift->{our_url};
 }
 
 =head2 disk_roots
