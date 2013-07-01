@@ -173,7 +173,6 @@ for incoming requests.
 
 sub startup {
     my $self = shift;
-    require Mojolicious;
     if ($Mojolicious::VERSION >= 4.0) {
         $self->hook(before_dispatch => sub {
           my($c) = @_;
@@ -181,10 +180,11 @@ sub startup {
           return unless defined $stream;
           $stream->timeout(3000);
         });
-    } elsif ($Mojolicious::VERSION >= 2.37) {
-        Mojo::IOLoop::Stream->timeout(3000);
+    #} elsif ($Mojolicious::VERSION >= 2.37) {
     } else {
-        Mojo::IOLoop->singleton->connection_timeout(3000);
+        eval { Mojo::IOLoop::Stream->timeout(3000) };
+        WARN "error trying to set timeout: $@";
+        WARN "Mojolicious version $Mojolicious::VERSION";
     }
 
     my $max_size = 53687091200;
