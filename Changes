@@ -1,6 +1,7 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+  - Make Yars::Client 0.87 a prereq since it has fixes for Mojo 4.x
 
 0.83_11   2013-07-01 19:02:52 America/New_York
   - improved Mojo 4.x detection and recovery
