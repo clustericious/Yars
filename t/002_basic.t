@@ -4,41 +4,34 @@ use v5.10;
 use Test::More tests => 27;
 use Test::Mojo;
 use Test::Clustericious::Config;
-use Mojo::UserAgent;
-use Mojo::IOLoop;
+use Mojo::Server::Daemon;
 use Yars;
 use Yars::Client;
 use YAML::XS qw( Dump );
 
-my $config   = { servers => [] };
-my @data     = map { create_directory_ok "data_$_" } 1..4;
-my $upload   = create_directory_ok 'up';
-my $download = create_directory_ok 'dl';
-
-my $loop = Mojo::IOLoop->new;
+my $t = Test::Mojo->new;
 my @url = map { 
   my $url = Mojo::URL->new("http://127.0.0.1");
-  $url->port($loop->generate_port);
+  $url->port($t->ua->ioloop->generate_port);
   $url } (1..2);
 
-push @{ $config->{servers} }, {
-  url => "$url[0]",
-  disks => [
-    { root => $data[0], buckets => [ 0..3 ] },
-    { root => $data[1], buckets => [ 4..7 ] },
-  ]
+my $config = {
+  servers => [ 
+    {
+      url => "$url[0]",
+      disks => [
+        { root => create_directory_ok('data_1'), buckets => [ 0..3 ] },
+        { root => create_directory_ok('data_2'), buckets => [ 4..7 ] },
+      ]
+    }, {
+      url => "$url[1]",
+      disks => [
+        { root => create_directory_ok('data_3'), buckets => [ 8..9, 'a'..'b' ] },
+        { root => create_directory_ok('data_4'), buckets => [ 'c'..'f' ] },
+      ]
+    },
+  ],
 };
-
-push @{ $config->{servers} }, {
-  url => "$url[1]",
-  disks => [
-    { root => $data[2], buckets => [ 8..9, 'a'..'b' ] },
-    { root => $data[3], buckets => [ 'c'..'f' ] },
-  ]
-};
-
-my $t = Test::Mojo->new;
-$t->ua(Mojo::UserAgent->new(ioloop => $loop));
 
 my $state = create_directory_ok "state";
 
@@ -52,7 +45,7 @@ foreach my $index (0..1)
 
   state $keepers = [];
   my $server = Mojo::Server::Daemon->new(
-    ioloop => $loop, 
+    ioloop => $t->ua->ioloop, 
     silent => 1,
   );
   $server->listen(["$url[$index]"]);
@@ -76,6 +69,9 @@ $t->get_ok("$url[1]/status")
 
 my $client = Yars::Client->new;
 $client->client($t->ua);
+
+my $upload   = create_directory_ok 'up';
+my $download = create_directory_ok 'dl';
 
 # first file hello.txt is generated to go to the first Yars server ($url[0])
 do {
