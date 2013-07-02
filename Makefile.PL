@@ -49,9 +49,9 @@ my %WriteMakefileArgs = (
     "Number::Bytes::Human" => "0.09",
     "Smart::Comments" => 0,
     "Try::Tiny" => 0,
-    "Yars::Client" => 0
+    "Yars::Client" => "0.86"
   },
-  "VERSION" => "0.83_11",
+  "VERSION" => "0.84",
   "test" => {
     "TESTS" => "t/*.t"
   }

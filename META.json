@@ -40,7 +40,7 @@
             "Number::Bytes::Human" : "0.09",
             "Smart::Comments" : "0",
             "Try::Tiny" : "0",
-            "Yars::Client" : "0"
+            "Yars::Client" : "0.86"
          }
       },
       "test" : {
@@ -53,7 +53,7 @@
          }
       }
    },
-   "release_status" : "testing",
+   "release_status" : "stable",
    "resources" : {
       "bugtracker" : {
          "web" : "https://github.com/plicease/yars/issues"
@@ -65,6 +65,6 @@
          "web" : "https://github.com/plicease/yars"
       }
    },
-   "version" : "0.83_11"
+   "version" : "0.84"
 }
 

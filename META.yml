@@ -37,9 +37,9 @@ requires:
   Number::Bytes::Human: 0.09
   Smart::Comments: 0
   Try::Tiny: 0
-  Yars::Client: 0
+  Yars::Client: 0.86
 resources:
   bugtracker: https://github.com/plicease/yars/issues
   homepage: http://perl.wdlabs.com/Yars/
   repository: git://github.com/plicease/yars.git
-version: 0.83_11
+version: 0.84
