@@ -3,15 +3,20 @@ use warnings;
 use v5.10;
 use Test::Clustericious::Cluster;
 use Test::Clustericious::Config;
-use Test::More tests => 26;
+use Test::More tests => 28;
 use Test::Mojo;
 use Mojo::Server::Daemon;
 use Yars;
 use Yars::Client;
 use YAML::XS qw( Dump );
 
-our @data_dir = map { create_directory_ok "data_$_" } 1..4;
-our $state = create_directory_ok "state";
+do {
+  my @data_dir = map { create_directory_ok "data_$_" } 1..4;
+  my $state = create_directory_ok "state";
+  
+  create_config_helper_ok data_dir => sub { \@data_dir };
+  create_config_helper_ok state_dir => sub { $state . '/' . shift };
+};
 
 my $cluster = Test::Clustericious::Cluster->new;
 $cluster->create_cluster_ok(qw( Yars Yars ));
@@ -88,15 +93,15 @@ url: <%= cluster->url %>
 servers:
   - url: <%= cluster->urls->[0] %>
     disks:
-      - root: <%= $main::data_dir[0] %>
+      - root: <%= data_dir->[0] %>
         buckets: [ 0,1,2,3 ]
-      - root: <%= $main::data_dir[1] %>
+      - root: <%= data_dir->[1] %>
         buckets: [ 4,5,6,7 ]
   - url: <%= cluster->urls->[0] %>
     disks:
-      - root: <%= $main::data_dir[2] %>
+      - root: <%= data_dir->[2] %>
         buckets: [ 8,9,'a','b' ]
-      - root: <%= $main::data_dir[3] %>
+      - root: <%= data_dir->[3] %>
         buckets: [ 'c','d','e','f' ]
         
-state_file: <%= "$main::state/" . cluster->index . ".txt" %>
+state_file: <%= state_dir(cluster->index) %>
