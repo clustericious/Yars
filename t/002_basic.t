@@ -1,59 +1,22 @@
 use strict;
 use warnings;
 use v5.10;
-use Test::More tests => 27;
-use Test::Mojo;
+use Test::Clustericious::Cluster;
 use Test::Clustericious::Config;
+use Test::More tests => 26;
+use Test::Mojo;
 use Mojo::Server::Daemon;
 use Yars;
 use Yars::Client;
 use YAML::XS qw( Dump );
 
-my $t = Test::Mojo->new;
-my @url = map { 
-  my $url = Mojo::URL->new("http://127.0.0.1");
-  $url->port($t->ua->ioloop->generate_port);
-  $url } (1..2);
+our @data_dir = map { create_directory_ok "data_$_" } 1..4;
+our $state = create_directory_ok "state";
 
-my $config = {
-  servers => [ 
-    {
-      url => "$url[0]",
-      disks => [
-        { root => create_directory_ok('data_1'), buckets => [ 0..3 ] },
-        { root => create_directory_ok('data_2'), buckets => [ 4..7 ] },
-      ]
-    }, {
-      url => "$url[1]",
-      disks => [
-        { root => create_directory_ok('data_3'), buckets => [ 8..9, 'a'..'b' ] },
-        { root => create_directory_ok('data_4'), buckets => [ 'c'..'f' ] },
-      ]
-    },
-  ],
-};
-
-my $state = create_directory_ok "state";
-
-foreach my $index (0..1)
-{
-  $config->{url} = "$url[$index]";
-  $config->{state_file} = "$state/$index.txt";
-   
-  create_config_ok 'Yars', $config;
-  #note Dump($config);
-
-  state $keepers = [];
-  my $server = Mojo::Server::Daemon->new(
-    ioloop => $t->ua->ioloop, 
-    silent => 1,
-  );
-  $server->listen(["$url[$index]"]);
-  $server->app(Yars->new);
-  $server->start;
-  
-  push @$keepers, $server;
-}
+my $cluster = Test::Clustericious::Cluster->new;
+$cluster->create_cluster_ok(qw( Yars Yars ));
+my $t = $cluster->t;
+my @url = @{ $cluster->urls };
 
 $t->get_ok("$url[0]/")
   ->status_is(200)
@@ -115,3 +78,25 @@ do {
   
   is $data, "and again \n", 'file has correct content';
 };
+
+__DATA__
+
+@@ etc/Yars.conf
+---
+url: <%= cluster->url %>
+
+servers:
+  - url: <%= cluster->urls->[0] %>
+    disks:
+      - root: <%= $main::data_dir[0] %>
+        buckets: [ 0,1,2,3 ]
+      - root: <%= $main::data_dir[1] %>
+        buckets: [ 4,5,6,7 ]
+  - url: <%= cluster->urls->[0] %>
+    disks:
+      - root: <%= $main::data_dir[2] %>
+        buckets: [ 8,9,'a','b' ]
+      - root: <%= $main::data_dir[3] %>
+        buckets: [ 'c','d','e','f' ]
+        
+state_file: <%= "$main::state/" . cluster->index . ".txt" %>
