@@ -99,9 +99,7 @@ sub refresh_config {
         }
     }
   }
-  my $default_dir = $self->{default_dir} ||= $ENV{HARNESS_ACTIVE}
-  ? File::Temp->newdir( File::Spec->catdir( File::Spec->tmpdir, "yars.test.$<.XXXXXX" ))
-  : File::HomeDir->my_home . "/var/run/yars";
+  my $default_dir = $self->{default_dir} = File::HomeDir->my_home . "/var/run/yars";
   
   my $state_file = $self->{state_file} = $config->state_file(default => "$default_dir/state.txt");
   -e $state_file or do {
