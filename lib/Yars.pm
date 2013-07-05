@@ -183,6 +183,7 @@ sub _mojo4_compat {
 
 sub startup {
     my $self = shift;
+
     if ($Mojolicious::VERSION >= 4.0) {
         $self->_mojo4_compat;
     #} elsif ($Mojolicious::VERSION >= 2.37) {
@@ -198,6 +199,8 @@ sub startup {
 
     my $max_size = 53687091200;
 
+    my $tools;
+
     $self->hook(
         after_build_tx => sub {
             my ( $tx, $app ) = @_;
@@ -206,7 +209,7 @@ sub startup {
                     my $content = shift;
                     my $md5_b64 = $content->headers->header('Content-MD5') or return;
                     my $md5 = unpack 'H*', b($md5_b64)->b64_decode;
-                    my $disk = Yars::Tools->disk_for($md5) or return;
+                    my $disk = $tools->disk_for($md5) or return;
                     my $tmpdir = join '/', $disk, 'tmp';
                     -d $tmpdir or do { mkpath $tmpdir;  chmod 0777, $tmpdir; };
                     -w $tmpdir or chmod 0777, $tmpdir;
@@ -222,6 +225,16 @@ sub startup {
     );
     
     $self->SUPER::startup(@_);
+    
+    $tools = Yars::Tools->new($self->config);
+
+    $self->hook(
+        before_dispatch => sub {
+            $tools->refresh_config($self->config);
+        }
+    );
+
+    $self->helper( tools => sub { $tools } );
 
     if(my $time = $self->config->{test_expiration}) {
         require Clustericious::Command::stop;

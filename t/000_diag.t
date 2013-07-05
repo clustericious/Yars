@@ -2,6 +2,8 @@ use strict;
 use warnings;
 use Test::More;
 
+plan skip_all => 'turned off';
+
 my @mod_list = qw(
   Clustericious
   Clustericious::Config
@@ -44,4 +46,3 @@ foreach my $mod (@mod_list)
   my $version = eval qq{ \$${mod}::VERSION } // 'unknown';
   diag "$mod $version";
 }
-

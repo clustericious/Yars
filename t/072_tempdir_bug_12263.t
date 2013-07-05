@@ -1,20 +1,11 @@
 use strict;
 use warnings;
 use autodie;
-use v5.10;
-use FindBin ();
-BEGIN { require "$FindBin::Bin/etc/setup.pl" }
-use File::HomeDir::Test;
-use File::HomeDir;
+use Test::Clustericious::Config;
+use Test::Clustericious::Cluster;
 use Test::More;
-use Test::Mojo;
-use Mojolicious;
 use File::Spec;
 use Scalar::Util qw( refaddr );
-use YAML::XS qw( DumpFile );
-use Yars;
-
-$Yars::VERSION //= '0.77';
 
 # this change to Mojolicious in version 3.85 broke the way we set the temp directory:
 # https://github.com/kraih/mojo/commit/eff7e8dce836c75e21c1c1b3456fb3f8a9992ecb
@@ -25,67 +16,48 @@ $Yars::VERSION //= '0.77';
 # rather than $TMPDIR and then moved to $disk_root/xx/xx/xx/...
 
 if(eval q{ use Monkey::Patch; use Yars::Client; *patch_class = \&Monkey::Patch::patch_class; 1 })
-{ plan tests => 6 }
+{ plan tests => 12 }
 else
 { plan skip_all => 'test requires Monkey::Patch and Yars::Client' }
 
-my $home = File::HomeDir->my_home;
-mkdir(File::Spec->catdir($home, $_)) for qw( etc data tmp sample );
-mkdir(File::Spec->catdir($home, 'data', "disk_$_")) for (0..9,'a'..'f');
-DumpFile(File::Spec->catfile($home, 'etc', 'Yars.conf') => {
-  url => 'http://localhost',
-});
-mkdir(File::Spec->catdir($home, qw( data disk_5 tmp )));
+my $root = create_directory_ok 'data';
+create_config_helper_ok data_dir => sub {
+  my $dir = "$root/disk_$_[0]";
+  mkdir $dir unless -d $dir;
+  mkdir "$dir/tmp" unless -d "$dir/tmp";
+  $dir;
+};
+
+my $cluster = Test::Clustericious::Cluster->new;
+$cluster->create_cluster_ok(qw( Yars ));
+my $t = $cluster->t;
+my $url = $cluster->url;
+
 do {
-  my $fh;
-  open($fh, '>', File::Spec->catfile($home, qw( data disk_5 tmp right.txt )));
+  open my $fh, '>', "$root/disk_5/tmp/right.txt";
   close $fh;
 };
 
-my $t = Test::Mojo->new('Yars');
-my $port = $t->ua->app_url->port;
-$ENV{MOJO_TMPDIR} = File::Spec->catdir($home, 'tmp');
+$ENV{MOJO_TMPDIR} = create_directory_ok 'tmp';
 $ENV{MOJO_MAX_MEMORY_SIZE} = 5;            # Force temp files.
 do { 
-  my $fh;
-  open($fh, '>', File::Spec->catfile($home, qw( tmp wrong.txt )));
+  open my $fh, '>', "$ENV{MOJO_TMPDIR}/wrong.txt";
   close $fh;
 };
 
-DumpFile(File::Spec->catfile($home, 'etc', 'Yars.conf'), {
-  url => "http://localhost:$port",
-  servers => [ {
-    url => "http://localhost:$port",
-    disks => [ 
-      map {; 
-        {
-          root    => File::Spec->catdir($home, 'data', "disk_$_"),
-          buckets => [ $_ ],
-        }
-      } (0..9,'a'..'f')
-    ]
-  } ],
-});
-
-my $sample_filename = File::Spec->catfile($home, 'sample', 'sample.txt');
+my $sample_filename = create_directory_ok('sample') . '/sample.txt';
 do {
-  my $fh;
-  open($fh, '>', $sample_filename);
+  open my $fh, '>', $sample_filename;
   binmode $fh;
   print $fh 'hello world';
   close $fh;
 };
 
-my $client = do {
-  my $c = Yars::Client->new;
-  $c->client($t->ua);
-  $c;
-};
-Yars::Tools->refresh_config;
+my $client = Yars::Client->new;
+$client->client($t->ua);
 
-$t->get_ok("http://localhost:$port/version")
+$t->get_ok("$url/version")
   ->status_is(200);
-like $t->tx->res->json->[0], qr{^(\d+\.\d+(_\d+)?|dev)$}, "version = " . $t->tx->res->json->[0];
 
 my $tmpdir;
 my $path;
@@ -94,7 +66,7 @@ do {
 
   my $refaddr;
 
-  $t->app->hook(after_build_tx => sub {
+  $cluster->apps->[0]->hook(after_build_tx => sub {
     my ( $tx, $app ) = @_;
     $tx->req->content->on(body => sub {
       my $content = shift;
@@ -143,7 +115,23 @@ do {
   
 };
 
-ok( -e File::Spec->catfile( $home, qw( data disk_5 5e b6 3b bb e0 1e ee d0 93 cb 22 bb 8f 5a cd c3 sample.txt )), 'file uploaded');
+ok( -e File::Spec->catfile( $root, qw( disk_5 5e b6 3b bb e0 1e ee d0 93 cb 22 bb 8f 5a cd c3 sample.txt )), 'file uploaded');
 ok( -e File::Spec->catfile( $tmpdir, qw( right.txt )), 'used correct tmp directory ' . ($tmpdir//'undef'));
 like $path, qr{disk_5}, 'path = ' . $path;
 
+__DATA__
+
+@@ etc/Yars.conf
+---
+% use Test::Clustericious::Config;
+url : <%= cluster->url %>
+
+servers :
+    - url : <%= cluster->urls->[0] %>
+      disks :
+% foreach my $prefix (0..9,'a'..'f') {
+        - root : <%= data_dir $prefix %>
+          buckets : ['<%= $prefix %>']
+% }
+
+state_file: <%= create_directory_ok('state') . '/state' %>
