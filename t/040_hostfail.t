@@ -3,6 +3,7 @@ use warnings;
 use FindBin ();
 BEGIN { require "$FindBin::Bin/etc/legacy.pl" }
 use Mojo::ByteStream qw/b/;
+use Test::More skip_all => 'needs refactoring';
 use Test::More tests => 368;
 use Yars;
 

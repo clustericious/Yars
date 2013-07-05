@@ -9,6 +9,8 @@ use Mojo::Loader;
 use File::Find::Rule;
 use Mojo::JSON;
 
+$ENV{LOG_LEVEL} = 'FATAL';
+
 my $root = create_directory_ok 'data';
 create_config_helper_ok data_dir => sub {
   my $path = "$root/" . shift;

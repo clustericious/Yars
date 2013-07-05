@@ -6,6 +6,8 @@ use Test::More tests => 105;
 use Mojo::ByteStream qw( b );
 use Mojo::Loader;
 
+$ENV{LOG_LEVEL} = 'FATAL';
+
 my $root = create_directory_ok 'data';
 my $state = create_directory_ok 'state';
 mkdir "$root/one";
@@ -49,7 +51,6 @@ my @filenames;
 my @sizes;
 for my $content (@contents) {
     $i++;
-    diag 'content = ' . $content;
     my $filename = "file_numero_$i";
     push @filenames, $filename;
     push @digests, b($content)->md5_sum;

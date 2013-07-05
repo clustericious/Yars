@@ -90,7 +90,11 @@ sub _set_static_headers {
 
     $filepath =~ /\.(\w+)$/;
     my $ext = $1;
-    $rsh->content_type($c->app->types->type($ext) || 'text/plain');
+    if(defined $ext) {
+        $rsh->content_type($c->app->types->type($ext) || 'text/plain');
+    } else {
+        $rsh->content_type('text/plain');
+    }
     return 1;
 }
 
@@ -317,6 +321,7 @@ sub _stash_locally {
 
     DEBUG "Stashing $filename locally";
     my $assigned_root = $c->tools->disk_for($digest);
+    $assigned_root //= '';
     my $wrote;
     for my $root (shuffle($c->tools->disk_roots)) {
         TRACE "Trying $root (assigned : $assigned_root)";
@@ -533,8 +538,9 @@ post '/check/manifest' => sub {
     for my $server (keys %remote) {
         TRACE "Looking for manifest files on $server";
         my $content = Mojo::JSON->new->encode({ files => $remote{$server} });
+        $DB::single = 1;
         my $tx = $c->tools->_ua->post(
-            "$server/check/manifest?show_found=1&show_corrupt=".$c->param("show_corrupt"),
+            "$server/check/manifest?show_found=1&show_corrupt=".($c->param("show_corrupt")//''),
             { "Content-type" => "application/json", "Connection" => "Close" }, $content );
         if (my $res = $tx->success) {
             my $got = $res->json;
