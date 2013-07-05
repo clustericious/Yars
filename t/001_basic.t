@@ -1,25 +1,28 @@
-#!/usr/bin/env perl
-
 use strict;
 use warnings;
+use Test::Clustericious::Cluster;
+use Test::More tests => 7;
 
-use Test::More tests => 5;
-use Test::Mojo;
-use File::Temp;
-use_ok('Yars');
+my $cluster = Test::Clustericious::Cluster->new;
+$cluster->create_cluster_ok(qw( Yars ));
 
-my $root = File::Temp->newdir(CLEANUP => 1);
+my $t = $cluster->t;
 
-my $t = Test::Mojo->new('Yars');
-$t->app->config->servers(
-    default => [{
-        disks => [ { root => $root, buckets => [ '0' .. '9', 'A' .. 'F' ] } ]
-    }]
-);
-my $url = $t->ua->app_url;
-$t->app->config->{url} = $url;
-$t->app->config->servers->[0]{url} = $url;
-
-$t->get_ok('/')->status_is(200)->content_type_like('/text\/html/')
+$t->get_ok($cluster->url)
+  ->status_is(200)
+  ->content_type_like('/text\/html/')
   ->content_like(qr/welcome/i);
 
+__DATA__
+
+@@ etc/Yars.conf
+---
+% use Test::Clustericious::Config;
+url: <%= cluster->url %>
+servers:
+  - url: <%= cluster->url %>
+    disks:
+      - root: <%= create_directory_ok "data" %>
+        buckets: [ 0,1,2,3,4,5,6,7,8,9,'a','b','c','d','e','f' ]
+
+state_file: <%= create_directory_ok("state") . "/state.txt" %>

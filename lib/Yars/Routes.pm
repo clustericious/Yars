@@ -278,9 +278,9 @@ sub _proxy_to {
    my $headers = $temporary ? { 'X-Yars-Stash' => 1 } : {};
    $headers->{"Content-MD5"} = $c->tools->hex2b64($digest);
    $headers->{Connection} = "Close";
-   my $tx = $c->ua->build_tx(PUT => "$url/file/$filename/$digest", $headers );
+   my $tx = $c->tools->_ua->build_tx(PUT => "$url/file/$filename/$digest", $headers );
    $tx->req->content->asset($asset);
-   $tx = $c->ua->start($tx);
+   $tx = $c->tools->_ua->start($tx);
    if ($res = $tx->success) {
        $c->res->headers->location($tx->res->headers->location);
        $c->render(status => $tx->res->code, text => 'ok');
@@ -392,7 +392,7 @@ sub _del {
     }
 
     DEBUG "Proxying delete to $server";
-    my $tx = $c->ua->delete("$server/file/$md5/$filename");
+    my $tx = $c->tools->_ua->delete("$server/file/$md5/$filename");
     if (my $res = $tx->success) {
         return $c->render(status => 200, text => "ok");
     } else  {
@@ -442,7 +442,7 @@ get '/disk/usage' => sub {
     my %all = ( $c->tools->server_url => \%r );
     for my $server ($c->tools->server_urls) {
         next if exists $all{$server};
-        my $tx = $c->ua->get("$server/disk/usage?count=$count");
+        my $tx = $c->tools->_ua->get("$server/disk/usage?count=$count");
         my $res = $tx->success or do {
             $all{$server} = 'down';
             next;
@@ -470,7 +470,7 @@ post '/disk/status' => sub {
             return $c->render( status => 400, text => "Server $server does not exist" );
         }
         WARN "Sending ".$c->req->body;
-        my $tx = $c->ua->post("$server/disk/status", $c->req->headers->to_hash, ''.$c->req->body );
+        my $tx = $c->tools->_ua->post("$server/disk/status", $c->req->headers->to_hash, ''.$c->req->body );
         return $c->render_text( $tx->success ? $tx->res->body : 'failed '.$tx->error );
     }
     $c->tools->disk_is_local($root) or return $c->render_exception("Disk $root is not on ".$c->tools->server_url);
@@ -533,7 +533,7 @@ post '/check/manifest' => sub {
     for my $server (keys %remote) {
         TRACE "Looking for manifest files on $server";
         my $content = Mojo::JSON->new->encode({ files => $remote{$server} });
-        my $tx = $c->ua->post(
+        my $tx = $c->tools->_ua->post(
             "$server/check/manifest?show_found=1&show_corrupt=".$c->param("show_corrupt"),
             { "Content-type" => "application/json", "Connection" => "Close" }, $content );
         if (my $res = $tx->success) {
@@ -585,7 +585,7 @@ get '/servers/status' => sub {
     $all{$c->tools->server_url} = \%disks;
     for my $server ($c->tools->server_urls) {
         next if exists($all{$server});
-        my $tx = $c->ua->get("$server/servers/status?single=1");
+        my $tx = $c->tools->_ua->get("$server/servers/status?single=1");
         if (my $res = $tx->success) {
             $all{$server} = $res->json;
         } else {

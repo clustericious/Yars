@@ -55,6 +55,25 @@ sub new
   }, $class;
 }
 
+sub _set_ua
+{
+  my($self, $ua) = @_;
+  $self->{ua} = $ua;
+  return;
+}
+
+sub _ua
+{
+  my($self) = @_;
+  
+  unless(defined $self->{ua})
+  {
+    $self->{ua} = Mojo::UserAgent->new;
+  }
+  
+  return $self->{ua};
+}
+
 =head2 refresh_config
 
 Refresh the configuration data cached in memory.
@@ -217,9 +236,8 @@ sub server_is_up {
     if (exists($self->{server_status_cache}->{$server_url}) && $self->{server_status_cache}->{$server_url}{checked} > time - $self->{server_status_cache_lifetime}) {
         return $self->{server_status_cache}->{$server_url}{result};
     }
-    $self->{ua} ||= Mojo::UserAgent->new;
     TRACE "Checking $server_url/status";
-    my $tx = $self->{ua}->get( "$server_url/status" );
+    my $tx = $self->_ua->get( "$server_url/status" );
     $self->{server_status_cache}->{$server_url}{checked} = time;
     if (my $res = $tx->success) {
         my $got = $res->json;
@@ -343,7 +361,7 @@ sub remote_stashed_server {
         next if $server eq $self->{our_url};
         next if $server eq $assigned_server;
         DEBUG "Checking remote $server for $filename";
-        my $tx = $c->ua->head( "$server/file/$filename/$digest", { "X-Yars-Check-Stash" => 1, "Connection" => "Close" } );
+        my $tx = $self->_ua->head( "$server/file/$filename/$digest", { "X-Yars-Check-Stash" => 1, "Connection" => "Close" } );
         if (my $res = $tx->success) {
             # Found it!
             return $server;

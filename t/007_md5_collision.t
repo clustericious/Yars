@@ -1,26 +1,15 @@
 use strict;
 use warnings;
-use FindBin ();
-BEGIN { require "$FindBin::Bin/etc/legacy.pl" }
+use Test::Clustericious::Cluster;
+use Test::More tests => 9;
+use Mojo::ByteStream qw( b );
 
-use File::HomeDir::Test;
-use Test::More;
-use Test::Mojo;
-use Mojo::ByteStream qw/b/;
-use File::Temp;
-use Yars;
+BEGIN { $ENV{LOG_LEVEL} = 'FATAL' }
 
-$ENV{LOG_LEVEL} = 'FATAL';
-
-my $t = Test::Mojo->new('Yars');
-my $root = File::Temp->newdir(CLEANUP => 1);
-$t->app->config->servers(
-    default => [{
-        disks => [ { root => $root, buckets => [ '0' .. '9', 'A' .. 'F' ] } ]
-    }]
-);
-$t->app->config->{url} = $t->ua->app_url;
-$t->app->config->servers->[0]{url} = $t->app->config->{url};
+my $cluster = Test::Clustericious::Cluster->new;
+$cluster->create_cluster_ok(qw( Yars ));
+my $t = $cluster->t;
+my $url = $cluster->url;
 
 my $one = <<ONE;
 d131dd02c5e6eec4693d9a0698aff95c 2fcab58712467eab4004583eb8fb7f89
@@ -44,10 +33,22 @@ $two = pack('H*',$two);
 ok $one ne $two, "Strings differ";
 is b($one)->md5_sum->to_string, b($two)->md5_sum->to_string, "MD5s the same";
 
-$t->put_ok("/file/one", {}, $one)->status_is(201);  # created
-$t->put_ok("/file/one", {}, $two)->status_is(409);  # conflict
-
-done_testing();
+$t->put_ok("$url/file/one", {}, $one)->status_is(201);  # created
+$t->put_ok("$url/file/one", {}, $two)->status_is(409);  # conflict
 
 1;
+
+__DATA__
+
+@@ etc/Yars.conf
+---
+% use Test::Clustericious::Config;
+url: <%= cluster->url %>
+servers:
+  - url: <%= cluster->url %>
+    disks:
+      - root: <%= create_directory_ok 'data' %>
+        buckets: [ 0,1,2,3,4,5,6,7,8,9,'a','b','c','d','e','f' ]
+
+state_file: <%= create_directory_ok("state") . "/state.txt" %>
 
