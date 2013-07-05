@@ -2,7 +2,7 @@ use strict;
 use warnings;
 use Test::Clustericious::Config;
 use Test::Clustericious::Cluster;
-use Test::More tests => 50000;
+use Test::More tests => 105;
 use Mojo::ByteStream qw( b );
 use Mojo::Loader;
 
@@ -28,7 +28,8 @@ $t->get_ok("$url[0]/status")
 $t->get_ok("$url[1]/status")
   ->status_is(200);
 
-$_->tools->_set_ua($cluster->_add_ua) for @{ $cluster->apps };
+$t->ua->max_redirects(3);
+$_->tools->_set_ua(map { $_->max_redirects(3) } $cluster->_add_ua) for @{ $cluster->apps };
 
 $t->get_ok("$url[0]/servers/status");
 is_deeply($t->tx->res->json, {
