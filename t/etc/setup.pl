@@ -1,3 +1,5 @@
+use strict;
+use warnings;
 use v5.10;
 delete $ENV{HARNESS_ACTIVE}; 
 delete $ENV{CLUSTERICIOUS_CONF_DIR};

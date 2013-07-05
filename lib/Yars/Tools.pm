@@ -213,7 +213,7 @@ sub disk_is_down {
 
 =head2 disk_is_local
 
-Return true iff the disk is on this server.
+Return true if the disk is on this server.
 
 =cut
 
@@ -436,9 +436,9 @@ sub server_urls {
 
 =head2 cleanup_tree
 
-Given a direcory, traverse upwards until encountering
+Given a directory, traverse upwards until encountering
 a local disk root or a non-empty directory, and remove
-all empty dirs.
+all empty directories.
 
 =cut
 
@@ -486,7 +486,7 @@ sub human_size {
 
 =head2 content_is_same
 
-Given a filename and an Asset, return true iff the
+Given a filename and an Asset, return true if the
 content is the same for both.
 
 =cut

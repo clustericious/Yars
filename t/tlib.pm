@@ -1,5 +1,6 @@
 package tlib;
 use File::Basename qw/dirname/;
+use strict;
 no strict 'refs';
 
 sub import {
