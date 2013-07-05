@@ -1,41 +1,38 @@
 use strict;
 use warnings;
-use FindBin ();
-BEGIN { require "$FindBin::Bin/etc/legacy.pl" }
-use File::HomeDir::Test;
-use Test::More tests => 911;
-use Mojo::ByteStream qw/b/;
-use File::Find::Rule;
-use Yars;
+use v5.10;
+use Test::Clustericious::Config;
+use Test::Clustericious::Cluster;
+use Test::More tests => 916;
+use Mojo::ByteStream qw( b );
 use Mojo::Loader;
+use File::Find::Rule;
 use Mojo::JSON;
 
-$ENV{MOJO_MAX_MEMORY_SIZE} = 10;
-$ENV{YARS_TEST_EXPIRATION} = 120;
-my($root, @urls) = do {
-  local $ENV{MOJO_MAX_MEMORY_SIZE} = 1;
-  two_urls('conf3');
+my $root = create_directory_ok 'data';
+create_config_helper_ok data_dir => sub {
+  my $path = "$root/" . shift;
+  mkdir $path unless -d $path;
+  $path;
 };
 
-my $ua = Mojo::UserAgent->new();
-$ua->max_redirects(3);
-eval {
-  is $ua->get($urls[0].'/status')->res->json->{server_url}, $urls[0], "started first server at $urls[0]";
-  is $ua->get($urls[1].'/status')->res->json->{server_url}, $urls[1], "started second server at $urls[1]";
+create_config_helper_ok state_file => sub {
+  my $index = shift;
+  state $dir;
+  $dir //= create_directory_ok 'state';
+  "$dir/$index";
 };
-if(my $error = $@)
-{
-  diag "FAILED: with $error";
-  foreach my $which (1..2)
-  {
-    use autodie;
-    diag "LOG $which";
-    open my $fh, '<', "$root/yars.test.$<.$which.log";
-    diag <$fh>;
-    close $fh;
-  }
-  exit;
-}
+
+$ENV{MOJO_MAX_MEMORY_SIZE} = 1;
+my $cluster = Test::Clustericious::Cluster->new;
+$cluster->create_cluster_ok(qw( Yars Yars ));
+my @urls = @{ $cluster->urls };
+
+my $ua = $cluster->t->ua;
+$ua->max_redirects(3);
+$_->tools->_set_ua(map { $_->max_redirects(3) } $cluster->_add_ua) for @{ $cluster->apps };
+is $ua->get($urls[0].'/status')->res->json->{server_url}, $urls[0], "started first server at $urls[0]";
+is $ua->get($urls[1].'/status')->res->json->{server_url}, $urls[1], "started second server at $urls[1]";
 
 my $i = 0;
 my @contents = do {
@@ -86,9 +83,28 @@ for my $url (@locations) {
 
 }
 
-stop_a_yars($_) for 1..2;
-
 __DATA__
+
+@@ etc/Yars.conf
+---
+url : <%= cluster->url %>
+
+%# common configuration :
+servers :
+    - url : <%= cluster->urls->[0] %>
+      disks :
+        - root : <%= data_dir('one') %>
+          buckets : [0,1,2,3]
+        - root : <%= data_dir('two') %>
+          buckets : [4,5,6,7]
+    - url : <%= cluster->urls->[1] %>
+      disks :
+        - root : <%= data_dir('three') %>
+          buckets : [8,9,A,B]
+        - root : <%= data_dir('four') %>
+          buckets : [C,D,E,F]
+
+state_file: <%= state_file(cluster->index) %>
 
 @@ test_data.json
 ["head -100 /usr/share/dict/words\n","1080\n","10-point\n","10th\n","11-point\n","12-point\n","16-point\n","18-point\n","1st\n","2\n","20-point\n","2,4,5-t\n","2,4-d\n","2D\n","2nd\n","30-30\n","3-D\n","3-d\n","3D\n","3M\n","3rd\n","48-point\n","4-D\n","4GL\n","4H\n","4th\n","5-point\n","5-T\n","5th\n","6-point\n","6th\n","7-point\n","7th\n","8-point\n","8th\n","9-point\n","9th\n","-a\n","A\n","A.\n","a\n","a'\n","a-\n","a.\n","A-1\n","A1\n","a1\n","A4\n","A5\n","AA\n","aa\n","A.A.A.\n","AAA\n","aaa\n","AAAA\n","AAAAAA\n","AAAL\n","AAAS\n","Aaberg\n","Aachen\n","AAE\n","AAEE\n","AAF\n","AAG\n","aah\n","aahed\n","aahing\n","aahs\n","AAII\n","aal\n","Aalborg\n","Aalesund\n","aalii\n","aaliis\n","aals\n","Aalst\n","Aalto\n","AAM\n","aam\n","AAMSI\n","Aandahl\n","A-and-R\n","Aani\n","AAO\n","AAP\n","AAPSS\n","Aaqbiye\n","Aar\n","Aara\n","Aarau\n","AARC\n","aardvark\n","aardvarks\n","aardwolf\n","aardwolves\n","Aaren\n","Aargau\n","aargh\n","Aarhus\n","Aarika\n","Aaron\n"]
