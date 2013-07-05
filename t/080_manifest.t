@@ -1,26 +1,18 @@
 use strict;
 use warnings;
-use FindBin ();
-BEGIN { require "$FindBin::Bin/etc/legacy.pl" }
-
-use File::HomeDir::Test;
-use Test::More tests => 27;
-use Test::Mojo;
-use Mojo::ByteStream qw/b/;
-use File::Temp;
-use Yars;
+use Test::Clustericious::Config;
+use Test::Clustericious::Cluster;
+use Test::More tests => 31;
+use Mojo::ByteStream qw( b );
 use Digest::file qw/digest_file_hex/;
 
-my $t = Test::Mojo->new('Yars');
-my $root = File::Temp->newdir(CLEANUP => 1);
-$t->app->config->servers(
-    default => [{
-        disks => [ { root => $root, buckets => [ '0' .. '9', 'A' .. 'F' ] } ]
-    }]
-);
+my $root = create_directory_ok 'data';
+create_config_helper_ok data_dir => sub { $root };
 
-$t->app->config->{url} = $t->ua->app_url;
-$t->app->config->servers->[0]{url} = $t->app->config->{url};
+my $cluster = Test::Clustericious::Cluster->new;
+$cluster->create_cluster_ok(qw( Yars ));
+my $t = $cluster->t;
+my $url = $cluster->url;
 
 my $count = 10;
 
@@ -34,7 +26,7 @@ my @missing_md5s      = map b($_)->md5_sum, @missing_contents;
 
 
 for (0..$count-1) {
-    $t->put_ok("/file/$filenames[$_]", { }, $contents[$_])->status_is(201);
+    $t->put_ok("$url/file/$filenames[$_]", { }, $contents[$_])->status_is(201);
 }
 
 my $manifest = join "\n", map "$md5s[$_]  some/stuff/$filenames[$_]", 0..$count-1;
@@ -44,7 +36,7 @@ $manifest .= join "\n", map "$missing_md5s[$_]  not/there/$missing_filenames[$_]
 my $j = Mojo::JSON->new();
 
 $t->post_ok(
-    '/check/manifest?show_found=1',
+    "$url/check/manifest?show_found=1",
     { "Content-Type" => "application/json" },
     $j->encode( { manifest => $manifest } )
 )->status_is(200)
@@ -64,7 +56,7 @@ close $fp;
 $corrupt_md5 = digest_file_hex($corrupt_path,'MD5');
 
 $t->post_ok(
-    '/check/manifest?show_found=1&show_corrupt=1',
+    "$url/check/manifest?show_found=1&show_corrupt=1",
     { "Content-Type" => "application/json" },
     $j->encode( { manifest => $manifest } )
 )->status_is(200)
@@ -74,4 +66,17 @@ $t->post_ok(
     corrupt => [ { filename => $corrupt_filename, md5 => $corrupt_md5 } ],
 } );
 
-done_testing();
+__DATA__
+
+@@ etc/Yars.conf
+---
+% use Test::Clustericious::Config;
+url : <%= cluster->url %>
+
+servers :
+    - url : <%= cluster->urls->[0] %>
+      disks :
+        - root : <%= data_dir %>
+          buckets : [0,1,2,3,4,5,6,7,8,9,A,B,C,D,E,F]
+
+state_file: <%= create_directory_ok('state') . "/state" %>
