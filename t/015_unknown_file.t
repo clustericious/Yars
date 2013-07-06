@@ -1,23 +1,28 @@
-#!/usr/bin/env perl
-
 use strict;
 use warnings;
+use Test::Clustericious::Cluster;
+use Test::More tests => 5;
 
-use Test::More tests => 2;
-use Test::Mojo;
-use File::Temp;
-use Yars;
-
-my $t = Test::Mojo->new('Yars');
-$t->app->config->servers(
-    default => [{
-        disks => [ { root => File::Temp->newdir, buckets => [ '0' .. '9', 'A' .. 'F' ] } ]
-    }]
-);
-$t->app->config->{url} = $t->ua->app_url;
-$t->app->config->servers->[0]{url} = $t->app->config->{url};
+my $cluster = Test::Clustericious::Cluster->new;
+$cluster->create_cluster_ok(qw( Yars ));
+my $t = $cluster->t;
+my $url = $cluster->url;
 
 my $content = 'We\'re gonna be late for the lodge meeting Fred.';
 
-$t->get_ok("/file/barney/5551212", {}, $content)->status_is(404);
+$t->get_ok("$url/file/barney/5551212", {}, $content)
+  ->status_is(404);
 
+__DATA__
+
+@@ etc/Yars.conf
+---
+% use Test::Clustericious::Config;
+url: <%= cluster->url %>
+servers:
+  - url: <%= cluster->url %>
+    disks:
+      - root: <%= create_directory_ok 'data' %>
+        buckets: [ 0,1,2,3,4,5,6,7,8,9,'a','b','c','d','e','f' ]
+
+state_file: <%= create_directory_ok("state") . "/state.txt" %>

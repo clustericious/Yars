@@ -1,36 +1,50 @@
 use strict;
 use warnings;
-use FindBin ();
-BEGIN { require "$FindBin::Bin/etc/legacy.pl" }
-use File::HomeDir::Test;
-use Test::More tests => 97;
-use Mojo::ByteStream qw/b/;
-use Yars;
-use Clustericious::Config;
+use Test::Clustericious::Config;
+use Test::Clustericious::Cluster;
+use Test::More tests => 105;
+use Mojo::ByteStream qw( b );
+use Mojo::Loader;
 
-my($root, @urls) = two_urls('conf2');
+$ENV{LOG_LEVEL} = 'FATAL';
+
+my $root = create_directory_ok 'data';
+my $state = create_directory_ok 'state';
+mkdir "$root/one";
+mkdir "$root/two";
+create_config_helper_ok data_dir => sub { $root . "/" . shift };
+create_config_helper_ok state_file => sub { $state . "/" . shift };
+
+my $cluster = Test::Clustericious::Cluster->new;
+$cluster->create_cluster_ok(qw( Yars Yars ));
+my $t = $cluster->t;
+my @url = @{ $cluster->urls };
 
 sub _normalize {
     my ($one) = @_;
     return [ sort { $a->{md5} cmp $b->{md5} } @$one ];
 }
 
-my $ua = Mojo::UserAgent->new();
-$ua->max_redirects(3);
-eval {
-  is $ua->get($urls[0].'/status')->res->json->{server_url}, $urls[0], "started first server at $urls[0]";
-  is $ua->get($urls[1].'/status')->res->json->{server_url}, $urls[1], "started second server at $urls[1]";
-};
+$t->get_ok("$url[0]/status")
+  ->status_is(200);
+$t->get_ok("$url[1]/status")
+  ->status_is(200);
 
-my $status = $ua->get($urls[0].'/servers/status')->res->json;
-is_deeply($status, {
-        "http://127.0.0.1:$ENV{YARS_PORT1}" => { "$root/one" => "up" },
-        "http://127.0.0.1:$ENV{YARS_PORT2}" => { "$root/two" => "up" },
+$t->ua->max_redirects(3);
+$_->tools->_set_ua(map { $_->max_redirects(3) } $cluster->create_ua) for @{ $cluster->apps };
+
+$t->get_ok("$url[0]/servers/status");
+is_deeply($t->tx->res->json, {
+        $url[0] => { "$root/one" => "up" },
+        $url[1] => { "$root/two" => "up" },
     }
 );
 
+my $loader = Mojo::Loader->new;
+$loader->load('main');
+
 my $i = 0;
-my @contents = <DATA>;
+my @contents = map { "$_\n" } split /\n/, $loader->data('main', 'data');
 my @locations;
 my @digests;
 my @filenames;
@@ -41,10 +55,10 @@ for my $content (@contents) {
     push @filenames, $filename;
     push @digests, b($content)->md5_sum;
     push @sizes, b($content)->size;
-    my $tx = $ua->put("$urls[1]/file/$filename", {}, $content);
+    my $tx = $t->ua->put("$url[1]/file/$filename", {}, $content);
     my $location = $tx->res->headers->location;
     ok $location, "Got location header";
-    ok $tx->success, "put $filename to $urls[1]/file/filename";
+    ok $tx->success, "put $filename to $url[1]/file/filename";
     push @locations, $location;
 }
 
@@ -60,21 +74,21 @@ for my $url (@locations) {
     push @filelist, { filename => $filename, md5 => "$md5" };
     next unless $url; # error will occur above
     {
-        my $tx = $ua->get($url);
+        my $tx = $t->ua->get($url);
         my $res;
         ok $res = $tx->success, "got $url";
         is $res->body, $content, "content match";
     }
     {
-        my $tx = $ua->head("$urls[0]/file/$md5/$filename");
-        ok $tx->success, "head $urls[0]/file/$md5/$filename";
+        my $tx = $t->ua->head("$url[0]/file/$md5/$filename");
+        ok $tx->success, "head $url[0]/file/$md5/$filename";
         is $tx->res->headers->content_length, $size;
     }
 }
 
 $manifest .= "11f488c161221e8a0d689202bc8ce5cd  dummy\n";
 
-my $tx = $ua->post( "$urls[0]/check/manifest?show_found=1", { "Content-Type" => "application/json" },
+my $tx = $t->ua->post( "$url[0]/check/manifest?show_found=1", { "Content-Type" => "application/json" },
     Mojo::JSON->new->encode( { manifest => $manifest } ) );
 my $res = $tx->success;
 ok $res, "posted to manifest";
@@ -89,21 +103,37 @@ for my $url (@locations) {
     my $filename = shift @filenames;
     my $md5      = shift @digests;
     {
-        my $tx = $ua->delete("$urls[0]/file/$md5/$filename");
-        ok $tx->success, "delete $urls[0]/file/$md5/$filename";
+        my $tx = $t->ua->delete("$url[0]/file/$md5/$filename");
+        ok $tx->success, "delete $url[0]/file/$md5/$filename";
         diag join ',',$tx->error if $tx->error;
     }
     {
-        my $tx = $ua->get("$urls[0]/file/$md5/$filename");
+        my $tx = $t->ua->get("$url[0]/file/$md5/$filename");
         is $tx->res->code, 404, "Not found after deleting";
-        $tx = $ua->get("$urls[1]/file/$md5/$filename");
+        $tx = $t->ua->get("$url[1]/file/$md5/$filename");
         is $tx->res->code, 404, "Not found after deleting";
     }
 }
 
-stop_a_yars($_) for 1..2;
-
 __DATA__
+
+@@ etc/Yars.conf
+---
+url : <%= cluster->url %>
+
+servers :
+    - url : <%= cluster->urls->[0] %>
+      disks :
+        - root : <%= data_dir('one') %>
+          buckets : [0,1,2,3,4,5,6,7]
+    - url : <%= cluster->urls->[1] %>
+      disks :
+        - root : <%= data_dir('two') %>
+          buckets : [8,9,A,B,C,D,E,F]
+
+state_file: <%= state_file(cluster->index) %>
+
+@@ data
 this is one file
 this is another file
 this is a third file

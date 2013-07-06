@@ -12,8 +12,11 @@ my %WriteMakefileArgs = (
   "ABSTRACT" => "Yet Another RESTful-Archive Service",
   "AUTHOR" => "Graham Ollis <plicease\@cpan.org>",
   "BUILD_REQUIRES" => {
-    "Mojo::IOLoop" => 0,
-    "Mojolicious" => 0,
+    "Mojo::JSON" => 0,
+    "Mojo::Loader" => 0,
+    "Mojo::Server::Daemon" => 0,
+    "Test::Clustericious::Cluster" => 0,
+    "Test::Clustericious::Log" => 0,
     "Test::More" => 0,
     "YAML::XS" => 0
   },
@@ -33,7 +36,7 @@ my %WriteMakefileArgs = (
     "Clustericious" => "0.9925",
     "Clustericious::Commands" => 0,
     "Clustericious::Config" => "0.20",
-    "Clustericious::Log" => 0,
+    "Clustericious::Log" => "0.11",
     "Digest::file" => 0,
     "Fcntl" => 0,
     "File::Find::Rule" => 0,
@@ -48,10 +51,11 @@ my %WriteMakefileArgs = (
     "Mojolicious" => "3.86",
     "Number::Bytes::Human" => "0.09",
     "Smart::Comments" => 0,
+    "Test::Clustericious::Cluster" => "0.03",
     "Try::Tiny" => 0,
     "Yars::Client" => "0.86"
   },
-  "VERSION" => "0.84",
+  "VERSION" => "0.84_01",
   "test" => {
     "TESTS" => "t/*.t"
   }

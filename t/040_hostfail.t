@@ -1,20 +1,48 @@
 use strict;
 use warnings;
-use FindBin ();
-BEGIN { require "$FindBin::Bin/etc/legacy.pl" }
-use Mojo::ByteStream qw/b/;
-use Test::More tests => 368;
-use Yars;
+use v5.10;
+use Test::Clustericious::Log diag => 'NONE';
+use Test::Clustericious::Config;
+use Test::Clustericious::Cluster;
+use Test::More tests => 375;
+use Mojo::ByteStream qw( b );
+use Mojo::Loader;
+use Mojo::JSON;
 
-$ENV{YARS_TEST_EXPIRATION} = 120;
-my($root, @urls) = two_urls('conf3');
+$ENV{LOG_LEVEL} = 'FATAL';
 
-my $ua = Mojo::UserAgent->new();
+my $root = create_directory_ok 'data';
+create_config_helper_ok data_dir => sub {
+  my $path = "$root/" . shift;
+  mkdir $path unless -d $path;
+  $path;
+};
+
+create_config_helper_ok state_file => sub {
+  my $index = shift;
+  state $dir;
+  $dir //= create_directory_ok 'state';
+  "$dir/$index";
+};
+
+my $cluster = Test::Clustericious::Cluster->new;
+$cluster->create_cluster_ok(qw( Yars Yars ));
+my $t = $cluster->t;
+my @urls = @{ $cluster->urls };
+
+my $ua = $cluster->t->ua;
+$ua->max_redirects(3);
+$_->tools->_set_ua(map { $_->max_redirects(3) } $cluster->create_ua) for @{ $cluster->apps };
+
 is $ua->get($urls[0].'/status')->res->json->{server_url}, $urls[0], "started first server at $urls[0]";
 is $ua->get($urls[1].'/status')->res->json->{server_url}, $urls[1], "started second server at $urls[1]";
 
 my $i = 0;
-my @contents = <DATA>;
+my @contents = do {
+  my $loader = Mojo::Loader->new;
+  $loader->load('main');
+  @{ Mojo::JSON->new->decode($loader->data('main', 'test_data.json')) };
+};
 my @locations;
 my %assigned; # server => { disk => count }
 for my $content (@contents) {
@@ -32,7 +60,7 @@ for my $content (@contents) {
     ok $tx->success, "put $filename to $urls[0]/file/$filename";
     push @locations, $location;
     if ($i==20) {
-        stop_a_yars(2);
+        $cluster->stop_ok(1);
     }
 }
 
@@ -49,7 +77,7 @@ for my $url (@locations) {
 }
 
 # Now start it back up.
-start_a_yars(2);
+$cluster->start_ok(1);
 
 TODO: {
     local $TODO = "Run yars_fast_balance";
@@ -68,107 +96,28 @@ TODO: {
     }
 }
 
-stop_a_yars($_) for 1..2;
-
 __DATA__
-tail -100 /usr/share/dict/words
-Zygosaccharomyces
-zygose
-zygoses
-zygosis
-zygosities
-zygosity
-zygosperm
-zygosphenal
-zygosphene
-zygosphere
-zygosporange
-zygosporangium
-zygospore
-zygosporic
-zygosporophore
-zygostyle
-zygotactic
-zygotaxis
-zygote
-zygotene
-zygotenes
-zygotes
-zygotic
-zygotically
-zygotoblast
-zygotoid
-zygotomere
--zygous
-zygous
-zygozoospore
-zym-
-zymase
-zymases
--zyme
-zyme
-zymes
-zymic
-zymin
-zymite
-zymo-
-zymochemistry
-zymogen
-zymogene
-zymogenes
-zymogenesis
-zymogenic
-zymogenous
-zymogens
-zymogram
-zymograms
-zymoid
-zymologic
-zymological
-zymologies
-zymologist
-zymology
-zymolyis
-zymolysis
-zymolytic
-zymome
-zymometer
-zymomin
-zymophore
-zymophoric
-zymophosphate
-zymophyte
-zymoplastic
-zymosan
-zymosans
-zymoscope
-zymoses
-zymosimeter
-zymosis
-zymosterol
-zymosthenic
-zymotechnic
-zymotechnical
-zymotechnics
-zymotechny
-zymotic
-zymotically
-zymotize
-zymotoxic
-zymurgies
-zymurgy
-Zyrenian
-Zyrian
-Zyryan
-Zysk
-zythem
-Zythia
-zythum
-Zyzomys
-Zyzzogeton
-zyzzyva
-zyzzyvas
-ZZ
-Zz
-zZt
-ZZZ
+
+@@ etc/Yars.conf
+---
+url : <%= cluster->url %>
+
+%# common configuration :
+servers :
+    - url : <%= cluster->urls->[0] %>
+      disks :
+        - root : <%= data_dir('one') %>
+          buckets : [0,1,2,3]
+        - root : <%= data_dir('two') %>
+          buckets : [4,5,6,7]
+    - url : <%= cluster->urls->[1] %>
+      disks :
+        - root : <%= data_dir('three') %>
+          buckets : [8,9,A,B]
+        - root : <%= data_dir('four') %>
+          buckets : [C,D,E,F]
+
+state_file: <%= state_file(cluster->index) %>
+
+@@ test_data.json
+["tail -100 /usr/share/dict/words\n","Zygosaccharomyces\n","zygose\n","zygoses\n","zygosis\n","zygosities\n","zygosity\n","zygosperm\n","zygosphenal\n","zygosphene\n","zygosphere\n","zygosporange\n","zygosporangium\n","zygospore\n","zygosporic\n","zygosporophore\n","zygostyle\n","zygotactic\n","zygotaxis\n","zygote\n","zygotene\n","zygotenes\n","zygotes\n","zygotic\n","zygotically\n","zygotoblast\n","zygotoid\n","zygotomere\n","-zygous\n","zygous\n","zygozoospore\n","zym-\n","zymase\n","zymases\n","-zyme\n","zyme\n","zymes\n","zymic\n","zymin\n","zymite\n","zymo-\n","zymochemistry\n","zymogen\n","zymogene\n","zymogenes\n","zymogenesis\n","zymogenic\n","zymogenous\n","zymogens\n","zymogram\n","zymograms\n","zymoid\n","zymologic\n","zymological\n","zymologies\n","zymologist\n","zymology\n","zymolyis\n","zymolysis\n","zymolytic\n","zymome\n","zymometer\n","zymomin\n","zymophore\n","zymophoric\n","zymophosphate\n","zymophyte\n","zymoplastic\n","zymosan\n","zymosans\n","zymoscope\n","zymoses\n","zymosimeter\n","zymosis\n","zymosterol\n","zymosthenic\n","zymotechnic\n","zymotechnical\n","zymotechnics\n","zymotechny\n","zymotic\n","zymotically\n","zymotize\n","zymotoxic\n","zymurgies\n","zymurgy\n","Zyrenian\n","Zyrian\n","Zyryan\n","Zysk\n","zythem\n","Zythia\n","zythum\n","Zyzomys\n","Zyzzogeton\n","zyzzyva\n","zyzzyvas\n","ZZ\n","Zz\n","zZt\n","ZZZ\n"]

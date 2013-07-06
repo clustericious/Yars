@@ -1,40 +1,40 @@
-#!/usr/bin/env perl
-
 use strict;
 use warnings;
+use Test::Clustericious::Cluster;
+use Test::More tests => 14;
+use Mojo::ByteStream qw( b );
+use Mojo::Loader;
 
-use Test::More tests => 7;
-use Test::Mojo;
-use Mojo::ByteStream qw/b/;
-use File::Temp;
-use Yars;
+my $cluster = Test::Clustericious::Cluster->new;
+$cluster->create_cluster_ok(qw( Yars ));
+my $t = $cluster->t;
+my $url = $cluster->url;
 
-my $t = Test::Mojo->new('Yars');
-$t->app->config->servers(
-    default => [ {
-            disks => [
-                {
-                    root    => File::Temp->newdir,
-                    buckets => [ '0' .. '9', 'A' .. 'F' ]
-                }
-            ]
-        }
-    ]
-);
-$t->app->config->{url} = $t->ua->app_url;
-$t->app->config->servers->[0]{url} = $t->app->config->{url};
+my $loader = Mojo::Loader->new;
+$loader->load('main');
 
-local $/ = undef;
-my $content =b(<DATA>)->b64_decode;
-my $digest = b($content)->md5_sum->to_string;
+my $raw     = $loader->data('main','my_bin_file');
+my $content = b($raw)->b64_decode;
+my $digest  = b($content)->md5_sum->to_string;
 
-$t->put_ok("/file/my_bin_file", {}, $content)->status_is(201);
-$t->get_ok("/file/my_bin_file/$digest")->content_is($content)->status_is(200);
-$t->delete_ok("/file/my_bin_file/$digest")->status_is(200);
+$t->put_ok("$url/file/my_bin_file", {}, $content)
+  ->status_is(201)
+  ->content_is('ok');
 
-done_testing();
+$t->get_ok("$url/file/my_bin_file/$digest")
+  ->content_is($content)
+  ->status_is(200);
 
+$t->delete_ok("$url/file/my_bin_file/$digest")
+  ->status_is(200)
+  ->content_is('ok');
+
+$t->get_ok("$url/file/my_bin_file/$digest")
+  ->status_is(404);
+  
 __DATA__
+
+@@ my_bin_file
 CsO/w5jDv8OgABBKRklGAAEBAQBIAEgAAMO/w74ADEFwcGxlTWFyawrDv8OiBShJQ0NfUFJPRklM
 RQABAQAABRhhcHBsAiAAAHNjbnJSR0IgWFlaIAfDkwAHAAEAAAAAAABhY3NwQVBQTAAAAABhcHBs
 AAAAAAAAAAAAAAAAAAAAAAAAw7bDlgABAAAAAMOTLWFwcGwAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
@@ -62,3 +62,15 @@ AG8AZgBpAGwAIABSAFYAQgAgAGQAZQAgAGwgGQBhAHAAcABhAHIAZQBpAGwALQBwAGgAbwB0AG8A
 AHRleHQAAAAAQ29weXJpZ2h0IDIwMDMgQXBwbGUgQ29tcHV0ZXIgSW5jLiwgYWxsIHJpZ2h0cyBy
 ZXNlcnZlZC4AAAAAw7/DmwBDAAEBAQEBAQEBAQEBAQECAgMCAgICAgQDAwIDBQQFBQUEBAQFBgcG
 BQUHBgQEBgkGBwgICAgIBQYJCg==
+
+@@ etc/Yars.conf
+---
+% use Test::Clustericious::Config;
+url: <%= cluster->url %>
+servers:
+  - url: <%= cluster->url %>
+    disks:
+      - root: <%= create_directory_ok 'data' %>
+        buckets: [ 0,1,2,3,4,5,6,7,8,9,'a','b','c','d','e','f' ]
+
+state_file: <%= create_directory_ok("state") . "/state.txt" %>

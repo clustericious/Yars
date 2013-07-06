@@ -1,7 +1,7 @@
 package Yars::Routes;
 
 # ABSTRACT: set up the routes for Yars.
-our $VERSION = '0.84'; # VERSION
+our $VERSION = '0.84_01'; # VERSION
 
 
 use strict;
@@ -13,18 +13,11 @@ use File::Temp;
 use Clustericious::RouteBuilder;
 use Try::Tiny;
 use Data::Dumper;
-use Yars::Tools;
 use Filesys::Df qw/df/;
 use List::Util qw/shuffle/;
 use List::MoreUtils qw/uniq/;
 use Digest::file qw/digest_file_hex/;
 use File::Basename qw/basename/;
-
-ladder sub {
- my $c = shift;
- Yars::Tools->refresh_config($c->config);
- 1;
-};
 
 
 get '/' => sub { shift->render_text("welcome to Yars") } => 'index';
@@ -46,15 +39,15 @@ sub _get {
 
     return _head($c, @_) if $c->req->method eq 'HEAD';
 
-    my $url = Yars::Tools->server_for($md5);
-    if ($url ne Yars::Tools->server_url) {
+    my $url = $c->tools->server_for($md5);
+    if ($url ne $c->tools->server_url) {
         TRACE "$md5 should be on $url";
         # but check our local stash first, just in case.
         _get_from_local_stash($c,$filename,$md5) and return;
         return $c->render_moved("$url/file/$md5/$filename");
     }
 
-    my $dir = Yars::Tools->storage_path($md5);
+    my $dir = $c->tools->storage_path($md5);
     -r "$dir/$filename" or do {
         return
              _get_from_local_stash( $c, $filename, $md5 )
@@ -66,7 +59,7 @@ sub _get {
         WARN "Content mismatch, possible disk corruption ($filename), $md5 != $computed";
         return $c->render(text => "content-mismatch", status => 500);
     }
-    my $b64 = Yars::Tools->hex2b64($computed);
+    my $b64 = $c->tools->hex2b64($computed);
     $c->res->headers->add("Content-MD5", $b64);
     $c->app->static->paths([$dir])->serve($c,$filename);
     $c->rendered;
@@ -84,7 +77,11 @@ sub _set_static_headers {
 
     $filepath =~ /\.(\w+)$/;
     my $ext = $1;
-    $rsh->content_type($c->app->types->type($ext) || 'text/plain');
+    if(defined $ext) {
+        $rsh->content_type($c->app->types->type($ext) || 'text/plain');
+    } else {
+        $rsh->content_type('text/plain');
+    }
     return 1;
 }
 
@@ -96,11 +93,11 @@ sub _head {
     # Just check the local stash and return?
     my $check_stash = $c->req->headers->header("X-Yars-Check-Stash") ? 1 : 0;
     my $url;
-    $url = Yars::Tools->server_for($md5) unless $check_stash;
+    $url = $c->tools->server_for($md5) unless $check_stash;
 
     # Check the local stash if we are asked to, or if it doesn't belong here.
-    if ($check_stash or $url ne Yars::Tools->server_url) {
-        if (my $found_dir = Yars::Tools->local_stashed_dir($filename,$md5)) {
+    if ($check_stash or $url ne $c->tools->server_url) {
+        if (my $found_dir = $c->tools->local_stashed_dir($filename,$md5)) {
             _set_static_headers($c,"$found_dir/$filename");
             return $c->render(status => 200, text => 'found');
         }
@@ -109,9 +106,9 @@ sub _head {
     }
 
     # It belongs here.  But it might still be stashed locally or remotely.
-    my $dir = Yars::Tools->storage_path($md5);
+    my $dir = $c->tools->storage_path($md5);
     my $found_dir = -r "$dir/$filename" ? $dir : undef;
-    $found_dir ||= Yars::Tools->local_stashed_dir( $filename, $md5 );
+    $found_dir ||= $c->tools->local_stashed_dir( $filename, $md5 );
     return $c->render_not_found unless ( $found_dir or _redirect_to_remote_stash($c, $filename, $md5 ) );
     _set_static_headers($c,"$found_dir/$filename");
     $c->render( status => 200, text => 'found' );
@@ -121,13 +118,13 @@ sub _get_from_local_stash {
     my ($c,$filename,$md5) = @_;
     # If this is stashed locally, serve it and return true.
     # Otherwise return false.
-    my $dir = Yars::Tools->local_stashed_dir($filename,$md5) or return 0;
+    my $dir = $c->tools->local_stashed_dir($filename,$md5) or return 0;
     my $computed = digest_file_hex("$dir/$filename",'MD5');
     unless ($computed eq $md5) {
         WARN "Content mismatch, possible disk corruption for stashed file ($filename), $md5 != $computed";
         return 0;
     }
-    $c->res->headers->add("Content-MD5", Yars::Tools->hex2b64($computed));
+    $c->res->headers->add("Content-MD5", $c->tools->hex2b64($computed));
     $c->app->static->paths([$dir])->serve($c,$filename);
     $c->rendered;
     return 1;
@@ -136,7 +133,7 @@ sub _get_from_local_stash {
 sub _redirect_to_remote_stash {
     my ($c,$filename,$digest) = @_;
     DEBUG "Checking remote stashes";
-    if (my $server = Yars::Tools->remote_stashed_server($c,$filename,$digest)) {
+    if (my $server = $c->tools->remote_stashed_server($c,$filename,$digest)) {
         $c->res->headers->location("$server/file/$digest/$filename");
         $c->res->headers->content_length(0);
         $c->rendered(307);
@@ -177,33 +174,33 @@ put '/file/#filename/:md5' => { md5 => 'calculate' } => sub {
 
     DEBUG "Received NoStash for $filename" if $c->req->headers->header('X-Yars-NoStash');
 
-    my $assigned_server = Yars::Tools->server_for($digest);
+    my $assigned_server = $c->tools->server_for($digest);
 
-    if ( $assigned_server ne Yars::Tools->server_url ) {
-        TRACE "assigned $assigned_server != ".Yars::Tools->server_url;
+    if ( $assigned_server ne $c->tools->server_url ) {
+        TRACE "assigned $assigned_server != ".$c->tools->server_url;
         return _proxy_to( $c, $assigned_server, $filename, $digest, $asset )
               || _stash_locally( $c, $filename, $digest, $asset )
               || _stash_remotely( $c, $filename, $digest, $asset )
               || $c->render(status => 507, text => "Unable to proxy or stash");
     }
 
-    my $assigned_disk = Yars::Tools->disk_for($digest);
+    my $assigned_disk = $c->tools->disk_for($digest);
 
-    DEBUG "Received $filename assigned to $assigned_server ($assigned_disk), this is ".Yars::Tools->server_url;
+    DEBUG "Received $filename assigned to $assigned_server ($assigned_disk), this is ".$c->tools->server_url;
 
     unless (-d $assigned_disk) {
         INFO "$assigned_disk does not exist, creating it now";
         mkdir $assigned_disk or WARN "Failed to mkdir $assigned_disk : $!";
     }
-    if ( Yars::Tools->disk_is_up($assigned_disk) ) {
-        my $assigned_path = Yars::Tools->storage_path($digest, $assigned_disk);
+    if ( $c->tools->disk_is_up($assigned_disk) ) {
+        my $assigned_path = $c->tools->storage_path($digest, $assigned_disk);
         my $abs_path = join '/', $assigned_path, $filename;
         my $location = $c->url_for("file", md5 => $digest, filename => $filename)->to_abs;
         if (-e $abs_path) {
             TRACE "Found another file at $abs_path, comparing content";
             my $old_md5 = digest_file_hex($abs_path,"MD5");
             if ($old_md5 eq $digest) {
-                if (Yars::Tools->content_is_same($abs_path,$asset)) {
+                if ($c->tools->content_is_same($abs_path,$asset)) {
                     $c->res->headers->location($location);
                     return $c->render(status => 200, text => 'exists');
                 } else {
@@ -265,11 +262,11 @@ sub _proxy_to {
    DEBUG "Proxying file $filename with md5 $digest to $url/file/$filename/$digest"
       . ( $temporary ? " temporarily" : "" );
    my $headers = $temporary ? { 'X-Yars-Stash' => 1 } : {};
-   $headers->{"Content-MD5"} = Yars::Tools->hex2b64($digest);
+   $headers->{"Content-MD5"} = $c->tools->hex2b64($digest);
    $headers->{Connection} = "Close";
-   my $tx = $c->ua->build_tx(PUT => "$url/file/$filename/$digest", $headers );
+   my $tx = $c->tools->_ua->build_tx(PUT => "$url/file/$filename/$digest", $headers );
    $tx->req->content->asset($asset);
-   $tx = $c->ua->start($tx);
+   $tx = $c->tools->_ua->start($tx);
    if ($res = $tx->success) {
        $c->res->headers->location($tx->res->headers->location);
        $c->render(status => $tx->res->code, text => 'ok');
@@ -305,16 +302,17 @@ sub _stash_locally {
     return 0 if $c->req->headers->header('X-Yars-NoStash');
 
     DEBUG "Stashing $filename locally";
-    my $assigned_root = Yars::Tools->disk_for($digest);
+    my $assigned_root = $c->tools->disk_for($digest);
+    $assigned_root //= '';
     my $wrote;
-    for my $root (shuffle(Yars::Tools->disk_roots)) {
+    for my $root (shuffle($c->tools->disk_roots)) {
         TRACE "Trying $root (assigned : $assigned_root)";
         next if $assigned_root && ($root eq $assigned_root);
-        unless (Yars::Tools->disk_is_up($root)) {
+        unless ($c->tools->disk_is_up($root)) {
             DEBUG "local disk $root is down, cannot stash $filename there.";
             next;
         }
-        my $dir = Yars::Tools->storage_path( $digest, $root );
+        my $dir = $c->tools->storage_path( $digest, $root );
         _atomic_write( $dir, $filename, $asset ) and do {
             $wrote = $root;
             last;
@@ -339,9 +337,9 @@ sub _stash_remotely {
     return 0 if $c->req->headers->header('X-Yars-NoStash');
 
     DEBUG "Stashing $filename remotely.";
-    my $assigned_server = Yars::Tools->server_for($digest);
-    for my $server (shuffle(Yars::Tools->server_urls)) {
-        next if $server eq Yars::Tools->server_url;
+    my $assigned_server = $c->tools->server_for($digest);
+    for my $server (shuffle($c->tools->server_urls)) {
+        next if $server eq $c->tools->server_url;
         next if $server eq $assigned_server;
         _proxy_to( $c, $server, $filename, $digest, $asset, 1 ) and return 1;
     }
@@ -360,23 +358,23 @@ sub _del {
 
     # Delete locally or proxy the delete if it is stashed somewhere else.
 
-    my $server = Yars::Tools->server_for($md5);
-    if ($server eq Yars::Tools->server_url) {
+    my $server = $c->tools->server_for($md5);
+    if ($server eq $c->tools->server_url) {
         DEBUG "This is our file, we will delete it.";
-        my $dir  = Yars::Tools->storage_path( $md5 );
-        if (-r "$dir/$filename" || ($dir = Yars::Tools->local_stashed_dir($filename,$md5))) {
+        my $dir  = $c->tools->storage_path( $md5 );
+        if (-r "$dir/$filename" || ($dir = $c->tools->local_stashed_dir($filename,$md5))) {
             unlink "$dir/$filename" or return $c->render_exception($!);
-            Yars::Tools->cleanup_tree($dir);
+            $c->tools->cleanup_tree($dir);
             return $c->render(status => 200, text =>'ok');
         }
 
-        $server = Yars::Tools->remote_stashed_server($c,$md5,$filename);
+        $server = $c->tools->remote_stashed_server($c,$md5,$filename);
         return $c->render_not_found unless $server;
         # otherwise fall through...
     }
 
     DEBUG "Proxying delete to $server";
-    my $tx = $c->ua->delete("$server/file/$md5/$filename");
+    my $tx = $c->tools->_ua->delete("$server/file/$md5/$filename");
     if (my $res = $tx->success) {
         return $c->render(status => 200, text => "ok");
     } else  {
@@ -391,35 +389,35 @@ get '/disk/usage' => sub {
     my $c = shift;
     my $count = $c->param("count") ? 1 : 0;
     if ( my $server = $c->param('server') ) {
-        if (    Yars::Tools->server_exists($server)
-            and Yars::Tools->server_url ne $server ) {
+        if (    $c->tools->server_exists($server)
+            and $c->tools->server_url ne $server ) {
             return $c->redirect_to("$server/disk/usage?count=$count");
         }
     }
 
     my %r;
-    for my $disk (Yars::Tools->disk_roots) {
+    for my $disk ($c->tools->disk_roots) {
         if (defined( my $df = df($disk))) {
             $r{$disk} = {
                     '1K-blocks'  => $df->{blocks},
                     blocks_used  => $df->{used},
                     blocks_avail => $df->{bavail},
-                    space        => Yars::Tools->human_size($df->{blocks}*1024),
-                    space_used   => Yars::Tools->human_size($df->{used}*1024),
-                    space_avail  => Yars::Tools->human_size($df->{bavail}*1024),
+                    space        => $c->tools->human_size($df->{blocks}*1024),
+                    space_used   => $c->tools->human_size($df->{used}*1024),
+                    space_avail  => $c->tools->human_size($df->{bavail}*1024),
                     percent_used => sprintf('%02d',(100*($df->{blocks} - $df->{bavail})/($df->{blocks}))).'%',
                 };
         } else {
             WARN "Error getting usage for disk $disk" if -d $disk;
             DEBUG "$disk does not exist" unless -d $disk;
         }
-        $r{$disk}{count} = Yars::Tools->count_files($disk) if $count;
+        $r{$disk}{count} = $c->tools->count_files($disk) if $count;
     }
     return $c->render_json(\%r) unless $c->param('all');
-    my %all = ( Yars::Tools->server_url => \%r );
-    for my $server (Yars::Tools->server_urls) {
+    my %all = ( $c->tools->server_url => \%r );
+    for my $server ($c->tools->server_urls) {
         next if exists $all{$server};
-        my $tx = $c->ua->get("$server/disk/usage?count=$count");
+        my $tx = $c->tools->_ua->get("$server/disk/usage?count=$count");
         my $res = $tx->success or do {
             $all{$server} = 'down';
             next;
@@ -436,19 +434,19 @@ post '/disk/status' => sub {
     my $root = $got->{root} || $got->{disk};
     my $state = $got->{state} or return $c->render_exception("no state found in request");
     my $server = $got->{server};
-    if ($server && $server ne Yars::Tools->server_url) {
-        unless (Yars::Tools->server_exists($server)) {
+    if ($server && $server ne $c->tools->server_url) {
+        unless ($c->tools->server_exists($server)) {
             return $c->render( status => 400, text => "Server $server does not exist" );
         }
         WARN "Sending ".$c->req->body;
-        my $tx = $c->ua->post("$server/disk/status", $c->req->headers->to_hash, ''.$c->req->body );
+        my $tx = $c->tools->_ua->post("$server/disk/status", $c->req->headers->to_hash, ''.$c->req->body );
         return $c->render_text( $tx->success ? $tx->res->body : 'failed '.$tx->error );
     }
-    Yars::Tools->disk_is_local($root) or return $c->render_exception("Disk $root is not on ".Yars::Tools->server_url);
+    $c->tools->disk_is_local($root) or return $c->render_exception("Disk $root is not on ".$c->tools->server_url);
     my $success;
     for ($state) {
-        /down/ and $success = Yars::Tools->mark_disk_down($root);
-        /up/   and $success = Yars::Tools->mark_disk_up($root);
+        /down/ and $success = $c->tools->mark_disk_down($root);
+        /up/   and $success = $c->tools->mark_disk_up($root);
     }
     $c->render_text($success ? "ok" : "failed" );
 };
@@ -473,9 +471,9 @@ post '/check/manifest' => sub {
         $filename = basename($filename);
         next if $filename =~ m[/];
         TRACE "checking for $md5 and $filename";
-        my $server = Yars::Tools->server_for($md5);
-        if ($server eq Yars::Tools->server_url) {
-            my $dir = Yars::Tools->storage_path($md5);
+        my $server = $c->tools->server_for($md5);
+        if ($server eq $c->tools->server_url) {
+            my $dir = $c->tools->storage_path($md5);
             my $which = -r "$dir/$filename" ? "found" : "missing";
 
             if ($which eq 'found' && $c->param('show_corrupt')) {
@@ -496,8 +494,9 @@ post '/check/manifest' => sub {
     for my $server (keys %remote) {
         TRACE "Looking for manifest files on $server";
         my $content = Mojo::JSON->new->encode({ files => $remote{$server} });
-        my $tx = $c->ua->post(
-            "$server/check/manifest?show_found=1&show_corrupt=".$c->param("show_corrupt"),
+        $DB::single = 1;
+        my $tx = $c->tools->_ua->post(
+            "$server/check/manifest?show_found=1&show_corrupt=".($c->param("show_corrupt")//''),
             { "Content-type" => "application/json", "Connection" => "Close" }, $content );
         if (my $res = $tx->success) {
             my $got = $res->json;
@@ -515,8 +514,8 @@ post '/check/manifest' => sub {
     my @are_missing;
     my @not_missing;
     for my $m (@$missing) {
-        my $found = Yars::Tools->local_stashed_dir( $m->{filename}, $m->{md5} )
-         || Yars::Tools->remote_stashed_server( $c, $m->{filename}, $m->{md5} );
+        my $found = $c->tools->local_stashed_dir( $m->{filename}, $m->{md5} )
+         || $c->tools->remote_stashed_server( $c, $m->{filename}, $m->{md5} );
         if ($found) {
             push @not_missing, $m;
         } else {
@@ -536,14 +535,14 @@ post '/check/manifest' => sub {
 get '/servers/status' => sub {
     my $c = shift;
     my %disks =
-      map { $_ => Yars::Tools->disk_is_up($_) ? "up" : "down" }
-      Yars::Tools->disk_roots;
+      map { $_ => $c->tools->disk_is_up($_) ? "up" : "down" }
+      $c->tools->disk_roots;
     return $c->render_json(\%disks) if $c->param('single');
     my %all;
-    $all{Yars::Tools->server_url} = \%disks;
-    for my $server (Yars::Tools->server_urls) {
+    $all{$c->tools->server_url} = \%disks;
+    for my $server ($c->tools->server_urls) {
         next if exists($all{$server});
-        my $tx = $c->ua->get("$server/servers/status?single=1");
+        my $tx = $c->tools->_ua->get("$server/servers/status?single=1");
         if (my $res = $tx->success) {
             $all{$server} = $res->json;
         } else {
@@ -557,20 +556,20 @@ get '/servers/status' => sub {
 
 get '/bucket_map' => sub {
     my $c = shift;
-    $c->render_json(Yars::Tools->bucket_map)
+    $c->render_json($c->tools->bucket_map)
 };
 
 
 get '/bucket/usage' => sub {
     my $c = shift;
     if ( my $server = $c->param('server') ) {
-        if (    Yars::Tools->server_exists($server)
-            and Yars::Tools->server_url ne $server ) {
+        if (    $c->tools->server_exists($server)
+            and $c->tools->server_url ne $server ) {
             return $c->redirect_to("$server/bucket/usage");
         }
     }
     my %used;
-    my %assigned = Yars::Tools->local_buckets;
+    my %assigned = $c->tools->local_buckets;
 
     # NB: this assumes homogeneous buckets and doesn't
     # work for > 256 buckets.
@@ -581,7 +580,7 @@ get '/bucket/usage' => sub {
         }
     }
 
-    for my $disk (Yars::Tools->disk_roots) {
+    for my $disk ($c->tools->disk_roots) {
         my @dirs = map /\/([0-9a-f]+)$/, glob "$disk/*";
         my @buckets = uniq map substr($_,0,$bucket_size), @dirs;
         $used{$disk} = \@buckets;
@@ -601,7 +600,7 @@ Yars::Routes - set up the routes for Yars.
 
 =head1 VERSION
 
-version 0.84
+version 0.84_01
 
 =head1 ROUTES
 

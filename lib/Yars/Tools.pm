@@ -1,7 +1,7 @@
 package Yars::Tools;
 
 # ABSTRACT: various utility functions dealing with servers, hosts, etc
-our $VERSION = '0.84'; # VERSION
+our $VERSION = '0.84_01'; # VERSION
 
 
 use Clustericious::Config;
@@ -24,44 +24,74 @@ use File::Spec;
 use strict;
 use warnings;
 
-our %Bucket2Url;  # map buckets to server urls
-our %Bucket2Root; # map buckets to disk roots
-our $OurUrl;      # Our server url
-our %DiskIsLocal; # Our disk roots (values are just 1)
-our %Servers;     # All servers
-our $StateFile;   # Name of file with disk states.
+
+sub new
+{
+  my($class, $config) = @_;
+  WARN "No url found in config file" unless $config->url;
+  bless {
+    bucket_to_url                => { }, # map buckets to server urls
+    bucket_to_root               => { }, # map buckets to disk roots
+    disk_is_local                => { }, # our disk roots (values are just 1)
+    servers                      => { }, # all servers
+    our_url                      => '',  # our server url
+    state_file                   => '',  # name of file with disk states
+    ua                           => '',  # UserAgent
+    server_status_cache          => {},
+    server_status_cache_lifetime => 3,
+    default_dir                  => '',
+  }, $class;
+}
+
+sub _set_ua
+{
+  my($self, $ua) = @_;
+  $self->{ua} = $ua;
+  return;
+}
+
+sub _ua
+{
+  my($self) = @_;
+  
+  unless(defined $self->{ua})
+  {
+    $self->{ua} = Mojo::UserAgent->new;
+  }
+  
+  return $self->{ua};
+}
 
 
 sub refresh_config {
- my $class = shift;
- my $config = shift;
- return 1 if defined($OurUrl) && keys %Bucket2Root > 0 && keys %Bucket2Url > 0;
- $config ||= Clustericious::Config->new("Yars");
- $OurUrl = $config->url or WARN "No url found in config file";
- TRACE "Our url is $OurUrl";
- for my $server ($config->servers) {
-    $Servers{$server->{url}} = 1;
+  my $self = shift;
+  my $config = shift;
+  return 1 if defined($self->{our_url}) && keys %{ $self->{bucket_to_root} } > 0 && keys %{ $self->{bucket_to_url} } > 0;
+  $config ||= Clustericious::Config->new("Yars");
+  $self->{our_url} ||= $config->url or WARN "No url found in config file";
+  TRACE "Our url is " . $self->{our_url};
+  for my $server ($config->servers) {
+    $self->{servers}->{$server->{url}} = 1;
     for my $disk (@{ $server->{disks} }) {
         for my $bucket (@{ $disk->{buckets} }) {
-            $Bucket2Url{$bucket} = $server->{url};
-            next unless $server->{url} eq $OurUrl;
-            $Bucket2Root{$bucket} = $disk->{root};
+            $self->{bucket_to_url}->{$bucket} = $server->{url};
+            next unless $server->{url} eq $self->{our_url};
+            $self->{bucket_to_root}->{$bucket} = $disk->{root};
             LOGDIE "Disk root not given" unless defined($disk->{root});
-            $DiskIsLocal{$disk->{root}} = 1;
+            $self->{disk_is_local}->{$disk->{root}} = 1;
         }
     }
- }
-our $default_dir = $ENV{HARNESS_ACTIVE}
-  ? File::Temp->newdir( File::Spec->catdir( File::Spec->tmpdir, "yars.test.$<.XXXXXX" ))
-  : File::HomeDir->my_home . "/var/run/yars";
- $StateFile = $config->state_file(default => "$default_dir/state.txt");
- -e $StateFile or do {
-    INFO "Writing new state file ($StateFile)";
-    my %disks = map { ($_ => "up") } keys %DiskIsLocal;
-    $class->_write_state({disks => \%disks});
- };
- -e $StateFile or LOGDIE "Could not write state file $StateFile";
- TRACE "bucket2url : ".Dumper(\%Bucket2Url);
+  }
+  my $default_dir = $self->{default_dir} = File::HomeDir->my_home . "/var/run/yars";
+  
+  my $state_file = $self->{state_file} = $config->state_file(default => "$default_dir/state.txt");
+  -e $state_file or do {
+    INFO "Writing new state file ($state_file)";
+    my %disks = map { ($_ => "up") } keys %{ $self->{disk_is_local} };
+    $self->_write_state({disks => \%disks});
+  };
+  -e $state_file or LOGDIE "Could not write state file $state_file";
+  TRACE "bucket2url : ".Dumper($self->{bucket_to_url});
 }
 
 sub _dir_is_empty {
@@ -80,49 +110,48 @@ sub _dir_is_empty {
 
 
 sub disk_for {
-    my $class = shift;
+    my $self = shift;
     my $digest = shift;
-    unless (keys %Bucket2Root) {
-        $class->refresh_config;
-        LOGDIE "No config data" unless keys %Bucket2Root > 0;
+    unless (keys %{ $self->{bucket_to_root} }) {
+        $self->refresh_config;
+        LOGDIE "No config data" unless keys %{ $self->{bucket_to_root} } > 0;
     }
-    my ($bucket) = grep { $digest =~ /^$_/i } keys %Bucket2Root;
-    TRACE "no local disk for $digest in ".(join ' ', keys %Bucket2Root) unless defined($bucket);
+    my ($bucket) = grep { $digest =~ /^$_/i } keys %{ $self->{bucket_to_root} };
+    TRACE "no local disk for $digest in ".(join ' ', keys %{ $self->{bucket_to_root} }) unless defined($bucket);
     return unless defined($bucket);
-    return $Bucket2Root{$bucket};
+    return $self->{bucket_to_root}->{$bucket};
 }
 
 
 sub local_buckets {
-    shift->refresh_config unless keys %Bucket2Root;
-    my %r = safe_reverse \%Bucket2Root;
+    my($self) = @_;
+    $self->refresh_config unless keys %{ $self->{bucket_to_root} };
+    my %r = safe_reverse $self->{bucket_to_root};
     do {$_ = [ $_ ] unless ref $_} for values %r;
     return %r;
 }
 
 sub _state {
-    my $class = shift;
-    our $mod_time;
-    our $cached;
-    $class->refresh_config() unless $StateFile && -e $StateFile;
-    return $cached if $mod_time && $mod_time == stat($StateFile)->mtime;
+    my $self = shift;
+    $self->refresh_config() unless $self->{state_file} && -e $self->{state_file};
+    return $self->{_state}->{cached} if $self->{_state}->{mod_time} && $self->{_state}->{mod_time} == stat($self->{state_file})->mtime;
     our $j ||= JSON::XS->new;
-    -e $StateFile or LOGDIE "Missing state file $StateFile";
-    $cached = $j->decode(Mojo::Asset::File->new(path => $StateFile)->slurp);
-    $mod_time = stat($StateFile)->mtime;
-    return $cached;
+    -e $self->{state_file} or LOGDIE "Missing state file " . $self->{state_file};
+    $self->{_state}->{cached} = $j->decode(Mojo::Asset::File->new(path => $self->{state_file})->slurp);
+    $self->{_state}->{mod_time} = stat($self->{state_file})->mtime;
+    return $self->{_state}->{cached};
 }
 
 sub _write_state {
-    my $class = shift;
+    my $self = shift;
     my $state = shift;
-    my $dir = dirname($StateFile);
+    my $dir = dirname($self->{state_file});
     our $j ||= JSON::XS->new;
     mkpath $dir;
     my $temp = File::Temp->new(DIR => $dir, UNLINK => 0);
     print $temp $j->encode($state);
     $temp->close;
-    rename "$temp", $StateFile or return 0;
+    rename "$temp", $self->{state_file} or return 0;
     return 1;
 }
 
@@ -142,36 +171,32 @@ sub disk_is_down {
 
 
 sub disk_is_local {
-    my $class = shift;
+    my $self = shift;
     my $root = shift;
-    return $DiskIsLocal{$root};
+    return $self->{disk_is_local}->{$root};
 }
 
 
-our $UA;
-our %serverStatusCache;
-our $serverStatusCacheLifetime = 3; # cache results for three seconds
 sub server_is_up {
     # TODO use state file for this
-    my $class = shift;
+    my $self = shift;
     my $server_url = shift;
-    if (exists($serverStatusCache{$server_url}) && $serverStatusCache{$server_url}{checked} > time - $serverStatusCacheLifetime) {
-        return $serverStatusCache{$server_url}{result};
+    if (exists($self->{server_status_cache}->{$server_url}) && $self->{server_status_cache}->{$server_url}{checked} > time - $self->{server_status_cache_lifetime}) {
+        return $self->{server_status_cache}->{$server_url}{result};
     }
-    $UA ||= Mojo::UserAgent->new;
     TRACE "Checking $server_url/status";
-    my $tx = $UA->get( "$server_url/status" );
-    $serverStatusCache{$server_url}{checked} = time;
+    my $tx = $self->_ua->get( "$server_url/status" );
+    $self->{server_status_cache}->{$server_url}{checked} = time;
     if (my $res = $tx->success) {
         my $got = $res->json;
         if (defined($got->{server_version}) && length($got->{server_version})) {
-            return ($serverStatusCache{$server_url}{result} = 1);
+            return ($self->{server_status_cache}->{$server_url}{result} = 1);
         }
         TRACE "/status did not return version, got : ".Dumper($got);
-        return ($serverStatusCache{$server_url}{result} = 0);
+        return ($self->{server_status_cache}->{$server_url}{result} = 0);
     }
     TRACE "Server $server_url is not up : response was ".$tx->error;
-    return ($serverStatusCache{$server_url}{result} = 0);
+    return ($self->{server_status_cache}->{$server_url}{result} = 0);
 }
 sub server_is_down {
     return not shift->server_is_up(@_);
@@ -219,20 +244,20 @@ sub mark_disk_up {
 
 
 sub server_for {
-    my $class = shift;
+    my $self = shift;
     my $digest = shift;
     my $found;
-    Yars::Tools->refresh_config unless keys %Bucket2Url > 0;
+    $self->refresh_config unless keys %{ $self->{bucket_to_url} } > 0;
     for my $i (0..length($digest)) {
-        last if $found = $Bucket2Url{ uc substr($digest,0,$i) };
-        last if $found = $Bucket2Url{ lc substr($digest,0,$i) };
+        last if $found = $self->{bucket_to_url}->{ uc substr($digest,0,$i) };
+        last if $found = $self->{bucket_to_url}->{ lc substr($digest,0,$i) };
     }
     return $found;
 }
 
 
 sub bucket_map {
-    return \%Bucket2Url;
+    return shift->{bucket_to_url};
 }
 
 
@@ -245,16 +270,16 @@ sub storage_path {
 
 
 sub remote_stashed_server {
-    my $class = shift;
+    my $self = shift;
     my ($c,$filename,$digest) = @_;
 
-    my $assigned_server = Yars::Tools->server_for($digest);
+    my $assigned_server = $self->server_for($digest);
     # TODO broadcast these requests all at once
-    for my $server (shuffle(keys %Servers)) {
-        next if $server eq $OurUrl;
+    for my $server (shuffle(keys %{ $self->{servers} })) {
+        next if $server eq $self->{our_url};
         next if $server eq $assigned_server;
         DEBUG "Checking remote $server for $filename";
-        my $tx = $c->ua->head( "$server/file/$filename/$digest", { "X-Yars-Check-Stash" => 1, "Connection" => "Close" } );
+        my $tx = $self->_ua->head( "$server/file/$filename/$digest", { "X-Yars-Check-Stash" => 1, "Connection" => "Close" } );
         if (my $res = $tx->success) {
             # Found it!
             return $server;
@@ -265,10 +290,10 @@ sub remote_stashed_server {
 
 
 sub local_stashed_dir {
-    my $class = shift;
+    my $self = shift;
     my ($filename,$md5) = @_;
-    for my $root ( shuffle(keys %DiskIsLocal)) {
-        my $dir = Yars::Tools->storage_path($md5,$root);
+    for my $root ( shuffle(keys %{ $self->{disk_is_local} })) {
+        my $dir = $self->storage_path($md5,$root);
         TRACE "Checking for $dir/$filename";
         return $dir if -r "$dir/$filename";
     }
@@ -277,32 +302,32 @@ sub local_stashed_dir {
 
 
 sub server_exists {
-    my $class = shift;
+    my $self = shift;
     my $server_url = shift;
-    return exists($Servers{$server_url}) ? 1 : 0;
+    return exists($self->{servers}->{$server_url}) ? 1 : 0;
 }
 
 
 sub server_url {
-    return $OurUrl;
+    return shift->{our_url};
 }
 
 
 sub disk_roots {
-    return keys %DiskIsLocal;
+    return keys %{ shift->{disk_is_local} };
 }
 
 
 sub server_urls {
-    return keys %Servers;
+    return keys %{ shift->{servers} }
 }
 
 
 sub cleanup_tree {
-    my $class = shift;
+    my $self = shift;
     my ($dir) = @_;
     while (_dir_is_empty($dir)) {
-        last if $DiskIsLocal{$dir};
+        last if $self->{disk_is_local}->{$dir};
         rmdir $dir or do { warn "cannot rmdir $dir : $!"; last; };
         $dir =~ s[/[^/]+$][];
      }
@@ -375,13 +400,17 @@ Yars::Tools - various utility functions dealing with servers, hosts, etc
 
 =head1 VERSION
 
-version 0.84
+version 0.84_01
 
 =head1 DESCRIPTION
 
 Just some useful functions here.
 
 =head1 FUNCTIONS
+
+=head2 new
+
+Create a new instance of Yars::Tools
 
 =head2 refresh_config
 
@@ -408,7 +437,7 @@ Disk is not up.
 
 =head2 disk_is_local
 
-Return true iff the disk is on this server.
+Return true if the disk is on this server.
 
 =head2 server_is_up, server_is_down
 
@@ -466,9 +495,9 @@ Return all the other urls, in a random order.
 
 =head2 cleanup_tree
 
-Given a direcory, traverse upwards until encountering
+Given a directory, traverse upwards until encountering
 a local disk root or a non-empty directory, and remove
-all empty dirs.
+all empty directories.
 
 =head2 count_files
 
@@ -480,7 +509,7 @@ Given a size, format it like df -kh
 
 =head2 content_is_same
 
-Given a filename and an Asset, return true iff the
+Given a filename and an Asset, return true if the
 content is the same for both.
 
 =head2 hex2b64, b642hex
