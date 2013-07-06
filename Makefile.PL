@@ -35,7 +35,7 @@ my %WriteMakefileArgs = (
   "PREREQ_PM" => {
     "Clustericious" => "0.9925",
     "Clustericious::Commands" => 0,
-    "Clustericious::Config" => "0.20",
+    "Clustericious::Config" => "0.21",
     "Clustericious::Log" => "0.11",
     "Digest::file" => 0,
     "Fcntl" => 0,
@@ -55,7 +55,7 @@ my %WriteMakefileArgs = (
     "Try::Tiny" => 0,
     "Yars::Client" => "0.86"
   },
-  "VERSION" => "0.84_01",
+  "VERSION" => "0.84_02",
   "test" => {
     "TESTS" => "t/*.t"
   }

@@ -23,7 +23,7 @@
          "requires" : {
             "Clustericious" : "0.9925",
             "Clustericious::Commands" : "0",
-            "Clustericious::Config" : "0.20",
+            "Clustericious::Config" : "0.21",
             "Clustericious::Log" : "0.11",
             "Digest::file" : "0",
             "Fcntl" : "0",
@@ -69,6 +69,6 @@
          "web" : "https://github.com/plicease/yars"
       }
    },
-   "version" : "0.84_01"
+   "version" : "0.84_02"
 }
 
