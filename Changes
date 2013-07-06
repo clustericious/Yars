@@ -1,6 +1,8 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+
+0.84_02   2013-07-06 09:05:53 America/New_York
   - require Clustericious::Config 0.22
 
 0.84_01   2013-07-05 22:33:00 America/New_York
