@@ -26,6 +26,3 @@ perl:
   - "5.12"
   - "5.10"
 
-branches:
-  only:
-    - master
