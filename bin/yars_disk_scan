@@ -6,8 +6,8 @@
 
 =head1 SYNOPSIS
 
-yars_disk_scan -a
-yars_disk_scan /disk/one /disk/two
+ yars_disk_scan -a
+ yars_disk_scan /disk/one /disk/two
 
 =head1 DESCRIPTION
 
