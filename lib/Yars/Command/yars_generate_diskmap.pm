@@ -1,43 +1,41 @@
-#!/usr/bin/perl
+package Yars::Command::yars_generate_diskmap;
 
-# PODNAME: yars_generate_diskmap
 # ABSTRACT: generate a mapping from servers + hosts to buckets for yars.
 # VERSION
 
-=head1 SYNOPSIS
-
-    yars_generate_diskmap <number of hex digits>
-    host1 /disk1
-    host1 /disk2
-    host2 /disk1
-    host2 /disk2
-
-    echo "host1 /disk/1" | yars_generate_diskmap 1
-
 =head1 DESCRIPTION
 
-Given a list of hosts and disks, distribute 16^n buckets onto the disks.
-
-=head1 EXAMPLES
-
-clad -a testarch df -kh|grep archive | awk '{print $1 " " $7}' |  ./yars_generate_diskmap 2
+This module contains the machinery for the command line program
+L<yars_generate_diskmap>.
 
 =head1 SEE ALSO
 
-Clustericious::Admin
+L<yars_generate_diskmap>
 
 =cut
 
 use strict;
 use warnings;
 use JSON::XS;
+use Getopt::Long qw( GetOptions );
+use Pod::Usage qw( pod2usage );
 use feature 'say';
 
-&main;
-
 sub main {
+    my $class = shift;
+    local @ARGV = @_;
     my %servers;
     my $port = 9001;
+    my $protocol = 'http';
+    GetOptions(
+        'port|p=i'   => \$port,
+        'protocol=s' => \$protocol,
+        'help|h'     => sub { pod2usage({ -verbose => 2}) },
+        'version'    => sub {
+            say 'ACPS::Release version ', ($ACPS::Release::VERSION // 'dev');
+            exit 1;
+        },
+    ) || pod2usage(1);
     my $digits = shift @ARGV or die "no number of digits given";
     my @all;
     while (<>) {
@@ -60,7 +58,7 @@ sub main {
     say '---';
     say 'servers :';
     for my $host (sort keys %servers) {
-        say "- url : http://$host:$port";
+        say "- url : $protocol://$host:$port";
         say "  disks :";
         for my $root (sort keys %{ $servers{$host} }) {
             say "  - root : $root";
