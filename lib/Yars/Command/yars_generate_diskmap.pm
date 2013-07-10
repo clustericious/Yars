@@ -41,7 +41,7 @@ sub main {
     while (<>) {
         chomp;
         my ($host,$disk) = split;
-        $host =~ tr/a-zA-Z0-9._//dc;
+        $host =~ tr/a-zA-Z0-9.\-//dc;
         die "could not parse line : $_" unless $host && $disk;
         $servers{$host}{$disk} = [];
         push @all, $servers{$host}{$disk};
