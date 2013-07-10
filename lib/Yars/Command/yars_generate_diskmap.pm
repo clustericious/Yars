@@ -25,10 +25,10 @@ sub main {
     my $class = shift;
     local @ARGV = @_;
     my %servers;
-    my $port = 9001;
+    my $default_port = 9001;
     my $protocol = 'http';
     GetOptions(
-        'port|p=i'   => \$port,
+        'port|p=i'   => \$default_port,
         'protocol=s' => \$protocol,
         'help|h'     => sub { pod2usage({ -verbose => 2}) },
         'version'    => sub {
@@ -41,7 +41,10 @@ sub main {
     while (<>) {
         chomp;
         my ($host,$disk) = split;
+        my $port;
+        $port = $1 if $host =~ s/:(\d+)$//;
         $host =~ tr/a-zA-Z0-9.\-//dc;
+        $host = join ':', $host, $port if $port;
         die "could not parse line : $_" unless $host && $disk;
         $servers{$host}{$disk} = [];
         push @all, $servers{$host}{$disk};
@@ -58,7 +61,7 @@ sub main {
     say '---';
     say 'servers :';
     for my $host (sort keys %servers) {
-        say "- url : $protocol://$host:$port";
+        say "- url : $protocol://" . ($host =~ /:\d+$/ ? $host : join(':', $host, $default_port));
         say "  disks :";
         for my $root (sort keys %{ $servers{$host} }) {
             say "  - root : $root";

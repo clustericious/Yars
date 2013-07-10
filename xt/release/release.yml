@@ -22,6 +22,12 @@ pod_spelling_system:
     - kh
     - GSFC
     - testarch
+    - conf
+    - hostdisk
+    - hostname
+    - http
+    - https
+    - txt
 
 pod_coverage:
   # format is "Class#method" or "Class", regex allowed
