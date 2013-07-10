@@ -250,14 +250,6 @@ sub startup {
     INFO "max message size = " . format_bytes($max_size) . " ($max_size)";
 }
 
-=head1 AUTHORS
-
-Current maintainer: Graham Ollis <plicease@cpan.org>
-
-Previous maintainer: Marty Brandon
-
-Original author: Brian Duggan
-
 =head1 SEE ALSO
 
 L<Yars::Client>
