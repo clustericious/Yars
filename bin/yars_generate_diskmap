@@ -1,0 +1,35 @@
+#!/usr/bin/perl
+
+# PODNAME: yars_generate_diskmap
+# ABSTRACT: generate a mapping from servers + hosts to buckets for yars.
+# VERSION
+
+=head1 SYNOPSIS
+
+    yars_generate_diskmap <number of hex digits>
+    host1 /disk1
+    host1 /disk2
+    host2 /disk1
+    host2 /disk2
+
+    echo "host1 /disk/1" | yars_generate_diskmap 1
+
+=head1 DESCRIPTION
+
+Given a list of hosts and disks, distribute 16^n buckets onto the disks.
+
+=head1 EXAMPLES
+
+clad -a testarch df -kh|grep archive | awk '{print $1 " " $7}' |  ./yars_generate_diskmap 2
+
+=head1 SEE ALSO
+
+Clustericious::Admin
+
+=cut
+
+use strict;
+use warnings;
+use Yars::Command::yars_generate_diskmap;
+
+Yars::Command::yars_generate_diskmap->main(@ARGV);
