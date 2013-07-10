@@ -2,7 +2,7 @@
 
 # PODNAME: yars_fast_balance
 # ABSTRACT: Fix all files
-our $VERSION = '0.85'; # VERSION
+our $VERSION = '0.86'; # VERSION
 
 
 use Yars::Client;
@@ -145,7 +145,7 @@ yars_fast_balance - Fix all files
 
 =head1 VERSION
 
-version 0.85
+version 0.86
 
 =head1 SYNOPSIS
 
@@ -168,7 +168,13 @@ yars_fast_balance
 
 =head1 AUTHOR
 
-Graham Ollis <plicease@cpan.org>
+original author: Marty Brandon
+
+current maintainer: Graham Ollis <plicease@cpan.org>
+
+contributors:
+
+Brian Duggan
 
 =head1 COPYRIGHT AND LICENSE
 

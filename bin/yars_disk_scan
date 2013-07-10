@@ -2,7 +2,7 @@
 
 # PODNAME: yars_disk_scan
 # ABSTRACT: scan a disk for corruption and report corrupt files to stdout
-our $VERSION = '0.85'; # VERSION
+our $VERSION = '0.86'; # VERSION
 
 
 use Clustericious::Config;
@@ -59,12 +59,12 @@ yars_disk_scan - scan a disk for corruption and report corrupt files to stdout
 
 =head1 VERSION
 
-version 0.85
+version 0.86
 
 =head1 SYNOPSIS
 
-yars_disk_scan -a
-yars_disk_scan /disk/one /disk/two
+ yars_disk_scan -a
+ yars_disk_scan /disk/one /disk/two
 
 =head1 DESCRIPTION
 
@@ -73,7 +73,13 @@ in order to check the md5s of all the files on disk.
 
 =head1 AUTHOR
 
-Graham Ollis <plicease@cpan.org>
+original author: Marty Brandon
+
+current maintainer: Graham Ollis <plicease@cpan.org>
+
+contributors:
+
+Brian Duggan
 
 =head1 COPYRIGHT AND LICENSE
 

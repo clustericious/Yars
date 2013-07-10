@@ -2,7 +2,7 @@
 
 # PODNAME: yars
 # ABSTRACT: Yet Another RESTful-Archive Service
-our $VERSION = '0.85'; # VERSION
+our $VERSION = '0.86'; # VERSION
 
 
 use Yars;
@@ -33,7 +33,7 @@ yars - Yet Another RESTful-Archive Service
 
 =head1 VERSION
 
-version 0.85
+version 0.86
 
 =head1 SEE ALSO
 
@@ -41,7 +41,13 @@ L<Yars>, L<Yars::Client>, L<yarsclient>
 
 =head1 AUTHOR
 
-Graham Ollis <plicease@cpan.org>
+original author: Marty Brandon
+
+current maintainer: Graham Ollis <plicease@cpan.org>
+
+contributors:
+
+Brian Duggan
 
 =head1 COPYRIGHT AND LICENSE
 

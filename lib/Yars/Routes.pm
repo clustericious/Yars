@@ -1,7 +1,7 @@
 package Yars::Routes;
 
 # ABSTRACT: set up the routes for Yars.
-our $VERSION = '0.85'; # VERSION
+our $VERSION = '0.86'; # VERSION
 
 
 use strict;
@@ -600,7 +600,7 @@ Yars::Routes - set up the routes for Yars.
 
 =head1 VERSION
 
-version 0.85
+version 0.86
 
 =head1 ROUTES
 
@@ -656,7 +656,13 @@ L<Yars>, L<Yars::Client>
 
 =head1 AUTHOR
 
-Graham Ollis <plicease@cpan.org>
+original author: Marty Brandon
+
+current maintainer: Graham Ollis <plicease@cpan.org>
+
+contributors:
+
+Brian Duggan
 
 =head1 COPYRIGHT AND LICENSE
 

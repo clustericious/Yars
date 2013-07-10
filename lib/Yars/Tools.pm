@@ -1,7 +1,7 @@
 package Yars::Tools;
 
 # ABSTRACT: various utility functions dealing with servers, hosts, etc
-our $VERSION = '0.85'; # VERSION
+our $VERSION = '0.86'; # VERSION
 
 
 use Clustericious::Config;
@@ -21,6 +21,7 @@ use File::stat qw/stat/;
 use Mojo::ByteStream qw/b/;
 use File::HomeDir;
 use File::Spec;
+use Mojo::UserAgent;
 use strict;
 use warnings;
 
@@ -28,7 +29,7 @@ use warnings;
 sub new
 {
   my($class, $config) = @_;
-  WARN "No url found in config file" unless $config->url;
+  WARN "No url found in config file" unless eval { $config->url };
   bless {
     bucket_to_url                => { }, # map buckets to server urls
     bucket_to_root               => { }, # map buckets to disk roots
@@ -54,7 +55,7 @@ sub _ua
 {
   my($self) = @_;
   
-  unless(defined $self->{ua})
+  unless($self->{ua})
   {
     $self->{ua} = Mojo::UserAgent->new;
   }
@@ -400,7 +401,7 @@ Yars::Tools - various utility functions dealing with servers, hosts, etc
 
 =head1 VERSION
 
-version 0.85
+version 0.86
 
 =head1 DESCRIPTION
 
@@ -522,7 +523,13 @@ L<Yars>, L<Yars::Client>
 
 =head1 AUTHOR
 
-Graham Ollis <plicease@cpan.org>
+original author: Marty Brandon
+
+current maintainer: Graham Ollis <plicease@cpan.org>
+
+contributors:
+
+Brian Duggan
 
 =head1 COPYRIGHT AND LICENSE
 

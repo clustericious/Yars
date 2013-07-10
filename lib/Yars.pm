@@ -11,7 +11,7 @@ use Log::Log4perl qw(:easy);
 use Number::Bytes::Human qw( format_bytes parse_bytes );
 
 # ABSTRACT: Yet Another RESTful-Archive Service
-our $VERSION = '0.85'; # VERSION
+our $VERSION = '0.86'; # VERSION
 
 
 has secret => rand;
@@ -108,7 +108,7 @@ Yars - Yet Another RESTful-Archive Service
 
 =head1 VERSION
 
-version 0.85
+version 0.86
 
 =head1 DESCRIPTION
 
@@ -262,21 +262,19 @@ Called by the server to start up, we change
 the object classes to use Yars::Message::Request
 for incoming requests.
 
-=head1 AUTHORS
-
-Current maintainer: Graham Ollis <plicease@cpan.org>
-
-Previous maintainer: Marty Brandon
-
-Original author: Brian Duggan
-
 =head1 SEE ALSO
 
 L<Yars::Client>
 
 =head1 AUTHOR
 
-Graham Ollis <plicease@cpan.org>
+original author: Marty Brandon
+
+current maintainer: Graham Ollis <plicease@cpan.org>
+
+contributors:
+
+Brian Duggan
 
 =head1 COPYRIGHT AND LICENSE
 

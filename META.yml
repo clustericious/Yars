@@ -3,6 +3,7 @@ abstract: 'Yet Another RESTful-Archive Service'
 author:
   - 'Graham Ollis <plicease@cpan.org>'
 build_requires:
+  Capture::Tiny: 0
   Mojo::JSON: 0
   Mojo::Loader: 0
   Mojo::Server::Daemon: 0
@@ -31,6 +32,7 @@ requires:
   File::HomeDir: 0.91
   File::Path: 0
   Filesys::Df: 0
+  Getopt::Long: 0
   Hash::MoreUtils: 0
   JSON::XS: 0
   List::MoreUtils: 0
@@ -38,6 +40,7 @@ requires:
   Log::Log4perl::CommandLine: 0
   Mojolicious: 3.86
   Number::Bytes::Human: 0.09
+  Pod::Usage: 0
   Smart::Comments: 0
   Test::Clustericious::Cluster: 0.03
   Try::Tiny: 0
@@ -46,4 +49,4 @@ resources:
   bugtracker: https://github.com/plicease/yars/issues
   homepage: http://perl.wdlabs.com/Yars/
   repository: git://github.com/plicease/yars.git
-version: 0.85
+version: 0.86

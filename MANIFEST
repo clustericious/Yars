@@ -15,6 +15,7 @@ eg/Yars.conf
 eg/big_disk_map.conf
 eg/disk_map.conf
 lib/Yars.pm
+lib/Yars/Command/yars_generate_diskmap.pm
 lib/Yars/Routes.pm
 lib/Yars/Tools.pm
 t/000_diag.t
@@ -34,6 +35,8 @@ t/072_tempdir_bug_12263.t
 t/073_tempdir.t
 t/080_manifest.t
 t/090_client.t
+t/cmd_generate_diskmap.t
+t/misc_ua_defined.t
 xt/release/build_environment.t
 xt/release/changes.t
 xt/release/eol.t

@@ -12,6 +12,7 @@ my %WriteMakefileArgs = (
   "ABSTRACT" => "Yet Another RESTful-Archive Service",
   "AUTHOR" => "Graham Ollis <plicease\@cpan.org>",
   "BUILD_REQUIRES" => {
+    "Capture::Tiny" => 0,
     "Mojo::JSON" => 0,
     "Mojo::Loader" => 0,
     "Mojo::Server::Daemon" => 0,
@@ -26,8 +27,8 @@ my %WriteMakefileArgs = (
   "DISTNAME" => "Yars",
   "EXE_FILES" => [
     "bin/yars",
-    "bin/yars_disk_scan",
     "bin/yars_fast_balance",
+    "bin/yars_disk_scan",
     "bin/yars_generate_diskmap"
   ],
   "LICENSE" => "perl",
@@ -43,6 +44,7 @@ my %WriteMakefileArgs = (
     "File::HomeDir" => "0.91",
     "File::Path" => 0,
     "Filesys::Df" => 0,
+    "Getopt::Long" => 0,
     "Hash::MoreUtils" => 0,
     "JSON::XS" => 0,
     "List::MoreUtils" => 0,
@@ -50,12 +52,13 @@ my %WriteMakefileArgs = (
     "Log::Log4perl::CommandLine" => 0,
     "Mojolicious" => "3.86",
     "Number::Bytes::Human" => "0.09",
+    "Pod::Usage" => 0,
     "Smart::Comments" => 0,
     "Test::Clustericious::Cluster" => "0.03",
     "Try::Tiny" => 0,
     "Yars::Client" => "0.86"
   },
-  "VERSION" => "0.85",
+  "VERSION" => "0.86",
   "test" => {
     "TESTS" => "t/*.t"
   }
