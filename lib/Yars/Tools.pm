@@ -28,6 +28,7 @@ use File::stat qw/stat/;
 use Mojo::ByteStream qw/b/;
 use File::HomeDir;
 use File::Spec;
+use Mojo::UserAgent;
 use strict;
 use warnings;
 
@@ -40,7 +41,7 @@ Create a new instance of Yars::Tools
 sub new
 {
   my($class, $config) = @_;
-  WARN "No url found in config file" unless $config->url;
+  WARN "No url found in config file" unless eval { $config->url };
   bless {
     bucket_to_url                => { }, # map buckets to server urls
     bucket_to_root               => { }, # map buckets to disk roots
@@ -66,7 +67,7 @@ sub _ua
 {
   my($self) = @_;
   
-  unless(defined $self->{ua})
+  unless($self->{ua})
   {
     $self->{ua} = Mojo::UserAgent->new;
   }
