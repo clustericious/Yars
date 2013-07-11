@@ -34,4 +34,5 @@ pod_coverage:
   # for either Class or method.
   private:
     - Yars#secret
+    - Yars#sanity_check
     - Yars::Command::.*
