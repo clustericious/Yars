@@ -22,10 +22,17 @@ pod_spelling_system:
     - kh
     - GSFC
     - testarch
+    - conf
+    - hostdisk
+    - hostname
+    - http
+    - https
+    - txt
 
 pod_coverage:
   # format is "Class#method" or "Class", regex allowed
   # for either Class or method.
   private:
     - Yars#secret
+    - Yars#sanity_check
     - Yars::Command::.*

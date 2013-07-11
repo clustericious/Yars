@@ -11,7 +11,7 @@ use Log::Log4perl qw(:easy);
 use Number::Bytes::Human qw( format_bytes parse_bytes );
 
 # ABSTRACT: Yet Another RESTful-Archive Service
-our $VERSION = '0.86'; # VERSION
+our $VERSION = '0.86_01'; # VERSION
 
 
 has secret => rand;
@@ -96,6 +96,25 @@ sub startup {
     INFO "max message size = " . format_bytes($max_size) . " ($max_size)";
 }
 
+sub sanity_check
+{
+    my($self) = @_;
+
+    return 0 unless $self->SUPER::sanity_check;
+
+    my $sane = 1;
+    
+    my($url) = grep { $_ eq $self->config->url } map { $_->{url} } @{ $self->config->{servers} };
+    
+    unless(defined $url)
+    {
+        say "url for this server is not in the disk map";
+        $sane = 0;
+    }
+    
+    $sane;
+}
+
 
 1;
 
@@ -108,7 +127,7 @@ Yars - Yet Another RESTful-Archive Service
 
 =head1 VERSION
 
-version 0.86
+version 0.86_01
 
 =head1 DESCRIPTION
 

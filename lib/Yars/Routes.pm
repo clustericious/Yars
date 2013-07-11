@@ -1,7 +1,7 @@
 package Yars::Routes;
 
 # ABSTRACT: set up the routes for Yars.
-our $VERSION = '0.86'; # VERSION
+our $VERSION = '0.86_01'; # VERSION
 
 
 use strict;
@@ -494,7 +494,6 @@ post '/check/manifest' => sub {
     for my $server (keys %remote) {
         TRACE "Looking for manifest files on $server";
         my $content = Mojo::JSON->new->encode({ files => $remote{$server} });
-        $DB::single = 1;
         my $tx = $c->tools->_ua->post(
             "$server/check/manifest?show_found=1&show_corrupt=".($c->param("show_corrupt")//''),
             { "Content-type" => "application/json", "Connection" => "Close" }, $content );
@@ -600,7 +599,7 @@ Yars::Routes - set up the routes for Yars.
 
 =head1 VERSION
 
-version 0.86
+version 0.86_01
 
 =head1 ROUTES
 

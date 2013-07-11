@@ -2,7 +2,7 @@
 
 # PODNAME: yars_fast_balance
 # ABSTRACT: Fix all files
-our $VERSION = '0.86'; # VERSION
+our $VERSION = '0.86_01'; # VERSION
 
 
 use Yars::Client;
@@ -145,12 +145,12 @@ yars_fast_balance - Fix all files
 
 =head1 VERSION
 
-version 0.86
+version 0.86_01
 
 =head1 SYNOPSIS
 
-yars_fast_balance
-yars_fast_balance --info
+ % yars_fast_balance
+ % yars_fast_balance --info
 
 =head1 DESCRIPTION
 
@@ -161,10 +161,6 @@ servers are fully operational.
 
 If they are not, then failures will be
 expensive, and things won't get balanced.
-
-=head1 NAME
-
-yars_fast_balance
 
 =head1 AUTHOR
 

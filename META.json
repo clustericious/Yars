@@ -43,7 +43,8 @@
             "Smart::Comments" : "0",
             "Test::Clustericious::Cluster" : "0.03",
             "Try::Tiny" : "0",
-            "Yars::Client" : "0.86"
+            "Yars::Client" : "0.86",
+            "perl" : "v5.10.0"
          }
       },
       "test" : {
@@ -55,12 +56,11 @@
             "Test::Clustericious::Cluster" : "0",
             "Test::Clustericious::Log" : "0",
             "Test::More" : "0",
-            "YAML::XS" : "0",
-            "perl" : "v5.10.0"
+            "YAML::XS" : "0"
          }
       }
    },
-   "release_status" : "stable",
+   "release_status" : "testing",
    "resources" : {
       "bugtracker" : {
          "web" : "https://github.com/plicease/yars/issues"
@@ -72,6 +72,6 @@
          "web" : "https://github.com/plicease/yars"
       }
    },
-   "version" : "0.86"
+   "version" : "0.86_01"
 }
 

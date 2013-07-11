@@ -11,7 +11,6 @@ build_requires:
   Test::Clustericious::Log: 0
   Test::More: 0
   YAML::XS: 0
-  perl: v5.10.0
 configure_requires:
   ExtUtils::MakeMaker: 6.30
 dynamic_config: 0
@@ -45,8 +44,9 @@ requires:
   Test::Clustericious::Cluster: 0.03
   Try::Tiny: 0
   Yars::Client: 0.86
+  perl: v5.10.0
 resources:
   bugtracker: https://github.com/plicease/yars/issues
   homepage: http://perl.wdlabs.com/Yars/
   repository: git://github.com/plicease/yars.git
-version: 0.86
+version: 0.86_01

@@ -1,7 +1,7 @@
 package Yars::Command::yars_generate_diskmap;
 
 # ABSTRACT: generate a mapping from servers + hosts to buckets for yars.
-our $VERSION = '0.86'; # VERSION
+our $VERSION = '0.86_01'; # VERSION
 
 
 use strict;
@@ -15,14 +15,14 @@ sub main {
     my $class = shift;
     local @ARGV = @_;
     my %servers;
-    my $port = 9001;
+    my $default_port = 9001;
     my $protocol = 'http';
     GetOptions(
-        'port|p=i'   => \$port,
+        'port|p=i'   => \$default_port,
         'protocol=s' => \$protocol,
         'help|h'     => sub { pod2usage({ -verbose => 2}) },
         'version'    => sub {
-            say 'ACPS::Release version ', ($ACPS::Release::VERSION // 'dev');
+            say 'Yars version ', ($Yars::VERSION // 'dev');
             exit 1;
         },
     ) || pod2usage(1);
@@ -31,7 +31,10 @@ sub main {
     while (<>) {
         chomp;
         my ($host,$disk) = split;
-        $host =~ tr/a-zA-Z0-9._//dc;
+        my $port;
+        $port = $1 if $host =~ s/:(\d+)$//;
+        $host =~ tr/a-zA-Z0-9.\-//dc;
+        $host = join ':', $host, $port if $port;
         die "could not parse line : $_" unless $host && $disk;
         $servers{$host}{$disk} = [];
         push @all, $servers{$host}{$disk};
@@ -48,7 +51,7 @@ sub main {
     say '---';
     say 'servers :';
     for my $host (sort keys %servers) {
-        say "- url : $protocol://$host:$port";
+        say "- url : $protocol://" . ($host =~ /:\d+$/ ? $host : join(':', $host, $default_port));
         say "  disks :";
         for my $root (sort keys %{ $servers{$host} }) {
             say "  - root : $root";
@@ -93,7 +96,7 @@ Yars::Command::yars_generate_diskmap - generate a mapping from servers + hosts t
 
 =head1 VERSION
 
-version 0.86
+version 0.86_01
 
 =head1 DESCRIPTION
 

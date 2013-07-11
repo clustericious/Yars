@@ -2,7 +2,7 @@
 use strict;
 use warnings;
 
-
+use 5.010000;
 
 use ExtUtils::MakeMaker 6.30;
 
@@ -27,8 +27,8 @@ my %WriteMakefileArgs = (
   "DISTNAME" => "Yars",
   "EXE_FILES" => [
     "bin/yars",
-    "bin/yars_fast_balance",
     "bin/yars_disk_scan",
+    "bin/yars_fast_balance",
     "bin/yars_generate_diskmap"
   ],
   "LICENSE" => "perl",
@@ -58,7 +58,7 @@ my %WriteMakefileArgs = (
     "Try::Tiny" => 0,
     "Yars::Client" => "0.86"
   },
-  "VERSION" => "0.86",
+  "VERSION" => "0.86_01",
   "test" => {
     "TESTS" => "t/*.t"
   }
