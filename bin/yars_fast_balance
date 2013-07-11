@@ -4,14 +4,10 @@
 # ABSTRACT: Fix all files
 # VERSION
 
-=head1 NAME
-
-yars_fast_balance
-
 =head1 SYNOPSIS
 
-yars_fast_balance
-yars_fast_balance --info
+ % yars_fast_balance
+ % yars_fast_balance --info
 
 =head1 DESCRIPTION
 
