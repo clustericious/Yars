@@ -250,6 +250,25 @@ sub startup {
     INFO "max message size = " . format_bytes($max_size) . " ($max_size)";
 }
 
+sub sanity_check
+{
+    my($self) = @_;
+
+    return 0 unless $self->SUPER::sanity_check;
+
+    my $sane = 1;
+    
+    my($url) = grep { $_ eq $self->config->url } map { $_->{url} } @{ $self->config->{servers} };
+    
+    unless(defined $url)
+    {
+        say "url for this server is not in the disk map";
+        $sane = 0;
+    }
+    
+    $sane;
+}
+
 =head1 SEE ALSO
 
 L<Yars::Client>
