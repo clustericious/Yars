@@ -1,6 +1,5 @@
-#!/usr/bin/perl
+package Yars::Command::yars_disk_scan;
 
-# PODNAME: yars_disk_scan
 # ABSTRACT: scan a disk for corruption and report corrupt files to stdout
 # VERSION
 
@@ -16,20 +15,19 @@ in order to check the md5s of all the files on disk.
 
 =cut
 
+use strict;
+use warnings;
 use Clustericious::Config;
 use Log::Log4perl::CommandLine qw/:all/;
 use Clustericious::Log;
 use File::Find::Rule;
 use Digest::file qw/digest_file_hex/;
 
-use strict;
-use warnings;
-
-&main;
-
 sub main {
+    my $class = shift;
+    my $status = 0;
     my $conf = Clustericious::Config->new("Yars");
-    my @disks = @ARGV;
+    my @disks = @_;
     if ($disks[0] eq '-a') {
         @disks = map $_->{root}, map @{ $_->{disks} }, $conf->servers;
     }
@@ -55,8 +53,11 @@ sub main {
                 DEBUG "not ok $md5 $_ (got $computed)";
                 print "Found bad files on $root :\n" unless $found_bad++;
                 print "$md5 $_\n";
+                $status = 2;
              }
              })->in($root);
     }
+    $status;
 }
 
+1;
