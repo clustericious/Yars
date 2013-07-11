@@ -2,6 +2,7 @@ Revision history for {{$dist->name}}
 
 {{$NEXT}}
   - yars_generate_diskmap: dash character is legal for hostnames
+  - added test for yars_disk_scan
 
 0.86      2013-07-10 17:01:59 America/New_York
   - added a test case for yars_generate_diskmap

@@ -32,7 +32,7 @@ sub main {
         'protocol=s' => \$protocol,
         'help|h'     => sub { pod2usage({ -verbose => 2}) },
         'version'    => sub {
-            say 'ACPS::Release version ', ($ACPS::Release::VERSION // 'dev');
+            say 'Yars version ', ($Yars::VERSION // 'dev');
             exit 1;
         },
     ) || pod2usage(1);
