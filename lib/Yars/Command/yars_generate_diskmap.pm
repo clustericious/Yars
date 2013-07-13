@@ -1,7 +1,7 @@
 package Yars::Command::yars_generate_diskmap;
 
 # ABSTRACT: generate a mapping from servers + hosts to buckets for yars.
-our $VERSION = '0.86_01'; # VERSION
+our $VERSION = '0.86_02'; # VERSION
 
 
 use strict;
@@ -96,7 +96,7 @@ Yars::Command::yars_generate_diskmap - generate a mapping from servers + hosts t
 
 =head1 VERSION
 
-version 0.86_01
+version 0.86_02
 
 =head1 DESCRIPTION
 

@@ -1,7 +1,7 @@
 package Yars::Command::yars_disk_scan;
 
 # ABSTRACT: scan a disk for corruption and report corrupt files to stdout
-our $VERSION = '0.86_01'; # VERSION
+our $VERSION = '0.86_02'; # VERSION
 
 
 use strict;
@@ -70,7 +70,7 @@ Yars::Command::yars_disk_scan - scan a disk for corruption and report corrupt fi
 
 =head1 VERSION
 
-version 0.86_01
+version 0.86_02
 
 =head1 DESCRIPTION
 

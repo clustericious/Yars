@@ -16,6 +16,7 @@ eg/big_disk_map.conf
 eg/disk_map.conf
 lib/Yars.pm
 lib/Yars/Command/yars_disk_scan.pm
+lib/Yars/Command/yars_fast_balance.pm
 lib/Yars/Command/yars_generate_diskmap.pm
 lib/Yars/Routes.pm
 lib/Yars/Tools.pm
@@ -37,6 +38,7 @@ t/073_tempdir.t
 t/080_manifest.t
 t/090_client.t
 t/cmd_disk_scan.t
+t/cmd_fast_balance.t
 t/cmd_generate_diskmap.t
 t/misc_ua_defined.t
 xt/release/build_environment.t

@@ -28,8 +28,8 @@ my %WriteMakefileArgs = (
   "EXE_FILES" => [
     "bin/yars",
     "bin/yars_disk_scan",
-    "bin/yars_fast_balance",
-    "bin/yars_generate_diskmap"
+    "bin/yars_generate_diskmap",
+    "bin/yars_fast_balance"
   ],
   "LICENSE" => "perl",
   "NAME" => "Yars",
@@ -58,7 +58,7 @@ my %WriteMakefileArgs = (
     "Try::Tiny" => 0,
     "Yars::Client" => "0.86"
   },
-  "VERSION" => "0.86_01",
+  "VERSION" => "0.86_02",
   "test" => {
     "TESTS" => "t/*.t"
   }
