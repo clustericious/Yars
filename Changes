@@ -1,6 +1,8 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+
+0.86_02   2013-07-13 12:58:27 America/New_York
   - basic use test for yars_fast_balance
 
 0.86_01   2013-07-10 22:15:35 America/New_York
