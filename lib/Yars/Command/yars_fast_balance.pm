@@ -1,16 +1,23 @@
 package Yars::Command::yars_fast_balance;
 
-# ABSTRACT: Move files to the right server
+# PODNAME: yars_fast_balance
+# ABSTRACT: Fix all files
 # VERSION
+
+=head1 SYNOPSIS
+
+ % yars_fast_balance
+ % yars_fast_balance --info
 
 =head1 DESCRIPTION
 
-This module contains the machinery for the command line program
-L<yars_fast_balance>.
+Attempt to fix all files on this server.
 
-=head1 SEE ALSO
+Don't run this unless all disks and
+servers are fully operational.
 
-L<yars_fast_balance>
+If they are not, then failures will be
+expensive, and things won't get balanced.
 
 =cut
 

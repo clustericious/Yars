@@ -1,16 +1,18 @@
 package Yars::Command::yars_disk_scan;
 
+# PODNAME: yars_disk_scan
 # ABSTRACT: scan a disk for corruption and report corrupt files to stdout
 # VERSION
 
+=head1 SYNOPSIS
+
+ yars_disk_scan -a
+ yars_disk_scan /disk/one /disk/two
+
 =head1 DESCRIPTION
 
-This module contains the machinery for the command line program
-L<yars_disk_scan>.
-
-=head1 SEE ALSO
-
-L<yars_disk_scan>
+Add a cron entry which does a yars_disk_scan periodically
+in order to check the md5s of all the files on disk.
 
 =cut
 
