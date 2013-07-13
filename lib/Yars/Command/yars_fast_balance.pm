@@ -1,26 +1,21 @@
-#!/usr/bin/perl
+package Yars::Command::yars_fast_balance;
 
-# PODNAME: yars_fast_balance
-# ABSTRACT: Fix all files
+# ABSTRACT: Move files to the right server
 # VERSION
-
-=head1 SYNOPSIS
-
- % yars_fast_balance
- % yars_fast_balance --info
 
 =head1 DESCRIPTION
 
-Attempt to fix all files on this server.
+This module contains the machinery for the command line program
+L<yars_fast_balance>.
 
-Don't run this unless all disks and
-servers are fully operational.
+=head1 SEE ALSO
 
-If they are not, then failures will be
-expensive, and things won't get balanced.
+L<yars_fast_balance>
 
 =cut
 
+use strict;
+use warnings;
 use Yars::Client;
 use Log::Log4perl qw(:levels);
 use Log::Log4perl::CommandLine ':all', ':loginit' => { level => $INFO };
@@ -34,13 +29,8 @@ use Data::Dumper;
 use File::Basename qw/dirname/;
 use Smart::Comments;
 
-use strict;
-use warnings;
-
 our $conf;
 our $yc = Yars::Client->new();
-
-&main;
 
 sub _is_empty_dir {
   # http://www.perlmonks.org/?node_id=617410
@@ -141,9 +131,9 @@ sub check_disk {
 }
 
 sub main {
+    my $class = shift;
     $conf = Clustericious::Config->new("Yars");
-    my @disks = @ARGV;
-    @disks = map $_->{root}, map @{ $_->{disks} }, $conf->servers;
+    my @disks = map $_->{root}, map @{ $_->{disks} }, $conf->servers;
     LOGDIE "No disks" unless @disks;
     for my $disk (@disks) {
        next unless -d $disk;
@@ -151,3 +141,4 @@ sub main {
     }
 }
 
+1;
