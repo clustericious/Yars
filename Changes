@@ -1,6 +1,7 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+  - basic use test for yars_fast_balance
 
 0.86_01   2013-07-10 22:15:35 America/New_York
   - yars_generate_diskmap: dash character is legal for hostnames
