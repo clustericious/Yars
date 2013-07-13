@@ -21,7 +21,6 @@ $ENV{MOJO_APP} ||= 'Yars';
 &main;
 
 sub main {
-    my $cmd = $ARGV[0];
     my $app = Yars->new();
     $app = Clustericious::Commands->start;
     $app;
