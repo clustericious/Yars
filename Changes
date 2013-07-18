@@ -1,6 +1,7 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+  - promote to production
 
 0.86_02   2013-07-13 12:58:27 America/New_York
   - basic use test for yars_fast_balance
