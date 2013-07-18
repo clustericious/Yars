@@ -1,17 +1,14 @@
 #!/usr/bin/perl
 
-# PODNAME: yars_generate_diskmap
-# ABSTRACT: generate a mapping from servers + hosts to buckets for yars.
-our $VERSION = '0.86_02'; # VERSION
-
-
 use strict;
 use warnings;
+use v5.10;
 use Yars::Command::yars_generate_diskmap;
 
 Yars::Command::yars_generate_diskmap->main(@ARGV);
 
 __END__
+
 =pod
 
 =head1 NAME
@@ -20,7 +17,7 @@ yars_generate_diskmap - generate a mapping from servers + hosts to buckets for y
 
 =head1 VERSION
 
-version 0.86_02
+version 0.87
 
 =head1 SYNOPSIS
 

@@ -1,7 +1,8 @@
 package Yars::Command::yars_generate_diskmap;
 
+# PODNAME: yars_generate_diskmap
 # ABSTRACT: generate a mapping from servers + hosts to buckets for yars.
-our $VERSION = '0.86_02'; # VERSION
+our $VERSION = '0.87'; # VERSION
 
 
 use strict;
@@ -92,37 +93,14 @@ __END__
 
 =head1 NAME
 
-Yars::Command::yars_generate_diskmap - generate a mapping from servers + hosts to buckets for yars.
-
-=head1 VERSION
-
-version 0.86_02
+Yars::Command::yars_generate_diskmap - code for yars_generate_diskmap
 
 =head1 DESCRIPTION
 
-This module contains the machinery for the command line program
-L<yars_generate_diskmap>.
+Tis module contains the machinery for the command line program L<yars_generate_diskmap>
 
 =head1 SEE ALSO
 
-L<yars_generate_diskmap>
-
-=head1 AUTHOR
-
-original author: Marty Brandon
-
-current maintainer: Graham Ollis <plicease@cpan.org>
-
-contributors:
-
-Brian Duggan
-
-=head1 COPYRIGHT AND LICENSE
-
-This software is copyright (c) 2013 by NASA GSFC.
-
-This is free software; you can redistribute it and/or modify it under
-the same terms as the Perl 5 programming language system itself.
+L<yars_disk_scan>
 
 =cut
-

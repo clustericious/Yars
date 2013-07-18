@@ -2,7 +2,7 @@
 
 # PODNAME: yars
 # ABSTRACT: Yet Another RESTful-Archive Service
-our $VERSION = '0.86_02'; # VERSION
+our $VERSION = '0.87'; # VERSION
 
 
 use Yars;
@@ -16,7 +16,6 @@ $ENV{MOJO_APP} ||= 'Yars';
 &main;
 
 sub main {
-    my $cmd = $ARGV[0];
     my $app = Yars->new();
     $app = Clustericious::Commands->start;
     $app;
@@ -33,7 +32,7 @@ yars - Yet Another RESTful-Archive Service
 
 =head1 VERSION
 
-version 0.86_02
+version 0.87
 
 =head1 SEE ALSO
 

@@ -1,17 +1,14 @@
 #!/usr/bin/perl
 
-# PODNAME: yars_disk_scan
-# ABSTRACT: scan a disk for corruption and report corrupt files to stdout
-our $VERSION = '0.86_02'; # VERSION
-
-
 use strict;
 use warnings;
+use v5.10;
 use Yars::Command::yars_disk_scan;
 
-exit Yars::Command::yars_disk_scan->main(@ARGV);
+Yars::Command::yars_disk_scan->main(@ARGV);
 
 __END__
+
 =pod
 
 =head1 NAME
@@ -20,7 +17,7 @@ yars_disk_scan - scan a disk for corruption and report corrupt files to stdout
 
 =head1 VERSION
 
-version 0.86_02
+version 0.87
 
 =head1 SYNOPSIS
 

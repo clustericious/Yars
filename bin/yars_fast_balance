@@ -1,18 +1,14 @@
 #!/usr/bin/perl
 
-# PODNAME: yars_fast_balance
-# ABSTRACT: Fix all files
-our $VERSION = '0.86_02'; # VERSION
-
-
 use strict;
 use warnings;
+use v5.10;
 use Yars::Command::yars_fast_balance;
 
 Yars::Command::yars_fast_balance->main(@ARGV);
 
-
 __END__
+
 =pod
 
 =head1 NAME
@@ -21,7 +17,7 @@ yars_fast_balance - Fix all files
 
 =head1 VERSION
 
-version 0.86_02
+version 0.87
 
 =head1 SYNOPSIS
 

@@ -60,7 +60,7 @@
          }
       }
    },
-   "release_status" : "testing",
+   "release_status" : "stable",
    "resources" : {
       "bugtracker" : {
          "web" : "https://github.com/plicease/yars/issues"
@@ -72,6 +72,6 @@
          "web" : "https://github.com/plicease/yars"
       }
    },
-   "version" : "0.86_02"
+   "version" : "0.87"
 }
 

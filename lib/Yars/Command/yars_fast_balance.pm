@@ -1,7 +1,8 @@
 package Yars::Command::yars_fast_balance;
 
-# ABSTRACT: Move files to the right server
-our $VERSION = '0.86_02'; # VERSION
+# PODNAME: yars_fast_balance
+# ABSTRACT: Fix all files
+our $VERSION = '0.87'; # VERSION
 
 
 use strict;
@@ -138,37 +139,14 @@ __END__
 
 =head1 NAME
 
-Yars::Command::yars_fast_balance - Move files to the right server
-
-=head1 VERSION
-
-version 0.86_02
+Yars::Command::yars_fast_balance - code for yars_fast_balance
 
 =head1 DESCRIPTION
 
-This module contains the machinery for the command line program
-L<yars_fast_balance>.
+Tis module contains the machinery for the command line program L<yars_fast_balance>
 
 =head1 SEE ALSO
 
-L<yars_fast_balance>
-
-=head1 AUTHOR
-
-original author: Marty Brandon
-
-current maintainer: Graham Ollis <plicease@cpan.org>
-
-contributors:
-
-Brian Duggan
-
-=head1 COPYRIGHT AND LICENSE
-
-This software is copyright (c) 2013 by NASA GSFC.
-
-This is free software; you can redistribute it and/or modify it under
-the same terms as the Perl 5 programming language system itself.
+L<yars_disk_scan>
 
 =cut
-

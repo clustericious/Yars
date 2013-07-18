@@ -14,6 +14,7 @@ dist.ini
 eg/Yars.conf
 eg/big_disk_map.conf
 eg/disk_map.conf
+inc/Scripts.pm
 lib/Yars.pm
 lib/Yars/Command/yars_disk_scan.pm
 lib/Yars/Command/yars_fast_balance.pm
