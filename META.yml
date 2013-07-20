@@ -7,7 +7,7 @@ build_requires:
   Mojo::JSON: 0
   Mojo::Loader: 0
   Mojo::Server::Daemon: 0
-  Test::Clustericious::Cluster: 0
+  Test::Clustericious::Cluster: 0.08
   Test::Clustericious::Log: 0
   Test::More: 0
   YAML::XS: 0
@@ -41,7 +41,6 @@ requires:
   Number::Bytes::Human: 0.09
   Pod::Usage: 0
   Smart::Comments: 0
-  Test::Clustericious::Cluster: 0.03
   Try::Tiny: 0
   Yars::Client: 0.86
   perl: v5.10.0
@@ -49,4 +48,4 @@ resources:
   bugtracker: https://github.com/plicease/yars/issues
   homepage: http://perl.wdlabs.com/Yars/
   repository: git://github.com/plicease/yars.git
-version: 0.87
+version: 0.88

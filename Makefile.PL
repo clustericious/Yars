@@ -16,7 +16,7 @@ my %WriteMakefileArgs = (
     "Mojo::JSON" => 0,
     "Mojo::Loader" => 0,
     "Mojo::Server::Daemon" => 0,
-    "Test::Clustericious::Cluster" => 0,
+    "Test::Clustericious::Cluster" => "0.08",
     "Test::Clustericious::Log" => 0,
     "Test::More" => 0,
     "YAML::XS" => 0
@@ -54,11 +54,10 @@ my %WriteMakefileArgs = (
     "Number::Bytes::Human" => "0.09",
     "Pod::Usage" => 0,
     "Smart::Comments" => 0,
-    "Test::Clustericious::Cluster" => "0.03",
     "Try::Tiny" => 0,
     "Yars::Client" => "0.86"
   },
-  "VERSION" => "0.87",
+  "VERSION" => "0.88",
   "test" => {
     "TESTS" => "t/*.t"
   }

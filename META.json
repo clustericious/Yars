@@ -41,7 +41,6 @@
             "Number::Bytes::Human" : "0.09",
             "Pod::Usage" : "0",
             "Smart::Comments" : "0",
-            "Test::Clustericious::Cluster" : "0.03",
             "Try::Tiny" : "0",
             "Yars::Client" : "0.86",
             "perl" : "v5.10.0"
@@ -53,7 +52,7 @@
             "Mojo::JSON" : "0",
             "Mojo::Loader" : "0",
             "Mojo::Server::Daemon" : "0",
-            "Test::Clustericious::Cluster" : "0",
+            "Test::Clustericious::Cluster" : "0.08",
             "Test::Clustericious::Log" : "0",
             "Test::More" : "0",
             "YAML::XS" : "0"
@@ -72,6 +71,6 @@
          "web" : "https://github.com/plicease/yars"
       }
    },
-   "version" : "0.87"
+   "version" : "0.88"
 }
 

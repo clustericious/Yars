@@ -1,5 +1,8 @@
 Revision history for Yars
 
+0.88      2013-07-19 22:59:00 America/New_York
+  - require Test::Clustericious::Cluster 0.08 for MSWin32 fixes
+
 0.87      2013-07-18 09:23:59 America/New_York
   - promote to production
 
