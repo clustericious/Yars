@@ -269,6 +269,43 @@ sub sanity_check
     $sane;
 }
 
+sub generate_config {
+    my $self = shift;
+
+    my $root = $ENV{CLUSTERICIOUS_CONF_DIR} || $ENV{HOME};
+
+    return {
+     dirs => [
+         [qw(etc)],
+         [qw(var log)],
+         [qw(var run)],
+         [qw(var lib yars data)],
+     ],
+     files => { 'Yars.conf' => <<'CONF', 'log4perl.conf' => <<CONF2 } };
+---
+% my $root = $ENV{HOME};
+start_mode : 'hypnotoad'
+url : http://localhost:9999
+hypnotoad :
+  pid_file : <%= $root %>/var/run/yars.pid
+  listen :
+     - http://localhost:9999
+servers :
+- url : http://localhost:9999
+  disks :
+    - root : <%= $root %>/var/lib/yars/data
+      buckets : [ <%= join ',', '0'..'9', 'a' .. 'f' %> ]
+CONF
+log4perl.rootLogger=TRACE, LOGFILE
+log4perl.logger.Mojolicious=TRACE
+log4perl.appender.LOGFILE=Log::Log4perl::Appender::File
+log4perl.appender.LOGFILE.filename=$root/var/log/yars.log
+log4perl.appender.LOGFILE.mode=append
+log4perl.appender.LOGFILE.layout=PatternLayout
+log4perl.appender.LOGFILE.layout.ConversionPattern=[%d{ISO8601}] [%7Z] %5p: %m%n
+CONF2
+}
+
 =head1 SEE ALSO
 
 L<Yars::Client>
