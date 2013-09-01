@@ -35,4 +35,5 @@ pod_coverage:
   private:
     - Yars#secret
     - Yars#sanity_check
+    - Yars#generate_config
     - Yars::Command::.*
