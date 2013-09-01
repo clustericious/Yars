@@ -1,4 +1,4 @@
-Yars (Yet Another RESTAS Server)
+# Yars [![Build Status](https://secure.travis-ci.org/plicease/Yars.png)](http://travis-ci.org/plicease/Yars)
 
 A REST file server built on the
 Clustericious framework.
