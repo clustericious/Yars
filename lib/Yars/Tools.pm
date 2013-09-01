@@ -1,7 +1,7 @@
 package Yars::Tools;
 
 # ABSTRACT: various utility functions dealing with servers, hosts, etc
-our $VERSION = '0.88'; # VERSION
+our $VERSION = '0.89'; # VERSION
 
 
 use Clustericious::Config;
@@ -401,7 +401,7 @@ Yars::Tools - various utility functions dealing with servers, hosts, etc
 
 =head1 VERSION
 
-version 0.88
+version 0.89
 
 =head1 DESCRIPTION
 

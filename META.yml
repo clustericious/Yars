@@ -42,10 +42,10 @@ requires:
   Pod::Usage: 0
   Smart::Comments: 0
   Try::Tiny: 0
-  Yars::Client: 0.86
+  Yars::Client: 0.90
   perl: v5.10.0
 resources:
   bugtracker: https://github.com/plicease/yars/issues
   homepage: http://perl.wdlabs.com/Yars/
   repository: git://github.com/plicease/yars.git
-version: 0.88
+version: 0.89

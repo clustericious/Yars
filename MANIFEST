@@ -5,7 +5,7 @@ MANIFEST
 META.json
 META.yml
 Makefile.PL
-README
+README.md
 bin/yars
 bin/yars_disk_scan
 bin/yars_fast_balance

@@ -11,7 +11,7 @@ use Log::Log4perl qw(:easy);
 use Number::Bytes::Human qw( format_bytes parse_bytes );
 
 # ABSTRACT: Yet Another RESTful-Archive Service
-our $VERSION = '0.88'; # VERSION
+our $VERSION = '0.89'; # VERSION
 
 
 has secret => rand;
@@ -115,6 +115,43 @@ sub sanity_check
     $sane;
 }
 
+sub generate_config {
+    my $self = shift;
+
+    my $root = $ENV{CLUSTERICIOUS_CONF_DIR} || $ENV{HOME};
+
+    return {
+     dirs => [
+         [qw(etc)],
+         [qw(var log)],
+         [qw(var run)],
+         [qw(var lib yars data)],
+     ],
+     files => { 'Yars.conf' => <<'CONF', 'log4perl.conf' => <<CONF2 } };
+---
+% my $root = $ENV{HOME};
+start_mode : 'hypnotoad'
+url : http://localhost:9999
+hypnotoad :
+  pid_file : <%= $root %>/var/run/yars.pid
+  listen :
+     - http://localhost:9999
+servers :
+- url : http://localhost:9999
+  disks :
+    - root : <%= $root %>/var/lib/yars/data
+      buckets : [ <%= join ',', '0'..'9', 'a' .. 'f' %> ]
+CONF
+log4perl.rootLogger=TRACE, LOGFILE
+log4perl.logger.Mojolicious=TRACE
+log4perl.appender.LOGFILE=Log::Log4perl::Appender::File
+log4perl.appender.LOGFILE.filename=$root/var/log/yars.log
+log4perl.appender.LOGFILE.mode=append
+log4perl.appender.LOGFILE.layout=PatternLayout
+log4perl.appender.LOGFILE.layout.ConversionPattern=[%d{ISO8601}] [%7Z] %5p: %m%n
+CONF2
+}
+
 
 1;
 
@@ -127,7 +164,7 @@ Yars - Yet Another RESTful-Archive Service
 
 =head1 VERSION
 
-version 0.88
+version 0.89
 
 =head1 DESCRIPTION
 

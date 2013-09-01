@@ -2,7 +2,7 @@ use strict;
 use warnings;
 use Test::Clustericious::Config;
 use Test::Clustericious::Cluster;
-use Test::More tests => 16;
+use Test::More;
 use Digest::file qw( digest_file_hex );
 use Yars::Client;
 
@@ -42,6 +42,26 @@ ok -e 'foo', "Downloaded foo";
 my $got = join "", IO::File->new("<foo")->getlines;
 is $got, $data, "got same contents";
 chdir(File::Spec->rootdir);
+
+{
+    my $location = $y->send(content => "flintstone");
+    ok $location, "Sent content, location is $location.";
+    ok !$y->errorstring, "No error";
+    my $same = $y->retrieve(location => $location);
+    is $same, "flintstone", "Got same content back";
+}
+
+{
+    my $location = $y->send(name => "barney", content => "rubble");
+    my $md5 = $y->res_md5;
+    ok $location, "Sent content, location is $location.";
+    ok !$y->errorstring, "No error";
+    my $same = $y->retrieve(name => "barney", md5 => $md5);
+    is $same, "rubble", "Got same content back";
+}
+
+
+done_testing();
 
 # TODO
 # my $status = $y->check_manifest($filename);

@@ -55,9 +55,9 @@ my %WriteMakefileArgs = (
     "Pod::Usage" => 0,
     "Smart::Comments" => 0,
     "Try::Tiny" => 0,
-    "Yars::Client" => "0.86"
+    "Yars::Client" => "0.90"
   },
-  "VERSION" => "0.88",
+  "VERSION" => "0.89",
   "test" => {
     "TESTS" => "t/*.t"
   }
