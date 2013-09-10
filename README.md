@@ -5,10 +5,12 @@ Clustericious framework.
 
 Installation on a server is as follows :
 
-	perl Build.PL
-	./Build
-	./Build test
-	./Build install
+```
+perl Build.PL
+./Build
+./Build test
+./Build install
+```
 
 See eg/ for sample configurations.
 
@@ -16,6 +18,7 @@ The simplest configuration places all
 of the md5 prefixes on one disk
 on one server :
 
+```
 ---
 url : http://localhost:9050
 servers : 
@@ -24,4 +27,4 @@ servers :
 disks :
     - root : /some/place/to/put/the/files
       buckets : [0,1,2,3,4,5,6,7,8,9,A,B,C,D,E,F]
-
+```
