@@ -14,6 +14,7 @@ my @modules = sort qw(
   Yars::Client
   Test::Clustericious::Cluster
   EV
+  Monkey::Patch
 );
 
 pass 'okay';

@@ -61,6 +61,7 @@ $t->get_ok("$url/version")
 
 my $tmpdir;
 my $path;
+my $done = 0;
 
 do {
 
@@ -78,6 +79,13 @@ do {
   });
 
   my $patch1 = patch_class('Mojo::Asset::File', handle => sub {
+    if($done)
+    {
+      # give Mojo::Asset::File something to close
+      # in DESTROY
+      open my $fh, '<', __FILE__;
+      return $fh;
+    }
     my($original, $self, @rest) = @_;
     if(defined $refaddr && refaddr($self) == $refaddr)
     {
@@ -118,6 +126,8 @@ do {
 ok( -e File::Spec->catfile( $root, qw( disk_5 5e b6 3b bb e0 1e ee d0 93 cb 22 bb 8f 5a cd c3 sample.txt )), 'file uploaded');
 ok( -e File::Spec->catfile( $tmpdir, qw( right.txt )), 'used correct tmp directory ' . ($tmpdir//'undef'));
 like $path, qr{disk_5}, 'path = ' . $path;
+
+$done = 1;
 
 __DATA__
 
