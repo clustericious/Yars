@@ -1,6 +1,7 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+  - fixed false failure in test suite
 
 0.89      2013-08-31 20:46:18 America/New_York
   - added generate_config for 'yars configure' command
