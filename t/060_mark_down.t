@@ -33,7 +33,7 @@ $t->get_ok("$url/servers/status")
 _mark_down($t,"two");
 _mark_down($t,"three");
 mkdir "$root/four";
-chmod 0555, "$root/four";
+chmod(0555, "$root/four") || diag "chmod 0555, \"$root/four\" FAILED: $!";
 
 $t->get_ok("$url/servers/status")
   ->status_is(200)
