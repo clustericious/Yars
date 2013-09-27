@@ -20,6 +20,8 @@ meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
   version: 1.4
 name: Yars
+recommends:
+  EV: 0
 requires:
   Clustericious: 0.9925
   Clustericious::Commands: 0
@@ -48,4 +50,4 @@ resources:
   bugtracker: https://github.com/plicease/yars/issues
   homepage: http://perl.wdlabs.com/Yars/
   repository: git://github.com/plicease/yars.git
-version: 0.89
+version: 0.90

@@ -20,6 +20,9 @@
          }
       },
       "runtime" : {
+         "recommends" : {
+            "EV" : "0"
+         },
          "requires" : {
             "Clustericious" : "0.9925",
             "Clustericious::Commands" : "0",
@@ -71,6 +74,6 @@
          "web" : "https://github.com/plicease/yars"
       }
    },
-   "version" : "0.89"
+   "version" : "0.90"
 }
 

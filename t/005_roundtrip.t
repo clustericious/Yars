@@ -35,7 +35,7 @@ my $url = $cluster->url;
     is $t->get_ok("$url/disk/usage?count=1")->status_is(200)->tx->res->json->{$root}{count}, 1;
     $t->head_ok($location)->status_is(200);
     is $t->tx->res->headers->content_length, b($content)->size, "Right content-length in HEAD";
-    is $t->tx->res->headers->content_type, "text/plain", "Right content-type in HEAD";
+    like $t->tx->res->headers->content_type, qr{^text/plain(;.*)?$}, "Right content-type in HEAD";
     ok $t->tx->res->headers->last_modified, "last-modified is set";
     $t->delete_ok("$url/file/$file/$digest")->status_is(200);
 }
