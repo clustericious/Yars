@@ -30,7 +30,6 @@ use Clustericious::Log;
 use Clustericious::Config;
 use Hash::MoreUtils qw/safe_reverse/;
 use File::Find::Rule;
-use IO::Dir;
 use Fcntl qw(:DEFAULT :flock);
 use Data::Dumper;
 use File::Basename qw/dirname/;
@@ -42,9 +41,10 @@ our $yc = Yars::Client->new();
 sub _is_empty_dir {
   # http://www.perlmonks.org/?node_id=617410
   my ($shortname, $path, $fullname) = @_;
-  my $dh = IO::Dir->new($fullname) or return;
-  my $count = scalar(grep{!/^\.\.?$/} $dh->read());
-  $dh->close();
+  my $dh;
+  opendir($dh, $fullname) || return;
+  my $count = scalar(grep{!/^\.\.?$/} readdir $dh);
+  closedir $dh;
   return($count==0);
 }
 
