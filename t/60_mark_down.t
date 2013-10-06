@@ -33,16 +33,30 @@ $t->get_ok("$url/servers/status")
 _mark_down($t,"two");
 _mark_down($t,"three");
 mkdir "$root/four";
-chmod(0555, "$root/four") || diag "chmod 0555, \"$root/four\" FAILED: $!";
+
+eval {
+  chmod(0555, "$root/four") || die "chmod failed: $!";
+  if(open(my $fh, '>', "$root/four/test.txt"))
+  {
+    close $fh;
+    unlink "$root/four/test.txt";
+    die "apparently can write to a 0555 dir on this platform";
+  }
+};
+my $chmod_error = $@;
 
 $t->get_ok("$url/servers/status")
-  ->status_is(200)
-  ->json_is('', {
-    $url => {
-      (map {( "$root/$_" => "up" )} qw/one five/),
-      (map {( "$root/$_" => "down" )} qw/two three four/)
-    }
-  });
+  ->status_is(200);
+
+SKIP: {
+  skip $chmod_error, 1 if $chmod_error;
+  $t->json_is('', {
+      $url => {
+        (map {( "$root/$_" => "up" )} qw/one five/),
+        (map {( "$root/$_" => "down" )} qw/two three four/)
+      }
+    });
+}
 
 _mark_down($t,"five");
 
