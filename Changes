@@ -1,6 +1,8 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+
+0.91      2013-10-06 10:55:59 America/New_York
   - more robust testing on platforms that don't support
     read only folders (cygwin)
 
