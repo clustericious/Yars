@@ -1,7 +1,7 @@
 package Yars::Tools;
 
 # ABSTRACT: various utility functions dealing with servers, hosts, etc
-our $VERSION = '0.90_01'; # VERSION
+our $VERSION = '0.91'; # VERSION
 
 
 use Clustericious::Config;
@@ -17,6 +17,7 @@ use File::Path qw/mkpath/;
 use File::Temp;
 use File::Compare;
 use JSON::XS;
+# TODO: rm dep on stat
 use File::stat qw/stat/;
 use Mojo::ByteStream qw/b/;
 use File::HomeDir;
@@ -135,10 +136,12 @@ sub local_buckets {
 sub _state {
     my $self = shift;
     $self->refresh_config() unless $self->{state_file} && -e $self->{state_file};
+    # TODO: rm dep on File::stat
     return $self->{_state}->{cached} if $self->{_state}->{mod_time} && $self->{_state}->{mod_time} == stat($self->{state_file})->mtime;
     our $j ||= JSON::XS->new;
     -e $self->{state_file} or LOGDIE "Missing state file " . $self->{state_file};
     $self->{_state}->{cached} = $j->decode(Mojo::Asset::File->new(path => $self->{state_file})->slurp);
+    # TODO: rm dep on File::stat
     $self->{_state}->{mod_time} = stat($self->{state_file})->mtime;
     return $self->{_state}->{cached};
 }
@@ -401,7 +404,7 @@ Yars::Tools - various utility functions dealing with servers, hosts, etc
 
 =head1 VERSION
 
-version 0.90_01
+version 0.91
 
 =head1 DESCRIPTION
 

@@ -13,13 +13,12 @@ my %WriteMakefileArgs = (
   "AUTHOR" => "Graham Ollis <plicease\@cpan.org>",
   "BUILD_REQUIRES" => {
     "Capture::Tiny" => 0,
-    "Mojo::JSON" => 0,
-    "Mojo::Loader" => 0,
-    "Mojo::Server::Daemon" => 0,
     "Test::Clustericious::Cluster" => "0.08",
+    "Test::Clustericious::Config" => 0,
     "Test::Clustericious::Log" => 0,
     "Test::More" => 0,
-    "YAML::XS" => 0
+    "YAML::XS" => 0,
+    "autodie" => 0
   },
   "CONFIGURE_REQUIRES" => {
     "ExtUtils::MakeMaker" => "6.30"
@@ -28,8 +27,8 @@ my %WriteMakefileArgs = (
   "EXE_FILES" => [
     "bin/yars",
     "bin/yars_disk_scan",
-    "bin/yars_fast_balance",
-    "bin/yars_generate_diskmap"
+    "bin/yars_generate_diskmap",
+    "bin/yars_fast_balance"
   ],
   "LICENSE" => "perl",
   "NAME" => "Yars",
@@ -57,7 +56,7 @@ my %WriteMakefileArgs = (
     "Try::Tiny" => 0,
     "Yars::Client" => "0.90"
   },
-  "VERSION" => "0.90_01",
+  "VERSION" => "0.91",
   "test" => {
     "TESTS" => "t/*.t"
   }

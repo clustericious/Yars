@@ -4,13 +4,12 @@ author:
   - 'Graham Ollis <plicease@cpan.org>'
 build_requires:
   Capture::Tiny: 0
-  Mojo::JSON: 0
-  Mojo::Loader: 0
-  Mojo::Server::Daemon: 0
   Test::Clustericious::Cluster: 0.08
+  Test::Clustericious::Config: 0
   Test::Clustericious::Log: 0
   Test::More: 0
   YAML::XS: 0
+  autodie: 0
 configure_requires:
   ExtUtils::MakeMaker: 6.30
 dynamic_config: 0
@@ -50,4 +49,4 @@ resources:
   bugtracker: https://github.com/plicease/yars/issues
   homepage: http://perl.wdlabs.com/Yars/
   repository: git://github.com/plicease/yars.git
-version: 0.90_01
+version: 0.91
