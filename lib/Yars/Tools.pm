@@ -1,16 +1,7 @@
 package Yars::Tools;
 
-# ABSTRACT: various utility functions dealing with servers, hosts, etc
-# VERSION
-
-=head1 DESCRIPTION
-
-Just some useful functions here.
-
-=head1 FUNCTIONS
-
-=cut
-
+use strict;
+use warnings;
 use Clustericious::Config;
 use List::Util qw/shuffle/;
 use List::MoreUtils qw/uniq/;
@@ -30,8 +21,17 @@ use Mojo::ByteStream qw/b/;
 use File::HomeDir;
 use File::Spec;
 use Mojo::UserAgent;
-use strict;
-use warnings;
+use File::Spec;
+
+
+# ABSTRACT: various utility functions dealing with servers, hosts, etc
+# VERSION
+
+=head1 DESCRIPTION
+
+Just some useful functions here.
+
+=head1 FUNCTIONS
 
 =head2 new
 
@@ -201,6 +201,45 @@ sub disk_is_up {
     return 0 if -d $root && ! -w $root;
     return 1 if ($class->_state->{disks}{$root} || 'up') eq 'up';
     return 0;
+}
+
+=head2 disk_is_up_verified
+
+This is the same as disk_is_up, but doesn't trust the operating system, and
+tries to write a file to the disk's temp directory and verify that the file
+is not of zero size.
+
+=cut
+
+sub disk_is_up_verified
+{
+    my($self, $root) = @_;
+    return unless $self->disk_is_up($root);
+    my $tmpdir = File::Spec->catdir($root, 'tmp');
+    my $temp;
+    eval {
+        use autodie;
+        unless(-d $tmpdir)
+        {
+            mkpath $tmpdir;
+            chmod 0777, $tmpdir;
+        };
+        $temp = File::Temp->new("disk_is_up_verifiedXXXXX", DIR => $tmpdir, SUFFIX => '.txt');
+        print $temp "test";
+        close $temp;
+        die "file has zero size" if -z $temp->filename;
+        unlink $temp->filename;
+    };
+    if(my $error = $@)
+    {
+        INFO "Create temp file in $tmpdir FAILED: $error";
+        return;
+    }
+    else
+    {
+        INFO "created temp file to test status: " . $temp->filename;
+        return 1;
+    }
 }
 
 =head2 disk_is_down

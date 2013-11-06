@@ -583,7 +583,7 @@ Get the status of all the disks on all the servers/
 get '/servers/status' => sub {
     my $c = shift;
     my %disks =
-      map { $_ => $c->tools->disk_is_up($_) ? "up" : "down" }
+      map { $_ => $c->tools->disk_is_up_verified($_) ? "up" : "down" }
       $c->tools->disk_roots;
     my %all;
     $all{$c->tools->server_url} = \%disks;
@@ -609,7 +609,7 @@ Get the status of just this server.
 get '/server/status' => sub {
     my $c = shift;
     my %disks =
-      map { $_ => $c->tools->disk_is_up($_) ? "up" : "down" }
+      map { $_ => $c->tools->disk_is_up_verified($_) ? "up" : "down" }
       $c->tools->disk_roots;
     $c->render_json(\%disks);
 };
