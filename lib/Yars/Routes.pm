@@ -585,12 +585,11 @@ get '/servers/status' => sub {
     my %disks =
       map { $_ => $c->tools->disk_is_up($_) ? "up" : "down" }
       $c->tools->disk_roots;
-    return $c->render_json(\%disks) if $c->param('single');
     my %all;
     $all{$c->tools->server_url} = \%disks;
     for my $server ($c->tools->server_urls) {
         next if exists($all{$server});
-        my $tx = $c->tools->_ua->get("$server/servers/status?single=1");
+        my $tx = $c->tools->_ua->get("$server/server/status");
         if (my $res = $tx->success) {
             $all{$server} = $res->json;
         } else {
@@ -599,6 +598,20 @@ get '/servers/status' => sub {
         }
     }
     $c->render_json(\%all);
+};
+
+=head2 GET /server/status
+
+Get the status of just this server.
+
+=cut
+
+get '/server/status' => sub {
+    my $c = shift;
+    my %disks =
+      map { $_ => $c->tools->disk_is_up($_) ? "up" : "down" }
+      $c->tools->disk_roots;
+    $c->render_json(\%disks);
 };
 
 =head2 GET /bucket_map
