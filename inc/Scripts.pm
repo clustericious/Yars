@@ -35,7 +35,7 @@ sub munge_files
       "",
       "=head1 DESCRIPTION",
       "",
-      "Tis module contains the machinery for the command line program L<$basename>",
+      "This module contains the machinery for the command line program L<$basename>",
       "",
       "=head1 SEE ALSO",
       "",

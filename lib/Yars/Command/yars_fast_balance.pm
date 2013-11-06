@@ -2,7 +2,7 @@ package Yars::Command::yars_fast_balance;
 
 # PODNAME: yars_fast_balance
 # ABSTRACT: Fix all files
-our $VERSION = '0.91'; # VERSION
+our $VERSION = '0.91_01'; # VERSION
 
 
 use strict;
@@ -143,7 +143,7 @@ Yars::Command::yars_fast_balance - code for yars_fast_balance
 
 =head1 DESCRIPTION
 
-Tis module contains the machinery for the command line program L<yars_fast_balance>
+This module contains the machinery for the command line program L<yars_fast_balance>
 
 =head1 SEE ALSO
 

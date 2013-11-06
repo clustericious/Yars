@@ -1,7 +1,7 @@
 package Yars::Routes;
 
 # ABSTRACT: set up the routes for Yars.
-our $VERSION = '0.91'; # VERSION
+our $VERSION = '0.91_01'; # VERSION
 
 
 use strict;
@@ -534,14 +534,13 @@ post '/check/manifest' => sub {
 get '/servers/status' => sub {
     my $c = shift;
     my %disks =
-      map { $_ => $c->tools->disk_is_up($_) ? "up" : "down" }
+      map { $_ => $c->tools->disk_is_up_verified($_) ? "up" : "down" }
       $c->tools->disk_roots;
-    return $c->render_json(\%disks) if $c->param('single');
     my %all;
     $all{$c->tools->server_url} = \%disks;
     for my $server ($c->tools->server_urls) {
         next if exists($all{$server});
-        my $tx = $c->tools->_ua->get("$server/servers/status?single=1");
+        my $tx = $c->tools->_ua->get("$server/server/status");
         if (my $res = $tx->success) {
             $all{$server} = $res->json;
         } else {
@@ -550,6 +549,15 @@ get '/servers/status' => sub {
         }
     }
     $c->render_json(\%all);
+};
+
+
+get '/server/status' => sub {
+    my $c = shift;
+    my %disks =
+      map { $_ => $c->tools->disk_is_up_verified($_) ? "up" : "down" }
+      $c->tools->disk_roots;
+    $c->render_json(\%disks);
 };
 
 
@@ -599,7 +607,7 @@ Yars::Routes - set up the routes for Yars.
 
 =head1 VERSION
 
-version 0.91
+version 0.91_01
 
 =head1 ROUTES
 
@@ -640,6 +648,10 @@ server)
 =head2 GET /servers/status
 
 Get the status of all the disks on all the servers/
+
+=head2 GET /server/status
+
+Get the status of just this server.
 
 =head2 GET /bucket_map
 

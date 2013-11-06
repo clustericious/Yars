@@ -23,6 +23,7 @@ lib/Yars/Routes.pm
 lib/Yars/Tools.pm
 t/00_diag.t
 t/00_diag.txt
+t/00_use.t
 t/01_basic.t
 t/02_basic.t
 t/05_roundtrip.t
@@ -54,3 +55,4 @@ xt/release/pod_spelling_common.t
 xt/release/pod_spelling_system.t
 xt/release/release.yml
 xt/release/strict.t
+xt/release/version.t

@@ -2,7 +2,7 @@ package Yars::Command::yars_generate_diskmap;
 
 # PODNAME: yars_generate_diskmap
 # ABSTRACT: generate a mapping from servers + hosts to buckets for yars.
-our $VERSION = '0.91'; # VERSION
+our $VERSION = '0.91_01'; # VERSION
 
 
 use strict;
@@ -97,7 +97,7 @@ Yars::Command::yars_generate_diskmap - code for yars_generate_diskmap
 
 =head1 DESCRIPTION
 
-Tis module contains the machinery for the command line program L<yars_generate_diskmap>
+This module contains the machinery for the command line program L<yars_generate_diskmap>
 
 =head1 SEE ALSO
 

@@ -17,8 +17,7 @@ my %WriteMakefileArgs = (
     "Test::Clustericious::Config" => 0,
     "Test::Clustericious::Log" => 0,
     "Test::More" => 0,
-    "YAML::XS" => 0,
-    "autodie" => 0
+    "YAML::XS" => 0
   },
   "CONFIGURE_REQUIRES" => {
     "ExtUtils::MakeMaker" => "6.30"
@@ -49,14 +48,15 @@ my %WriteMakefileArgs = (
     "List::MoreUtils" => 0,
     "Log::Log4perl" => 0,
     "Log::Log4perl::CommandLine" => 0,
-    "Mojolicious" => "3.86",
+    "Mojolicious" => "4.00",
     "Number::Bytes::Human" => "0.09",
     "Pod::Usage" => 0,
     "Smart::Comments" => 0,
     "Try::Tiny" => 0,
-    "Yars::Client" => "0.90"
+    "Yars::Client" => "0.90",
+    "autodie" => 0
   },
-  "VERSION" => "0.91",
+  "VERSION" => "0.91_01",
   "test" => {
     "TESTS" => "t/*.t"
   }

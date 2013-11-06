@@ -2,7 +2,7 @@ package Yars::Command::yars_disk_scan;
 
 # PODNAME: yars_disk_scan
 # ABSTRACT: scan a disk for corruption and report corrupt files to stdout
-our $VERSION = '0.91'; # VERSION
+our $VERSION = '0.91_01'; # VERSION
 
 
 use strict;
@@ -71,7 +71,7 @@ Yars::Command::yars_disk_scan - code for yars_disk_scan
 
 =head1 DESCRIPTION
 
-Tis module contains the machinery for the command line program L<yars_disk_scan>
+This module contains the machinery for the command line program L<yars_disk_scan>
 
 =head1 SEE ALSO
 
