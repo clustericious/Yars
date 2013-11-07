@@ -2,11 +2,12 @@ package Yars::Command::yars_fast_balance;
 
 # PODNAME: yars_fast_balance
 # ABSTRACT: Fix all files
-our $VERSION = '0.91_01'; # VERSION
+our $VERSION = '0.91_02'; # VERSION
 
 
 use strict;
 use warnings;
+use v5.10;
 use Yars::Client;
 use Log::Log4perl qw(:levels);
 use Log::Log4perl::CommandLine ':all', ':loginit' => { level => $INFO };
@@ -20,7 +21,7 @@ use File::Basename qw/dirname/;
 use Smart::Comments;
 
 our $conf;
-our $yc = Yars::Client->new();
+our $yc;
 
 sub _is_empty_dir {
   # http://www.perlmonks.org/?node_id=617410
@@ -75,6 +76,7 @@ sub _unlock {
 sub upload_file {
     my $filename = shift;
     TRACE "Moving $filename";
+    $yc //= Yars::Client->new;
     $yc->upload('--nostash', 1, $filename) or do {
         WARN "Could not upload $filename : ".$yc->errorstring;
         return;

@@ -56,7 +56,7 @@ my %WriteMakefileArgs = (
     "Yars::Client" => "0.90",
     "autodie" => 0
   },
-  "VERSION" => "0.91_01",
+  "VERSION" => "0.91_02",
   "test" => {
     "TESTS" => "t/*.t"
   }

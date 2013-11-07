@@ -1,5 +1,8 @@
 Revision history for Yars
 
+0.91_02   2013-11-07 07:10:44 America/New_York
+  - fix yars_fast_balance.pm so that perl -c works whithout config
+
 0.91_01   2013-11-06 11:50:32 America/New_York
   - /servers/status does more checking to see that each disk really is "up"
     This includes writing to the disks tmp directory and checking that the
