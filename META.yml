@@ -4,22 +4,22 @@ author:
   - 'Graham Ollis <plicease@cpan.org>'
 build_requires:
   Capture::Tiny: 0
-  Mojo::JSON: 0
-  Mojo::Loader: 0
-  Mojo::Server::Daemon: 0
   Test::Clustericious::Cluster: 0.08
+  Test::Clustericious::Config: 0
   Test::Clustericious::Log: 0
   Test::More: 0
   YAML::XS: 0
 configure_requires:
   ExtUtils::MakeMaker: 6.30
 dynamic_config: 0
-generated_by: 'Dist::Zilla version 4.300021, CPAN::Meta::Converter version 2.120921'
+generated_by: 'Dist::Zilla version 5.006, CPAN::Meta::Converter version 2.132830'
 license: perl
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
   version: 1.4
 name: Yars
+recommends:
+  EV: 0
 requires:
   Clustericious: 0.9925
   Clustericious::Commands: 0
@@ -37,15 +37,16 @@ requires:
   List::MoreUtils: 0
   Log::Log4perl: 0
   Log::Log4perl::CommandLine: 0
-  Mojolicious: 3.86
+  Mojolicious: 4.00
   Number::Bytes::Human: 0.09
   Pod::Usage: 0
   Smart::Comments: 0
   Try::Tiny: 0
-  Yars::Client: 0.86
+  Yars::Client: 0.90
+  autodie: 0
   perl: v5.10.0
 resources:
   bugtracker: https://github.com/plicease/yars/issues
   homepage: http://perl.wdlabs.com/Yars/
   repository: git://github.com/plicease/yars.git
-version: 0.88
+version: 0.92

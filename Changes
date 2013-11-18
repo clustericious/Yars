@@ -1,5 +1,28 @@
 Revision history for Yars
 
+0.92      2013-11-18 11:41:52 America/New_York
+  - fix sloness of t/60_mark_down.t introduced in mojo 4.50
+
+0.91_02   2013-11-07 07:10:44 America/New_York
+  - fix yars_fast_balance.pm so that perl -c works whithout config
+
+0.91_01   2013-11-06 11:50:32 America/New_York
+  - /servers/status does more checking to see that each disk really is "up"
+    This includes writing to the disks tmp directory and checking that the
+    file is non zero size.  While this makes it slower, this route is usually
+    used by Yars::Client manually by a human to check the health of the Yars
+    cluster.
+
+0.91      2013-10-06 10:55:59 America/New_York
+  - more robust testing on platforms that don't support
+    read only folders (cygwin)
+
+0.90      2013-09-27 15:15:01 America/New_York
+  - fixed false failure in test suite
+
+0.89      2013-08-31 20:46:18 America/New_York
+  - added generate_config for 'yars configure' command
+
 0.88      2013-07-19 22:59:00 America/New_York
   - require Test::Clustericious::Cluster 0.08 for MSWin32 fixes
 

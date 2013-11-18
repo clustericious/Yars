@@ -33,16 +33,30 @@ $t->get_ok("$url/servers/status")
 _mark_down($t,"two");
 _mark_down($t,"three");
 mkdir "$root/four";
-chmod 0555, "$root/four";
+
+eval {
+  chmod(0555, "$root/four") || die "chmod failed: $!";
+  if(open(my $fh, '>', "$root/four/test.txt"))
+  {
+    close $fh;
+    unlink "$root/four/test.txt";
+    die "apparently can write to a 0555 dir on this platform";
+  }
+};
+my $chmod_error = $@;
 
 $t->get_ok("$url/servers/status")
-  ->status_is(200)
-  ->json_is('', {
-    $url => {
-      (map {( "$root/$_" => "up" )} qw/one five/),
-      (map {( "$root/$_" => "down" )} qw/two three four/)
-    }
-  });
+  ->status_is(200);
+
+SKIP: {
+  skip $chmod_error, 1 if $chmod_error;
+  $t->json_is('', {
+      $url => {
+        (map {( "$root/$_" => "up" )} qw/one five/),
+        (map {( "$root/$_" => "down" )} qw/two three four/)
+      }
+    });
+}
 
 _mark_down($t,"five");
 
@@ -60,18 +74,18 @@ for my $i (1..$test_files) {
 
 TODO: {
   local $TODO = "run yars_fast_balance";
-  my $json = $t->get_ok("/disk/usage?count=1")->status_is(200)->tx->res->json;
+  my $json = $t->get_ok("$url/disk/usage?count=1")->status_is(200)->tx->res->json;
   is $json->{"$root/one"}{count}, $test_files;
   is $json->{"$root/$_"}{count}, 0 for qw/two three four five/;
 
   my $remaining = int($test_files - $two);
-  $json = $t->get_ok("/disk/usage?count=1")->status_is(200)->tx->res->json;
+  $json = $t->get_ok("$url/disk/usage?count=1")->status_is(200)->tx->res->json;
   is $json->{"$root/one"}{count}, $remaining;
   is $json->{"$root/two"}{count}, $two;
   is $json->{"$root/$_"}{count}, 0 for qw/three four five/;
 
   # Ensure an invalid host causes an exception, not a request loop
-  $t->post_ok("/disk/status", { "Content-Type" => "application/json" }, Mojo::JSON->new->encode( { server => "http://101.010.0.0", root => "foo/bar", "state" => "up" }))
+  $t->post_ok("$url/disk/status", { "Content-Type" => "application/json" }, Mojo::JSON->new->encode( { server => "http://101.010.0.0", root => "foo/bar", "state" => "up" }))
     ->status_is(400);
 }
 

@@ -11,37 +11,21 @@ use Log::Log4perl qw(:easy);
 use Number::Bytes::Human qw( format_bytes parse_bytes );
 
 # ABSTRACT: Yet Another RESTful-Archive Service
-our $VERSION = '0.88'; # VERSION
+our $VERSION = '0.92'; # VERSION
 
 
 has secret => rand;
 
 
-sub _mojo4_compat {
+sub startup {
     my $self = shift;
+
     $self->hook(before_dispatch => sub {
         my($c) = @_;
         my $stream = Mojo::IOLoop->stream($c->tx->connection);
         return unless defined $stream;
         $stream->timeout(3000);
     });
-}
-
-sub startup {
-    my $self = shift;
-
-    if ($Mojolicious::VERSION >= 4.0) {
-        $self->_mojo4_compat;
-    #} elsif ($Mojolicious::VERSION >= 2.37) {
-    } else {
-        eval { Mojo::IOLoop::Stream->timeout(3000) };
-        if(my $error = $@) {
-            WARN "error trying to set timeout: $@";
-            WARN "Mojolicious version $Mojolicious::VERSION";
-            WARN "Will try Mojo 4.x mode";
-            $self->_mojo4_compat;
-        }
-    }
 
     my $max_size = 53687091200;
 
@@ -115,11 +99,51 @@ sub sanity_check
     $sane;
 }
 
+sub generate_config {
+    my $self = shift;
+
+    my $root = $ENV{CLUSTERICIOUS_CONF_DIR} || $ENV{HOME};
+
+    return {
+     dirs => [
+         [qw(etc)],
+         [qw(var log)],
+         [qw(var run)],
+         [qw(var lib yars data)],
+     ],
+     files => { 'Yars.conf' => <<'CONF', 'log4perl.conf' => <<CONF2 } };
+---
+% my $root = $ENV{HOME};
+start_mode : 'hypnotoad'
+url : http://localhost:9999
+hypnotoad :
+  pid_file : <%= $root %>/var/run/yars.pid
+  listen :
+     - http://localhost:9999
+servers :
+- url : http://localhost:9999
+  disks :
+    - root : <%= $root %>/var/lib/yars/data
+      buckets : [ <%= join ',', '0'..'9', 'a' .. 'f' %> ]
+CONF
+log4perl.rootLogger=TRACE, LOGFILE
+log4perl.logger.Mojolicious=TRACE
+log4perl.appender.LOGFILE=Log::Log4perl::Appender::File
+log4perl.appender.LOGFILE.filename=$root/var/log/yars.log
+log4perl.appender.LOGFILE.mode=append
+log4perl.appender.LOGFILE.layout=PatternLayout
+log4perl.appender.LOGFILE.layout.ConversionPattern=[%d{ISO8601}] [%7Z] %5p: %m%n
+CONF2
+}
+
 
 1;
 
 __END__
+
 =pod
+
+=encoding UTF-8
 
 =head1 NAME
 
@@ -127,7 +151,7 @@ Yars - Yet Another RESTful-Archive Service
 
 =head1 VERSION
 
-version 0.88
+version 0.92
 
 =head1 DESCRIPTION
 
@@ -303,4 +327,3 @@ This is free software; you can redistribute it and/or modify it under
 the same terms as the Perl 5 programming language system itself.
 
 =cut
-

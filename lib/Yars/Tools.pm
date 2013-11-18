@@ -1,9 +1,7 @@
 package Yars::Tools;
 
-# ABSTRACT: various utility functions dealing with servers, hosts, etc
-our $VERSION = '0.88'; # VERSION
-
-
+use strict;
+use warnings;
 use Clustericious::Config;
 use List::Util qw/shuffle/;
 use List::MoreUtils qw/uniq/;
@@ -17,13 +15,17 @@ use File::Path qw/mkpath/;
 use File::Temp;
 use File::Compare;
 use JSON::XS;
+# TODO: rm dep on stat
 use File::stat qw/stat/;
 use Mojo::ByteStream qw/b/;
 use File::HomeDir;
 use File::Spec;
 use Mojo::UserAgent;
-use strict;
-use warnings;
+use File::Spec;
+
+
+# ABSTRACT: various utility functions dealing with servers, hosts, etc
+our $VERSION = '0.92'; # VERSION
 
 
 sub new
@@ -135,10 +137,12 @@ sub local_buckets {
 sub _state {
     my $self = shift;
     $self->refresh_config() unless $self->{state_file} && -e $self->{state_file};
+    # TODO: rm dep on File::stat
     return $self->{_state}->{cached} if $self->{_state}->{mod_time} && $self->{_state}->{mod_time} == stat($self->{state_file})->mtime;
     our $j ||= JSON::XS->new;
     -e $self->{state_file} or LOGDIE "Missing state file " . $self->{state_file};
     $self->{_state}->{cached} = $j->decode(Mojo::Asset::File->new(path => $self->{state_file})->slurp);
+    # TODO: rm dep on File::stat
     $self->{_state}->{mod_time} = stat($self->{state_file})->mtime;
     return $self->{_state}->{cached};
 }
@@ -163,6 +167,38 @@ sub disk_is_up {
     return 0 if -d $root && ! -w $root;
     return 1 if ($class->_state->{disks}{$root} || 'up') eq 'up';
     return 0;
+}
+
+
+sub disk_is_up_verified
+{
+    my($self, $root) = @_;
+    return unless $self->disk_is_up($root);
+    my $tmpdir = File::Spec->catdir($root, 'tmp');
+    my $temp;
+    eval {
+        use autodie;
+        unless(-d $tmpdir)
+        {
+            mkpath $tmpdir;
+            chmod 0777, $tmpdir;
+        };
+        $temp = File::Temp->new("disk_is_up_verifiedXXXXX", DIR => $tmpdir, SUFFIX => '.txt');
+        print $temp "test";
+        close $temp;
+        die "file has zero size" if -z $temp->filename;
+        unlink $temp->filename;
+    };
+    if(my $error = $@)
+    {
+        INFO "Create temp file in $tmpdir FAILED: $error";
+        return;
+    }
+    else
+    {
+        INFO "created temp file to test status: " . $temp->filename;
+        return 1;
+    }
 }
 
 
@@ -391,9 +427,11 @@ sub b642hex {
 
 1;
 
-
 __END__
+
 =pod
+
+=encoding UTF-8
 
 =head1 NAME
 
@@ -401,7 +439,7 @@ Yars::Tools - various utility functions dealing with servers, hosts, etc
 
 =head1 VERSION
 
-version 0.88
+version 0.92
 
 =head1 DESCRIPTION
 
@@ -431,6 +469,12 @@ Get a hash from disk to list of buckets for this server.
 Given a disk root, return true unless the disk is marked down.
 A disk is down if the state file indicates it, or if it exists
 but is unwriteable.
+
+=head2 disk_is_up_verified
+
+This is the same as disk_is_up, but doesn't trust the operating system, and
+tries to write a file to the disk's temp directory and verify that the file
+is not of zero size.
 
 =head2 disk_is_down
 
@@ -539,4 +583,3 @@ This is free software; you can redistribute it and/or modify it under
 the same terms as the Perl 5 programming language system itself.
 
 =cut
-

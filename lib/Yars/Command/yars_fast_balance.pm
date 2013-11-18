@@ -2,11 +2,12 @@ package Yars::Command::yars_fast_balance;
 
 # PODNAME: yars_fast_balance
 # ABSTRACT: Fix all files
-our $VERSION = '0.88'; # VERSION
+our $VERSION = '0.92'; # VERSION
 
 
 use strict;
 use warnings;
+use v5.10;
 use Yars::Client;
 use Log::Log4perl qw(:levels);
 use Log::Log4perl::CommandLine ':all', ':loginit' => { level => $INFO };
@@ -14,21 +15,21 @@ use Clustericious::Log;
 use Clustericious::Config;
 use Hash::MoreUtils qw/safe_reverse/;
 use File::Find::Rule;
-use IO::Dir;
 use Fcntl qw(:DEFAULT :flock);
 use Data::Dumper;
 use File::Basename qw/dirname/;
 use Smart::Comments;
 
 our $conf;
-our $yc = Yars::Client->new();
+our $yc;
 
 sub _is_empty_dir {
   # http://www.perlmonks.org/?node_id=617410
   my ($shortname, $path, $fullname) = @_;
-  my $dh = IO::Dir->new($fullname) or return;
-  my $count = scalar(grep{!/^\.\.?$/} $dh->read());
-  $dh->close();
+  my $dh;
+  opendir($dh, $fullname) || return;
+  my $count = scalar(grep{!/^\.\.?$/} readdir $dh);
+  closedir $dh;
   return($count==0);
 }
 
@@ -75,6 +76,7 @@ sub _unlock {
 sub upload_file {
     my $filename = shift;
     TRACE "Moving $filename";
+    $yc //= Yars::Client->new;
     $yc->upload('--nostash', 1, $filename) or do {
         WARN "Could not upload $filename : ".$yc->errorstring;
         return;
@@ -135,6 +137,7 @@ sub main {
 1;
 
 __END__
+
 =pod
 
 =head1 NAME
@@ -143,7 +146,7 @@ Yars::Command::yars_fast_balance - code for yars_fast_balance
 
 =head1 DESCRIPTION
 
-Tis module contains the machinery for the command line program L<yars_fast_balance>
+This module contains the machinery for the command line program L<yars_fast_balance>
 
 =head1 SEE ALSO
 

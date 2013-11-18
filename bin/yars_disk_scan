@@ -11,13 +11,15 @@ __END__
 
 =pod
 
+=encoding UTF-8
+
 =head1 NAME
 
 yars_disk_scan - scan a disk for corruption and report corrupt files to stdout
 
 =head1 VERSION
 
-version 0.88
+version 0.92
 
 =head1 SYNOPSIS
 
@@ -47,4 +49,3 @@ This is free software; you can redistribute it and/or modify it under
 the same terms as the Perl 5 programming language system itself.
 
 =cut
-

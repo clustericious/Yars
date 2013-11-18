@@ -11,16 +11,7 @@ use ExtUtils::MakeMaker 6.30;
 my %WriteMakefileArgs = (
   "ABSTRACT" => "Yet Another RESTful-Archive Service",
   "AUTHOR" => "Graham Ollis <plicease\@cpan.org>",
-  "BUILD_REQUIRES" => {
-    "Capture::Tiny" => 0,
-    "Mojo::JSON" => 0,
-    "Mojo::Loader" => 0,
-    "Mojo::Server::Daemon" => 0,
-    "Test::Clustericious::Cluster" => "0.08",
-    "Test::Clustericious::Log" => 0,
-    "Test::More" => 0,
-    "YAML::XS" => 0
-  },
+  "BUILD_REQUIRES" => {},
   "CONFIGURE_REQUIRES" => {
     "ExtUtils::MakeMaker" => "6.30"
   },
@@ -50,31 +41,66 @@ my %WriteMakefileArgs = (
     "List::MoreUtils" => 0,
     "Log::Log4perl" => 0,
     "Log::Log4perl::CommandLine" => 0,
-    "Mojolicious" => "3.86",
+    "Mojolicious" => "4.00",
     "Number::Bytes::Human" => "0.09",
     "Pod::Usage" => 0,
     "Smart::Comments" => 0,
     "Try::Tiny" => 0,
-    "Yars::Client" => "0.86"
+    "Yars::Client" => "0.90",
+    "autodie" => 0
   },
-  "VERSION" => "0.88",
+  "TEST_REQUIRES" => {
+    "Capture::Tiny" => 0,
+    "Test::Clustericious::Cluster" => "0.08",
+    "Test::Clustericious::Config" => 0,
+    "Test::Clustericious::Log" => 0,
+    "Test::More" => 0,
+    "YAML::XS" => 0
+  },
+  "VERSION" => "0.92",
   "test" => {
     "TESTS" => "t/*.t"
   }
 );
 
 
-unless ( eval { ExtUtils::MakeMaker->VERSION(6.56) } ) {
-  my $br = delete $WriteMakefileArgs{BUILD_REQUIRES};
-  my $pp = $WriteMakefileArgs{PREREQ_PM};
-  for my $mod ( keys %$br ) {
-    if ( exists $pp->{$mod} ) {
-      $pp->{$mod} = $br->{$mod} if $br->{$mod} > $pp->{$mod};
-    }
-    else {
-      $pp->{$mod} = $br->{$mod};
-    }
-  }
+my %FallbackPrereqs = (
+  "Capture::Tiny" => 0,
+  "Clustericious" => "0.9925",
+  "Clustericious::Commands" => 0,
+  "Clustericious::Config" => "0.21",
+  "Clustericious::Log" => "0.11",
+  "Digest::file" => 0,
+  "Fcntl" => 0,
+  "File::Find::Rule" => 0,
+  "File::HomeDir" => "0.91",
+  "File::Path" => 0,
+  "Filesys::Df" => 0,
+  "Getopt::Long" => 0,
+  "Hash::MoreUtils" => 0,
+  "JSON::XS" => 0,
+  "List::MoreUtils" => 0,
+  "Log::Log4perl" => 0,
+  "Log::Log4perl::CommandLine" => 0,
+  "Mojolicious" => "4.00",
+  "Number::Bytes::Human" => "0.09",
+  "Pod::Usage" => 0,
+  "Smart::Comments" => 0,
+  "Test::Clustericious::Cluster" => "0.08",
+  "Test::Clustericious::Config" => 0,
+  "Test::Clustericious::Log" => 0,
+  "Test::More" => 0,
+  "Try::Tiny" => 0,
+  "YAML::XS" => 0,
+  "Yars::Client" => "0.90",
+  "autodie" => 0
+);
+
+
+unless ( eval { ExtUtils::MakeMaker->VERSION(6.63_03) } ) {
+  delete $WriteMakefileArgs{TEST_REQUIRES};
+  delete $WriteMakefileArgs{BUILD_REQUIRES};
+  $WriteMakefileArgs{PREREQ_PM} = \%FallbackPrereqs;
 }
 
 delete $WriteMakefileArgs{CONFIGURE_REQUIRES}
