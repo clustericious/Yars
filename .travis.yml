@@ -9,7 +9,7 @@ install:
   - cpanm -n Test::Clustericious::Log Test::More Try::Tiny YAML::XS Yars::Client
   - cpanm -n Test::CPAN::Changes Test::EOL Test::Fixme Test::NoTabs Test::Pod::Spelling::CommonMistakes Test::Spelling Test::Strict Test::Version || true
 
-script: YC_LIVE_TESTS=1 dzip test -v
+script: YC_LIVE_TESTS=1 dzil test -v
 
 perl:
   - "5.19"
