@@ -2,6 +2,7 @@ package Yars;
 
 use strict;
 use warnings;
+use v5.10.1;
 use Mojo::Base 'Clustericious::App';
 use Yars::Routes;
 use Yars::Tools;
