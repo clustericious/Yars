@@ -1,6 +1,7 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+  - yars_generate_diskmap: ignore blank lines and allow # style comments in input
 
 0.92      2013-11-18 11:41:52 America/New_York
   - fix sloness of t/60_mark_down.t introduced in mojo 4.50

@@ -78,12 +78,14 @@ sub main {
     my @all;
     while (<>) {
         chomp;
+        s/#.*$//;        # remove comments
+        next if /^\s*$/; # skip empty lines
         my ($host,$disk) = split;
         my $port;
         $port = $1 if $host =~ s/:(\d+)$//;
         $host =~ tr/a-zA-Z0-9.\-//dc;
         $host = join ':', $host, $port if $port;
-        die "could not parse line : $_" unless $host && $disk;
+        die "could not parse line : \"$_\"" unless $host && $disk;
         $servers{$host}{$disk} = [];
         push @all, $servers{$host}{$disk};
     }
