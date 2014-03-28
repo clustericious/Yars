@@ -1,5 +1,11 @@
 Revision history for Yars
 
+0.93      2014-03-28 13:47:55 America/New_York
+  - yars_generate_diskmap: ignore blank lines and allow # style comments in input
+
+0.92      2013-11-18 11:41:52 America/New_York
+  - fix sloness of t/60_mark_down.t introduced in mojo 4.50
+
 0.91_02   2013-11-07 07:10:44 America/New_York
   - fix yars_fast_balance.pm so that perl -c works whithout config
 

@@ -1,4 +1,7 @@
 ---
+branches:
+  only:
+  - master
 install: perl Makefile.PL && make installdeps
 language: perl
 perl:
@@ -8,4 +11,4 @@ perl:
 - '5.14'
 - '5.12'
 - '5.10'
-script: HARNESS_IS_VERBOSE=1 YC_LIVE_TESTS=1 prove -lv t
+script: YC_LIVE_TESTS=1 dzil test -v

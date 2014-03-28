@@ -21,6 +21,7 @@ lib/Yars/Command/yars_fast_balance.pm
 lib/Yars/Command/yars_generate_diskmap.pm
 lib/Yars/Routes.pm
 lib/Yars/Tools.pm
+t/00_diag.pre.txt
 t/00_diag.t
 t/00_diag.txt
 t/00_use.t

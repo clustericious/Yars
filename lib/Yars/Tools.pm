@@ -25,7 +25,7 @@ use File::Spec;
 
 
 # ABSTRACT: various utility functions dealing with servers, hosts, etc
-our $VERSION = '0.91_02'; # VERSION
+our $VERSION = '0.93'; # VERSION
 
 
 sub new
@@ -437,7 +437,7 @@ Yars::Tools - various utility functions dealing with servers, hosts, etc
 
 =head1 VERSION
 
-version 0.91_02
+version 0.93
 
 =head1 DESCRIPTION
 

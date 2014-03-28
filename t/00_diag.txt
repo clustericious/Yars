@@ -6,8 +6,6 @@ Clustericious::Log
 Digest::file
 EV
 ExtUtils::MakeMaker
-Fcntl
-File::Find::Rule
 File::HomeDir
 File::Path
 Filesys::Df
@@ -19,7 +17,6 @@ Log::Log4perl
 Log::Log4perl::CommandLine
 Mojolicious
 Number::Bytes::Human
-Pod::Usage
 Smart::Comments
 Test::Clustericious::Cluster
 Test::Clustericious::Config
@@ -28,4 +25,3 @@ Test::More
 Try::Tiny
 YAML::XS
 Yars::Client
-autodie

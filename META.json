@@ -4,7 +4,7 @@
       "Graham Ollis <plicease@cpan.org>"
    ],
    "dynamic_config" : 0,
-   "generated_by" : "Dist::Zilla version 4.300021, CPAN::Meta::Converter version 2.120921",
+   "generated_by" : "Dist::Zilla version 5.006, CPAN::Meta::Converter version 2.120921",
    "license" : [
       "perl_5"
    ],
@@ -29,8 +29,6 @@
             "Clustericious::Config" : "0.21",
             "Clustericious::Log" : "0.11",
             "Digest::file" : "0",
-            "Fcntl" : "0",
-            "File::Find::Rule" : "0",
             "File::HomeDir" : "0.91",
             "File::Path" : "0",
             "Filesys::Df" : "0",
@@ -42,12 +40,10 @@
             "Log::Log4perl::CommandLine" : "0",
             "Mojolicious" : "4.00",
             "Number::Bytes::Human" : "0.09",
-            "Pod::Usage" : "0",
             "Smart::Comments" : "0",
             "Try::Tiny" : "0",
             "Yars::Client" : "0.90",
-            "autodie" : "0",
-            "perl" : "v5.10.0"
+            "perl" : "v5.10.1"
          }
       },
       "test" : {
@@ -61,7 +57,7 @@
          }
       }
    },
-   "release_status" : "testing",
+   "release_status" : "stable",
    "resources" : {
       "bugtracker" : {
          "web" : "https://github.com/plicease/yars/issues"
@@ -73,6 +69,6 @@
          "web" : "https://github.com/plicease/yars"
       }
    },
-   "version" : "0.91_02"
+   "version" : "0.93"
 }
 
