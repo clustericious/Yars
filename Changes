@@ -1,6 +1,8 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+
+0.93      2014-03-28 13:47:55 America/New_York
   - yars_generate_diskmap: ignore blank lines and allow # style comments in input
 
 0.92      2013-11-18 11:41:52 America/New_York
