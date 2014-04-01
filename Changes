@@ -1,6 +1,8 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+
+0.94      2014-04-01 12:21:16 America/New_York
   - fix missing dependency (File::Find::Rule)
   - remove dependency on Try::Tiny
 
