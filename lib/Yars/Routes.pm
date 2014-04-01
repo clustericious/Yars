@@ -14,7 +14,6 @@ use Clustericious::Log;
 use File::Path qw/mkpath/;
 use File::Temp;
 use Clustericious::RouteBuilder;
-use Try::Tiny;
 use Data::Dumper;
 use Filesys::Df qw/df/;
 use List::Util qw/shuffle/;
@@ -300,11 +299,11 @@ sub _atomic_write {
     TRACE "Writing $dir/$filename";
     # Write a file atomically.  Return 1 on success, 0 on failure.
     my $failed;
-    try {
+    eval {
         mkpath $dir; # dies on error
         $asset->move_to("$dir/$filename") or LOGDIE "failed to write $dir/$filename: $!";
-    } catch {
-        WARN "Could not write $dir/$filename : $_";
+    }; if($@) {
+        WARN "Could not write $dir/$filename : $@";
         $failed = 1;
     };
     return 0 if $failed;

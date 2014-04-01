@@ -10,7 +10,6 @@ use Clustericious::Log;
 use File::Find::Rule;
 use File::Basename qw/dirname/;
 use Data::Dumper;
-use Try::Tiny;
 use File::Path qw/mkpath/;
 use File::Temp;
 use File::Compare;
@@ -300,8 +299,8 @@ sub _touch {
     my $dir = dirname($path);
     -d $dir or do {
         my $ok;
-        try { mkpath($dir); $ok = 1; }
-        catch { WARN "mkpath $dir failed : $_;"; $ok = 0; };
+        eval { mkpath($dir); $ok = 1; };
+        if($@) { WARN "mkpath $dir failed : $@;"; $ok = 0; };
         return 0 unless $ok;
     };
     open my $fp, ">>$path" or return 0;
