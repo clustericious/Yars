@@ -6,10 +6,9 @@ Clustericious::Log
 Digest::file
 EV
 ExtUtils::MakeMaker
+File::Find::Rule
 File::HomeDir
-File::Path
 Filesys::Df
-Getopt::Long
 Hash::MoreUtils
 JSON::XS
 List::MoreUtils
@@ -22,6 +21,5 @@ Test::Clustericious::Cluster
 Test::Clustericious::Config
 Test::Clustericious::Log
 Test::More
-Try::Tiny
 YAML::XS
 Yars::Client

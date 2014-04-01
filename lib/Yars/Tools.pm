@@ -10,7 +10,6 @@ use Clustericious::Log;
 use File::Find::Rule;
 use File::Basename qw/dirname/;
 use Data::Dumper;
-use Try::Tiny;
 use File::Path qw/mkpath/;
 use File::Temp;
 use File::Compare;
@@ -25,7 +24,7 @@ use File::Spec;
 
 
 # ABSTRACT: various utility functions dealing with servers, hosts, etc
-our $VERSION = '0.93'; # VERSION
+our $VERSION = '0.94'; # VERSION
 
 
 sub new
@@ -244,8 +243,8 @@ sub _touch {
     my $dir = dirname($path);
     -d $dir or do {
         my $ok;
-        try { mkpath($dir); $ok = 1; }
-        catch { WARN "mkpath $dir failed : $_;"; $ok = 0; };
+        eval { mkpath($dir); $ok = 1; };
+        if($@) { WARN "mkpath $dir failed : $@;"; $ok = 0; };
         return 0 unless $ok;
     };
     open my $fp, ">>$path" or return 0;
@@ -437,7 +436,7 @@ Yars::Tools - various utility functions dealing with servers, hosts, etc
 
 =head1 VERSION
 
-version 0.93
+version 0.94
 
 =head1 DESCRIPTION
 

@@ -29,10 +29,9 @@
             "Clustericious::Config" : "0.21",
             "Clustericious::Log" : "0.11",
             "Digest::file" : "0",
+            "File::Find::Rule" : "0",
             "File::HomeDir" : "0.91",
-            "File::Path" : "0",
             "Filesys::Df" : "0",
-            "Getopt::Long" : "0",
             "Hash::MoreUtils" : "0",
             "JSON::XS" : "0",
             "List::MoreUtils" : "0",
@@ -41,7 +40,6 @@
             "Mojolicious" : "4.00",
             "Number::Bytes::Human" : "0.09",
             "Smart::Comments" : "0",
-            "Try::Tiny" : "0",
             "Yars::Client" : "0.90",
             "perl" : "v5.10.1"
          }
@@ -69,6 +67,6 @@
          "web" : "https://github.com/plicease/yars"
       }
    },
-   "version" : "0.93"
+   "version" : "0.94"
 }
 

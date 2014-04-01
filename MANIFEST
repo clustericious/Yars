@@ -5,12 +5,13 @@ MANIFEST
 META.json
 META.yml
 Makefile.PL
-README.md
+README
 bin/yars
 bin/yars_disk_scan
 bin/yars_fast_balance
 bin/yars_generate_diskmap
 dist.ini
+eg/README.md
 eg/Yars.conf
 eg/big_disk_map.conf
 eg/disk_map.conf

@@ -1,7 +1,7 @@
 package Yars::Routes;
 
 # ABSTRACT: set up the routes for Yars.
-our $VERSION = '0.93'; # VERSION
+our $VERSION = '0.94'; # VERSION
 
 
 use strict;
@@ -11,7 +11,6 @@ use Clustericious::Log;
 use File::Path qw/mkpath/;
 use File::Temp;
 use Clustericious::RouteBuilder;
-use Try::Tiny;
 use Data::Dumper;
 use Filesys::Df qw/df/;
 use List::Util qw/shuffle/;
@@ -282,11 +281,11 @@ sub _atomic_write {
     TRACE "Writing $dir/$filename";
     # Write a file atomically.  Return 1 on success, 0 on failure.
     my $failed;
-    try {
+    eval {
         mkpath $dir; # dies on error
         $asset->move_to("$dir/$filename") or LOGDIE "failed to write $dir/$filename: $!";
-    } catch {
-        WARN "Could not write $dir/$filename : $_";
+    }; if($@) {
+        WARN "Could not write $dir/$filename : $@";
         $failed = 1;
     };
     return 0 if $failed;
@@ -607,7 +606,7 @@ Yars::Routes - set up the routes for Yars.
 
 =head1 VERSION
 
-version 0.93
+version 0.94
 
 =head1 ROUTES
 

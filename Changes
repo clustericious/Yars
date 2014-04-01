@@ -1,5 +1,9 @@
 Revision history for Yars
 
+0.94      2014-04-01 12:21:16 America/New_York
+  - fix missing dependency (File::Find::Rule)
+  - remove dependency on Try::Tiny
+
 0.93      2014-03-28 13:47:55 America/New_York
   - yars_generate_diskmap: ignore blank lines and allow # style comments in input
 
