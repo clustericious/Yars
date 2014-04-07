@@ -50,7 +50,8 @@ sub main {
         INFO "Checking disk $root";
         File::Find::Rule->new->file->exec(sub {
              my $md5 = $File::Find::dir;
-             $md5 =~ s/^$root//;
+             my $root_re = quotemeta $root;
+             $md5 =~ s/^$root_re//;
              $md5 =~ s[/][]g;
              if ($md5 =~ /^tmp/) {
                 DEBUG "Skipping tmp file in $File::Find::dir";
