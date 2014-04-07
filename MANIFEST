@@ -1,10 +1,10 @@
 .travis.yml
+Build.PL
 Changes
 LICENSE
 MANIFEST
 META.json
 META.yml
-Makefile.PL
 README
 bin/yars
 bin/yars_disk_scan
@@ -14,6 +14,7 @@ dist.ini
 eg/Yars.conf
 eg/big_disk_map.conf
 eg/disk_map.conf
+inc/My/ModuleBuild.pm
 inc/Scripts.pm
 lib/Yars.pm
 lib/Yars/Command/yars_disk_scan.pm

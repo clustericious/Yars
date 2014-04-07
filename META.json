@@ -14,9 +14,14 @@
    },
    "name" : "Yars",
    "prereqs" : {
+      "build" : {
+         "requires" : {
+            "Module::Build" : "0.3601"
+         }
+      },
       "configure" : {
          "requires" : {
-            "ExtUtils::MakeMaker" : "6.30"
+            "Module::Build" : "0.3601"
          }
       },
       "runtime" : {
@@ -31,7 +36,6 @@
             "Digest::file" : "0",
             "File::Find::Rule" : "0",
             "File::HomeDir" : "0.91",
-            "Filesys::Df" : "0",
             "Hash::MoreUtils" : "0",
             "JSON::XS" : "0",
             "List::MoreUtils" : "0",
@@ -67,6 +71,6 @@
          "web" : "https://github.com/plicease/yars"
       }
    },
-   "version" : "0.95"
+   "version" : "0.96"
 }
 

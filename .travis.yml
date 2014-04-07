@@ -2,7 +2,7 @@
 branches:
   only:
   - master
-install: perl Makefile.PL && make installdeps
+install: perl Build.PL && ./Build installdeps
 language: perl
 perl:
 - '5.19'

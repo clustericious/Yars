@@ -1,5 +1,8 @@
 Revision history for Yars
 
+0.96      2014-04-07 12:59:27 America/New_York
+  - more portability fixes
+
 0.95      2014-04-07 11:04:22 America/New_York
   - fix test failure on Solaris (GH#10)
 

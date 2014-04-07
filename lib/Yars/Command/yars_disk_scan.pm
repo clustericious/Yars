@@ -2,7 +2,7 @@ package Yars::Command::yars_disk_scan;
 
 # PODNAME: yars_disk_scan
 # ABSTRACT: scan a disk for corruption and report corrupt files to stdout
-our $VERSION = '0.95'; # VERSION
+our $VERSION = '0.96'; # VERSION
 
 
 use strict;
@@ -39,7 +39,8 @@ sub main {
         INFO "Checking disk $root";
         File::Find::Rule->new->file->exec(sub {
              my $md5 = $File::Find::dir;
-             $md5 =~ s/^$root//;
+             my $root_re = quotemeta $root;
+             $md5 =~ s/^$root_re//;
              $md5 =~ s[/][]g;
              if ($md5 =~ /^tmp/) {
                 DEBUG "Skipping tmp file in $File::Find::dir";
