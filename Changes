@@ -1,5 +1,8 @@
 Revision history for Yars
 
+0.95      2014-04-07 11:04:22 America/New_York
+  - fix test failure on Solaris (GH#10)
+
 0.94      2014-04-01 12:21:16 America/New_York
   - fix missing dependency (File::Find::Rule)
   - remove dependency on Try::Tiny
