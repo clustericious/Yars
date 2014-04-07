@@ -2,19 +2,26 @@ use strict;
 use warnings;
 use Test::Clustericious::Config;
 use Test::Clustericious::Cluster;
-use Test::More tests => 59;
+use Test::More tests => 4;
 use Mojo::ByteStream qw( b );
 use File::stat;
 
-my $root = create_directory_ok "data";
-create_config_helper_ok data_dir => sub { $root };
+my $root;
+my $t;
+my $url;
 
-my $cluster = Test::Clustericious::Cluster->new;
-$cluster->create_cluster_ok(qw( Yars ));
-my $t = $cluster->t;
-my $url = $cluster->url;
+subtest 'prep' => sub {
+  plan tests => 4;
+  $root = create_directory_ok "data";
+  create_config_helper_ok data_dir => sub { $root };
+  my $cluster = Test::Clustericious::Cluster->new;
+  $cluster->create_cluster_ok(qw( Yars ));
+  $t = $cluster->t;
+  $url = $cluster->url;
+};
 
-{
+subtest 'basic' => sub {
+    plan tests => 29;
     my $content = 'Yabba Dabba Dooo!';
     my $digest = b($content)->md5_sum->to_string;
     my $file = 'fred.txt';
@@ -39,10 +46,10 @@ my $url = $cluster->url;
     like $t->tx->res->headers->content_type, qr{^text/plain(;.*)?$}, "Right content-type in HEAD";
     ok $t->tx->res->headers->last_modified, "last-modified is set";
     $t->delete_ok("$url/file/$file/$digest")->status_is(200);
-}
+};
 
-{
-    # Same filename, different content
+subtest 'Same filename, different content' => sub {
+    plan tests => 11;
     my $nyc = $t->put_ok("$url/file/houston", {}, "a street in nyc")->status_is(201)->tx->res->headers->location;
     my $tx = $t->put_ok("$url/file/houston", {}, "we have a problem")->status_is(201)->tx->res->headers->location;
     ok $nyc ne $tx, "Two locations";
@@ -50,10 +57,10 @@ my $url = $cluster->url;
     $t->get_ok($tx)->content_is("we have a problem");
     $t->delete_ok($nyc);
     $t->delete_ok($tx);
-}
+};
 
-{
-    # Same content, different filename
+subtest 'Same content, different filename' => sub {
+    plan tests => 15;
     my $content = "sugar filled soft drink that is bad for your teeth";
     my $md5 = b($content)->md5_sum;
     my $coke = $t->put_ok("$url/file/coke", {}, $content)->status_is(201)->tx->res->headers->location;
@@ -71,7 +78,7 @@ my $url = $cluster->url;
     is $coke_stat->ino, $pepsi_stat->ino, 'inode numbers are the same';
     $t->delete_ok($coke);
     $t->delete_ok($pepsi);
-}
+};
 
 __DATA__
 
