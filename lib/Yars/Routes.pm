@@ -29,6 +29,8 @@ BEGIN {
     require Filesys::DfPortable;
     *df = sub {
       my $df = Filesys::DfPortable::dfportable(@_);
+      $df->{used} = $df->{bused};
+      $df;
     };
   }
 }
