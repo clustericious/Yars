@@ -1,6 +1,8 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+
+0.97      2014-04-07 14:54:58 America/New_York
   - Fixed dynamic configuration bug introduced in
     version 0.96
 
