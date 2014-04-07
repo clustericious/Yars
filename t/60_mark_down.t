@@ -1,7 +1,7 @@
 use strict;
 use warnings;
-use Test::Clustericious::Config;
 use Test::Clustericious::Cluster;
+use Test::Clustericious::Config;
 use Test::More tests => 75;
 use Mojo::ByteStream qw( b );
 

@@ -1,6 +1,7 @@
 use strict;
 use warnings;
 use Test::Clustericious::Cluster;
+use Test::Clustericious::Config;
 use Test::More tests => 7;
 
 my $cluster = Test::Clustericious::Cluster->new;
