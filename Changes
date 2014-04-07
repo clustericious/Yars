@@ -1,5 +1,9 @@
 Revision history for Yars
 
+0.97      2014-04-07 14:54:58 America/New_York
+  - Fixed dynamic configuration bug introduced in
+    version 0.96
+
 0.96      2014-04-07 12:59:27 America/New_York
   - more portability fixes
 

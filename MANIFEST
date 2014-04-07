@@ -14,6 +14,7 @@ dist.ini
 eg/Yars.conf
 eg/big_disk_map.conf
 eg/disk_map.conf
+inc/DynamicConfig.pm
 inc/My/ModuleBuild.pm
 inc/Scripts.pm
 lib/Yars.pm
