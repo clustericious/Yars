@@ -1,9 +1,8 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
-  - mark dist as dynamic_config since it now requires
-    Filesys::Df or Filesys::DfPortable depending on
-    the platform
+  - Fixed dynamic configuration bug introduced in
+    version 0.96
 
 0.96      2014-04-07 12:59:27 America/New_York
   - more portability fixes
