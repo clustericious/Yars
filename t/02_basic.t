@@ -67,6 +67,7 @@ do {
 do {
   use autodie;
   open my $fh, '>', "$upload/second.txt";
+  binmode $fh;
   print $fh "and again \n";
   close $fh;
 };
@@ -78,6 +79,7 @@ ok -r "$download/second.txt", "file downloaded to correct location";
 do {
   use autodie;
   open my $fh, '<', "$download/second.txt";
+  binmode $fh;
   my $data = <$fh>;
   close $fh;
   
