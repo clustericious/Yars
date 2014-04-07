@@ -1,6 +1,7 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+  - fix test failure on Solaris (GH#10)
 
 0.94      2014-04-01 12:21:16 America/New_York
   - fix missing dependency (File::Find::Rule)

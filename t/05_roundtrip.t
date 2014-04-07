@@ -4,6 +4,7 @@ use Test::Clustericious::Config;
 use Test::Clustericious::Cluster;
 use Test::More tests => 59;
 use Mojo::ByteStream qw( b );
+use File::stat;
 
 my $root = create_directory_ok "data";
 create_config_helper_ok data_dir => sub { $root };
@@ -64,10 +65,10 @@ my $url = $cluster->url;
     ok -e $coke_file, "wrote $coke_file";
     my $pepsi_file = join '/', $root, ($md5 =~ /(..)/g), 'pepsi';
     ok -e $pepsi_file, "wrote $pepsi_file";
-    my @coke = split / /, `ls -i $coke_file`;
-    my @pepsi = split / /, `ls -i $pepsi_file`;
-    like $coke[0], qr/\d+/, "found inode number $coke[0]";
-    is $coke[0],$pepsi[0], 'inode numbers are the same';
+    my $coke_stat  = stat($coke_file);
+    my $pepsi_stat = stat($pepsi_file);
+    like $coke_stat->ino, qr/^\d+$/, "found inode number " . $coke_stat->ino;
+    is $coke_stat->ino, $pepsi_stat->ino, 'inode numbers are the same';
     $t->delete_ok($coke);
     $t->delete_ok($pepsi);
 }
