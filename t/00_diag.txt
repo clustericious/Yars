@@ -5,15 +5,14 @@ Clustericious::Config
 Clustericious::Log
 Digest::file
 EV
-ExtUtils::MakeMaker
 File::Find::Rule
 File::HomeDir
-Filesys::Df
 Hash::MoreUtils
 JSON::XS
 List::MoreUtils
 Log::Log4perl
 Log::Log4perl::CommandLine
+Module::Build
 Mojolicious
 Number::Bytes::Human
 Smart::Comments

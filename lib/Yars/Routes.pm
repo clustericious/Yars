@@ -15,11 +15,23 @@ use File::Path qw/mkpath/;
 use File::Temp;
 use Clustericious::RouteBuilder;
 use Data::Dumper;
-use Filesys::Df qw/df/;
+use if $^O ne 'MSWin32', 'Filesys::Df' => qw/df/;
 use List::Util qw/shuffle/;
 use List::MoreUtils qw/uniq/;
 use Digest::file qw/digest_file_hex/;
 use File::Basename qw/basename/;
+
+BEGIN {
+  if($^O eq 'MSWin32')
+  {
+    # Filesys::Df is not available for MSWin32,
+    # so we use Filesys::DfPortable on that platform
+    require Filesys::DfPortable;
+    *df = sub {
+      my $df = Filesys::DfPortable::dfportable(@_);
+    };
+  }
+}
 
 =head2 GET /
 
