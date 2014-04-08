@@ -2,7 +2,7 @@ package Yars::Command::yars_fast_balance;
 
 # PODNAME: yars_fast_balance
 # ABSTRACT: Fix all files
-our $VERSION = '0.97'; # VERSION
+our $VERSION = '0.97_01'; # VERSION
 
 
 use strict;

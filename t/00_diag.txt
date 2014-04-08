@@ -1,3 +1,4 @@
+Acme::Override::INET
 Capture::Tiny
 Clustericious
 Clustericious::Commands
@@ -8,6 +9,8 @@ EV
 File::Find::Rule
 File::HomeDir
 Hash::MoreUtils
+IO::Socket::INET
+IO::Socket::IP
 JSON::XS
 List::MoreUtils
 Log::Log4perl
