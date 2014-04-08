@@ -4,6 +4,7 @@ Clustericious
 Clustericious::Commands
 Clustericious::Config
 Clustericious::Log
+Digest::MD5
 Digest::file
 EV
 File::Find::Rule
