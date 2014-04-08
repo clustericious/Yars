@@ -1,8 +1,10 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+  - rm dep on Smart::Comments
 
 0.97_01   2014-04-08 11:16:00 America/New_York
+  - add additional diagnostics for testing
 
 0.97      2014-04-07 14:54:58 America/New_York
   - Fixed dynamic configuration bug introduced in

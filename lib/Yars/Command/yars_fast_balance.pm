@@ -34,7 +34,7 @@ use File::Find::Rule;
 use Fcntl qw(:DEFAULT :flock);
 use Data::Dumper;
 use File::Basename qw/dirname/;
-use Smart::Comments;
+#use Smart::Comments;
 
 our $conf;
 our $yc;
