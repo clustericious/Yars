@@ -2,7 +2,7 @@ package Yars::Command::yars_fast_balance;
 
 # PODNAME: yars_fast_balance
 # ABSTRACT: Fix all files
-our $VERSION = '0.97_01'; # VERSION
+our $VERSION = '0.98'; # VERSION
 
 
 use strict;
@@ -18,7 +18,7 @@ use File::Find::Rule;
 use Fcntl qw(:DEFAULT :flock);
 use Data::Dumper;
 use File::Basename qw/dirname/;
-use Smart::Comments;
+#use Smart::Comments;
 
 our $conf;
 our $yc;

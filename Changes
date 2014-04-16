@@ -1,6 +1,12 @@
 Revision history for Yars
 
+0.98      2014-04-16 03:19:23 America/New_York
+  - rm dep on Smart::Comments
+  - bump required Mojolicious to 4.31
+  - Mojolicious 4.93 compatability
+
 0.97_01   2014-04-08 11:16:00 America/New_York
+  - add additional diagnostics for testing
 
 0.97      2014-04-07 14:54:58 America/New_York
   - Fixed dynamic configuration bug introduced in

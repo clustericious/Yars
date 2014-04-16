@@ -1,7 +1,7 @@
 package Yars::Routes;
 
 # ABSTRACT: set up the routes for Yars.
-our $VERSION = '0.97_01'; # VERSION
+our $VERSION = '0.98'; # VERSION
 
 
 use strict;
@@ -75,6 +75,7 @@ sub _get {
     my $b64 = $c->tools->hex2b64($computed);
     $c->res->headers->add("Content-MD5", $b64);
     $c->app->static->paths([$dir])->serve($c,$filename);
+    _set_static_headers($c,"$dir/$filename");
     $c->rendered;
 };
 
@@ -620,7 +621,7 @@ Yars::Routes - set up the routes for Yars.
 
 =head1 VERSION
 
-version 0.97_01
+version 0.98
 
 =head1 ROUTES
 

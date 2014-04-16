@@ -26,7 +26,6 @@ requires:
   Clustericious::Commands: 0
   Clustericious::Config: 0.21
   Clustericious::Log: 0.11
-  Digest::file: 0
   File::Find::Rule: 0
   File::HomeDir: 0.91
   Hash::MoreUtils: 0
@@ -34,13 +33,12 @@ requires:
   List::MoreUtils: 0
   Log::Log4perl: 0
   Log::Log4perl::CommandLine: 0
-  Mojolicious: 4.00
+  Mojolicious: 4.31
   Number::Bytes::Human: 0.09
-  Smart::Comments: 0
   Yars::Client: 0.90
   perl: v5.10.1
 resources:
   bugtracker: https://github.com/plicease/yars/issues
   homepage: http://perl.wdlabs.com/Yars/
   repository: git://github.com/plicease/yars.git
-version: 0.97_01
+version: 0.98

@@ -22,17 +22,25 @@ $t->put_ok("$url/file/my_bin_file", {}, $content)
   ->status_is(201)
   ->content_is('ok');
 
+note 'content type = ', $t->tx->res->headers->content_type;
+
 $t->get_ok("$url/file/my_bin_file/$digest")
   ->content_is($content)
   ->status_is(200);
+
+note 'content type = ', $t->tx->res->headers->content_type;
 
 $t->delete_ok("$url/file/my_bin_file/$digest")
   ->status_is(200)
   ->content_is('ok');
 
+note 'content type = ', $t->tx->res->headers->content_type;
+
 $t->get_ok("$url/file/my_bin_file/$digest")
   ->status_is(404);
   
+note 'content type = ', $t->tx->res->headers->content_type;
+
 __DATA__
 
 @@ my_bin_file
