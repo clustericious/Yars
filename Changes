@@ -2,6 +2,8 @@ Revision history for {{$dist->name}}
 
 {{$NEXT}}
   - rm dep on Smart::Comments
+  - bump required Mojolicious to 4.31
+  - Mojolicious 4.93 compatability
 
 0.97_01   2014-04-08 11:16:00 America/New_York
   - add additional diagnostics for testing
