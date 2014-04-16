@@ -101,14 +101,9 @@ sub _set_static_headers {
     $rsh->content_length($size);
     $rsh->last_modified(Mojo::Date->new($modified));
     $rsh->accept_ranges('bytes');
-
-    $filepath =~ /\.(\w+)$/;
-    my $ext = $1;
-    if(defined $ext) {
-        $rsh->content_type($c->app->types->type($ext) || 'text/plain');
-    } else {
-        $rsh->content_type('text/plain');
-    }
+    my $types = $c->app->types;
+    my $type  = $filepath =~ /\.(\w+)$/ ? $types->type($1) : undef;
+    $c->res->headers->content_type($type || $types->type('bin'));
     return 1;
 }
 

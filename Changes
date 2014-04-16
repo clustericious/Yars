@@ -1,6 +1,9 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+  - make the content type be application/octet-stream 
+    instead of text/plain for files with unrecognized or
+    missing extensions
 
 0.98      2014-04-16 03:19:23 America/New_York
   - rm dep on Smart::Comments
