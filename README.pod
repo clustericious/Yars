@@ -1,14 +1,12 @@
 =pod
 
-=encoding UTF-8
-
 =head1 NAME
 
 Yars - Yet Another RESTful-Archive Service
 
 =head1 VERSION
 
-version 0.97_01
+version 0.98
 
 =head1 DESCRIPTION
 
