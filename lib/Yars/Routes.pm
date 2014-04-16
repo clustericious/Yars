@@ -88,6 +88,7 @@ sub _get {
     my $b64 = $c->tools->hex2b64($computed);
     $c->res->headers->add("Content-MD5", $b64);
     $c->app->static->paths([$dir])->serve($c,$filename);
+    _set_static_headers($c,"$dir/$filename");
     $c->rendered;
 };
 
