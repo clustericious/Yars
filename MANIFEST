@@ -58,4 +58,5 @@ xt/release/pod_spelling_common.t
 xt/release/pod_spelling_system.t
 xt/release/release.yml
 xt/release/strict.t
+xt/release/unused_vars.t
 xt/release/version.t

@@ -2,7 +2,7 @@ use strict;
 use warnings;
 use Test::Clustericious::Cluster;
 use Test::Clustericious::Config;
-use Test::More tests => 14;
+use Test::More tests => 15;
 use Mojo::ByteStream qw( b );
 use Mojo::Loader;
 
@@ -22,24 +22,17 @@ $t->put_ok("$url/file/my_bin_file", {}, $content)
   ->status_is(201)
   ->content_is('ok');
 
-note 'content type = ', $t->tx->res->headers->content_type;
-
 $t->get_ok("$url/file/my_bin_file/$digest")
   ->content_is($content)
-  ->status_is(200);
-
-note 'content type = ', $t->tx->res->headers->content_type;
+  ->status_is(200)
+  ->content_type_is('application/octet-stream');
 
 $t->delete_ok("$url/file/my_bin_file/$digest")
   ->status_is(200)
   ->content_is('ok');
 
-note 'content type = ', $t->tx->res->headers->content_type;
-
 $t->get_ok("$url/file/my_bin_file/$digest")
   ->status_is(404);
-  
-note 'content type = ', $t->tx->res->headers->content_type;
 
 __DATA__
 

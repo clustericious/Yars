@@ -17,7 +17,7 @@ my %module_build_args = (
     "Graham Ollis <plicease\@cpan.org>"
   ],
   "dist_name" => "Yars",
-  "dist_version" => "0.98",
+  "dist_version" => "0.99",
   "license" => "perl",
   "module_name" => "Yars",
   "recommends" => {

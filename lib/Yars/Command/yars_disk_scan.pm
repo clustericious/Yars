@@ -2,7 +2,7 @@ package Yars::Command::yars_disk_scan;
 
 # PODNAME: yars_disk_scan
 # ABSTRACT: scan a disk for corruption and report corrupt files to stdout
-our $VERSION = '0.98'; # VERSION
+our $VERSION = '0.99'; # VERSION
 
 
 use strict;
@@ -17,7 +17,7 @@ use Getopt::Long qw( GetOptions );
 use Pod::Usage qw( pod2usage );
 
 sub main {
-    my $class = shift;
+    #my $class = shift;
     my $status = 0;
     my $conf = Clustericious::Config->new("Yars");
     my $opt_all = 0;

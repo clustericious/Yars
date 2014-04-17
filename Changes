@@ -1,5 +1,14 @@
 Revision history for Yars
 
+0.99      2014-04-17 03:55:54 America/New_York
+  - arguments to Yars::Tools->remote_stashed_server has changed
+  - turn off IPv6 and SSL for t/40_hostfail.t
+    see https://github.com/plicease/Test-Clustericious-Cluster/issues/3
+    for details
+  - make the content type be application/octet-stream 
+    instead of text/plain for files with unrecognized or
+    missing extensions
+
 0.98      2014-04-16 03:19:23 America/New_York
   - rm dep on Smart::Comments
   - bump required Mojolicious to 4.31

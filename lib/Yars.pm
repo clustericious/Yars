@@ -12,7 +12,7 @@ use Log::Log4perl qw(:easy);
 use Number::Bytes::Human qw( format_bytes parse_bytes );
 
 # ABSTRACT: Yet Another RESTful-Archive Service
-our $VERSION = '0.98'; # VERSION
+our $VERSION = '0.99'; # VERSION
 
 
 has secret => rand;
@@ -34,7 +34,8 @@ sub startup {
 
     $self->hook(
         after_build_tx => sub {
-            my ( $tx, $app ) = @_;
+            # my($tx,$app) = @_;
+            my ( $tx ) = @_;
             $tx->req->max_message_size($max_size);
             $tx->req->content->on(body => sub {
                     my $content = shift;
@@ -46,8 +47,8 @@ sub startup {
                     -w $tmpdir or chmod 0777, $tmpdir;
                     $content->asset->on(
                         upgrade => sub {
-                            my ( $mem, $file ) = @_;
-                            $file->tmpdir($tmpdir);
+                            #my ( $mem, $file ) = @_;
+                            $_[1]->tmpdir($tmpdir);
                         }
                     );
                 }
@@ -149,7 +150,7 @@ Yars - Yet Another RESTful-Archive Service
 
 =head1 VERSION
 
-version 0.98
+version 0.99
 
 =head1 DESCRIPTION
 

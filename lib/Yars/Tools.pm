@@ -24,7 +24,7 @@ use File::Spec;
 
 
 # ABSTRACT: various utility functions dealing with servers, hosts, etc
-our $VERSION = '0.98'; # VERSION
+our $VERSION = '0.99'; # VERSION
 
 
 sub new
@@ -307,7 +307,7 @@ sub storage_path {
 
 sub remote_stashed_server {
     my $self = shift;
-    my ($c,$filename,$digest) = @_;
+    my ($filename,$digest) = @_;
 
     my $assigned_server = $self->server_for($digest);
     # TODO broadcast these requests all at once
@@ -436,7 +436,7 @@ Yars::Tools - various utility functions dealing with servers, hosts, etc
 
 =head1 VERSION
 
-version 0.98
+version 0.99
 
 =head1 DESCRIPTION
 

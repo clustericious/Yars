@@ -1,7 +1,7 @@
 package Yars::Routes;
 
 # ABSTRACT: set up the routes for Yars.
-our $VERSION = '0.98'; # VERSION
+our $VERSION = '0.99'; # VERSION
 
 
 use strict;
@@ -88,14 +88,9 @@ sub _set_static_headers {
     $rsh->content_length($size);
     $rsh->last_modified(Mojo::Date->new($modified));
     $rsh->accept_ranges('bytes');
-
-    $filepath =~ /\.(\w+)$/;
-    my $ext = $1;
-    if(defined $ext) {
-        $rsh->content_type($c->app->types->type($ext) || 'text/plain');
-    } else {
-        $rsh->content_type('text/plain');
-    }
+    my $types = $c->app->types;
+    my $type  = $filepath =~ /\.(\w+)$/ ? $types->type($1) : undef;
+    $c->res->headers->content_type($type || $types->type('bin'));
     return 1;
 }
 
@@ -147,7 +142,7 @@ sub _get_from_local_stash {
 sub _redirect_to_remote_stash {
     my ($c,$filename,$digest) = @_;
     DEBUG "Checking remote stashes";
-    if (my $server = $c->tools->remote_stashed_server($c,$filename,$digest)) {
+    if (my $server = $c->tools->remote_stashed_server($filename,$digest)) {
         $c->res->headers->location("$server/file/$digest/$filename");
         $c->res->headers->content_length(0);
         $c->rendered(307);
@@ -382,7 +377,7 @@ sub _del {
             return $c->render(status => 200, text =>'ok');
         }
 
-        $server = $c->tools->remote_stashed_server($c,$md5,$filename);
+        $server = $c->tools->remote_stashed_server($md5,$filename);
         return $c->render_not_found unless $server;
         # otherwise fall through...
     }
@@ -528,7 +523,7 @@ post '/check/manifest' => sub {
     my @not_missing;
     for my $m (@$missing) {
         my $found = $c->tools->local_stashed_dir( $m->{filename}, $m->{md5} )
-         || $c->tools->remote_stashed_server( $c, $m->{filename}, $m->{md5} );
+         || $c->tools->remote_stashed_server( $m->{filename}, $m->{md5} );
         if ($found) {
             push @not_missing, $m;
         } else {
@@ -621,7 +616,7 @@ Yars::Routes - set up the routes for Yars.
 
 =head1 VERSION
 
-version 0.98
+version 0.99
 
 =head1 ROUTES
 
