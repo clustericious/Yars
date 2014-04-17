@@ -1,6 +1,7 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+  - arguments to Yars::Tools->remote_stashed_server has changed
   - turn off IPv6 and SSL for t/40_hostfail.t
     see https://github.com/plicease/Test-Clustericious-Cluster/issues/3
     for details

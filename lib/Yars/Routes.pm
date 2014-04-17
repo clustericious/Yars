@@ -155,7 +155,7 @@ sub _get_from_local_stash {
 sub _redirect_to_remote_stash {
     my ($c,$filename,$digest) = @_;
     DEBUG "Checking remote stashes";
-    if (my $server = $c->tools->remote_stashed_server($c,$filename,$digest)) {
+    if (my $server = $c->tools->remote_stashed_server($filename,$digest)) {
         $c->res->headers->location("$server/file/$digest/$filename");
         $c->res->headers->content_length(0);
         $c->rendered(307);
@@ -400,7 +400,7 @@ sub _del {
             return $c->render(status => 200, text =>'ok');
         }
 
-        $server = $c->tools->remote_stashed_server($c,$md5,$filename);
+        $server = $c->tools->remote_stashed_server($md5,$filename);
         return $c->render_not_found unless $server;
         # otherwise fall through...
     }
@@ -567,7 +567,7 @@ post '/check/manifest' => sub {
     my @not_missing;
     for my $m (@$missing) {
         my $found = $c->tools->local_stashed_dir( $m->{filename}, $m->{md5} )
-         || $c->tools->remote_stashed_server( $c, $m->{filename}, $m->{md5} );
+         || $c->tools->remote_stashed_server( $m->{filename}, $m->{md5} );
         if ($found) {
             push @not_missing, $m;
         } else {

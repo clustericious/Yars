@@ -41,7 +41,8 @@ our $yc;
 
 sub _is_empty_dir {
   # http://www.perlmonks.org/?node_id=617410
-  my ($shortname, $path, $fullname) = @_;
+  #my ($shortname, $path, $fullname) = @_;
+  my $fullname = $_[2];
   my $dh;
   opendir($dh, $fullname) || return;
   my $count = scalar(grep{!/^\.\.?$/} readdir $dh);
@@ -140,7 +141,7 @@ sub check_disk {
 }
 
 sub main {
-    my $class = shift;
+    #my $class = shift;
     $conf = Clustericious::Config->new("Yars");
     my @disks = map $_->{root}, map @{ $_->{disks} }, $conf->servers;
     LOGDIE "No disks" unless @disks;

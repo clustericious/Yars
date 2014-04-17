@@ -188,7 +188,8 @@ sub startup {
 
     $self->hook(
         after_build_tx => sub {
-            my ( $tx, $app ) = @_;
+            # my($tx,$app) = @_;
+            my ( $tx ) = @_;
             $tx->req->max_message_size($max_size);
             $tx->req->content->on(body => sub {
                     my $content = shift;
@@ -200,8 +201,8 @@ sub startup {
                     -w $tmpdir or chmod 0777, $tmpdir;
                     $content->asset->on(
                         upgrade => sub {
-                            my ( $mem, $file ) = @_;
-                            $file->tmpdir($tmpdir);
+                            #my ( $mem, $file ) = @_;
+                            $_[1]->tmpdir($tmpdir);
                         }
                     );
                 }

@@ -393,7 +393,7 @@ Parameters :
 
 sub remote_stashed_server {
     my $self = shift;
-    my ($c,$filename,$digest) = @_;
+    my ($filename,$digest) = @_;
 
     my $assigned_server = $self->server_for($digest);
     # TODO broadcast these requests all at once
