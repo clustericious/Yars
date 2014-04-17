@@ -1,6 +1,9 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+  - turn off IPv6 and SSL for t/40_hostfail.t
+    see https://github.com/plicease/Test-Clustericious-Cluster/issues/3
+    for details
   - make the content type be application/octet-stream 
     instead of text/plain for files with unrecognized or
     missing extensions

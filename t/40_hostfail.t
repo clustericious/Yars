@@ -1,3 +1,4 @@
+BEGIN { $ENV{MOJO_NO_IPV6} = 1; $ENV{MOJO_NO_TLS} = 1; }
 use strict;
 use warnings;
 use v5.10;
