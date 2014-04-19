@@ -1,6 +1,8 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+
+1.00      2014-04-19 08:18:09 America/New_York
   - more robust checking for t/40_hostfail.t
 
 0.99      2014-04-17 03:55:54 America/New_York
