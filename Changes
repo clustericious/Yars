@@ -1,6 +1,7 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+  - more robust checking for t/40_hostfail.t
 
 0.99      2014-04-17 03:55:54 America/New_York
   - arguments to Yars::Tools->remote_stashed_server has changed

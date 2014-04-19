@@ -1,14 +1,20 @@
-BEGIN { $ENV{MOJO_NO_IPV6} = 1; $ENV{MOJO_NO_TLS} = 1; }
 use strict;
 use warnings;
+BEGIN { $ENV{MOJO_NO_IPV6} = 1; $ENV{MOJO_NO_TLS} = 1; }
 use v5.10;
 use Test::Clustericious::Log diag => 'NONE';
 use Test::Clustericious::Config;
 use Test::Clustericious::Cluster;
-use Test::More tests => 375;
+use Test::More;
 use Mojo::ByteStream qw( b );
 use Mojo::Loader;
 use Mojo::JSON;
+use IO::Socket::INET;
+
+plan skip_all => 'cannot turn off Mojo IPv6'
+  if IO::Socket::INET->isa('IO::Socket::IP');
+
+plan tests => 375;
 
 $ENV{LOG_LEVEL} = 'FATAL';
 
