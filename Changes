@@ -1,5 +1,8 @@
 Revision history for Yars
 
+1.00      2014-04-19 08:18:09 America/New_York
+  - more robust checking for t/40_hostfail.t
+
 0.99      2014-04-17 03:55:54 America/New_York
   - arguments to Yars::Tools->remote_stashed_server has changed
   - turn off IPv6 and SSL for t/40_hostfail.t
