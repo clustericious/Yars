@@ -1,5 +1,8 @@
 Revision history for Yars
 
+1.01      2014-10-06 12:29:38 America/New_York
+  - added --lock option for yars_disk_scan
+
 1.00      2014-04-19 08:18:09 America/New_York
   - more robust checking for t/40_hostfail.t
 

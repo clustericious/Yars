@@ -2,7 +2,7 @@ package Yars::Command::yars_disk_scan;
 
 # PODNAME: yars_disk_scan
 # ABSTRACT: scan a disk for corruption and report corrupt files to stdout
-our $VERSION = '1.00'; # VERSION
+our $VERSION = '1.01'; # VERSION
 
 
 use strict;
@@ -15,16 +15,19 @@ use File::Find::Rule;
 use Digest::file qw/digest_file_hex/;
 use Getopt::Long qw( GetOptions );
 use Pod::Usage qw( pod2usage );
+use Fcntl ':flock';
 
 sub main {
     #my $class = shift;
     my $status = 0;
     my $conf = Clustericious::Config->new("Yars");
     my $opt_all = 0;
+    my $opt_lock;
     local @ARGV = @_;
     GetOptions(
         'all|a'   => \$opt_all,
         'help|h'  => sub { pod2usage({ -verbose => 2}) },
+        'lock=s'  => \$opt_lock,
         'version' => sub {
             say 'Yars version ', ($Yars::VERSION // 'dev');
             exit 1;
@@ -32,6 +35,17 @@ sub main {
     ) || pod2usage(1);
     my @disks = $opt_all ? (map $_->{root}, map @{ $_->{disks} }, $conf->servers) : (@ARGV);
     LOGDIE "Usage : $0 [-a] [disk1] [disk2] ...\n" unless @disks;
+    
+    if($opt_lock) {
+        use autodie;
+        state $fh;
+        open $fh, '>', $opt_lock;
+        unless(flock $fh, LOCK_EX | LOCK_NB) {
+            INFO "There is already a scan in process...";
+            return 0;
+        }
+    }
+    
     for my $root (@disks) {
         -d $root or next;
         -r $root or next;

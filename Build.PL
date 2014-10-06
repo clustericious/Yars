@@ -17,7 +17,7 @@ my %module_build_args = (
     "Graham Ollis <plicease\@cpan.org>"
   ],
   "dist_name" => "Yars",
-  "dist_version" => "1.00",
+  "dist_version" => "1.01",
   "license" => "perl",
   "module_name" => "Yars",
   "recommends" => {
@@ -43,9 +43,9 @@ my %module_build_args = (
   },
   "script_files" => [
     "bin/yars",
+    "bin/yars_fast_balance",
     "bin/yars_generate_diskmap",
-    "bin/yars_disk_scan",
-    "bin/yars_fast_balance"
+    "bin/yars_disk_scan"
   ],
   "test_requires" => {
     "Capture::Tiny" => 0,
