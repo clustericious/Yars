@@ -79,7 +79,7 @@ sub _get {
         return
              _get_from_local_stash( $c, $filename, $md5 )
           || _redirect_to_remote_stash( $c, $filename, $md5 )
-          || $c->reply->not_found;
+          || $c->render_not_found;
     };
     my $computed = digest_file_hex("$dir/$filename",'MD5');
     unless ($computed eq $md5) {
@@ -124,7 +124,7 @@ sub _head {
             _set_static_headers($c,"$found_dir/$filename");
             return $c->render(status => 200, text => 'found');
         }
-        return $c->reply->not_found if $check_stash;
+        return $c->render_not_found if $check_stash;
         return $c->render_moved("$url/file/$md5/$filename");
     }
 
@@ -132,7 +132,7 @@ sub _head {
     my $dir = $c->tools->storage_path($md5);
     my $found_dir = -r "$dir/$filename" ? $dir : undef;
     $found_dir ||= $c->tools->local_stashed_dir( $filename, $md5 );
-    return $c->reply->not_found unless ( $found_dir or _redirect_to_remote_stash($c, $filename, $md5 ) );
+    return $c->render_not_found unless ( $found_dir or _redirect_to_remote_stash($c, $filename, $md5 ) );
     _set_static_headers($c,"$found_dir/$filename");
     $c->render( status => 200, text => 'found' );
 }
@@ -197,7 +197,7 @@ put '/file/#filename/:md5' => { md5 => 'calculate' } => sub {
     if ($c->req->headers->header('X-Yars-Stash')) {
         DEBUG "Stashing a file that is not ours : $digest $filename";
         _stash_locally($c, $filename, $digest, $asset) and return;
-        return $c->reply->exception("Cannot stash $filename locally");
+        return $c->render_exception("Cannot stash $filename locally");
     }
 
     DEBUG "Received NoStash for $filename" if $c->req->headers->header('X-Yars-NoStash');
@@ -396,13 +396,13 @@ sub _del {
         DEBUG "This is our file, we will delete it.";
         my $dir  = $c->tools->storage_path( $md5 );
         if (-r "$dir/$filename" || ($dir = $c->tools->local_stashed_dir($filename,$md5))) {
-            unlink "$dir/$filename" or return $c->reply->exception($!);
+            unlink "$dir/$filename" or return $c->render_exception($!);
             $c->tools->cleanup_tree($dir);
             return $c->render(status => 200, text =>'ok');
         }
 
         $server = $c->tools->remote_stashed_server($md5,$filename);
-        return $c->reply->not_found unless $server;
+        return $c->render_not_found unless $server;
         # otherwise fall through...
     }
 
@@ -413,7 +413,7 @@ sub _del {
     } else  {
         my ($msg,$code) = $tx->error;
         return $c->render(status => $code, text => $msg) if $code;
-        return $c->reply->exception("Error deleting from $server ".$tx->error);
+        return $c->render_exception("Error deleting from $server ".$tx->error);
     }
 };
 
@@ -478,7 +478,7 @@ post '/disk/status' => sub {
     my $c = shift;
     my $got = $c->parse_autodata;
     my $root = $got->{root} || $got->{disk};
-    my $state = $got->{state} or return $c->reply->exception("no state found in request");
+    my $state = $got->{state} or return $c->render_exception("no state found in request");
     my $server = $got->{server};
     if ($server && $server ne $c->tools->server_url) {
         unless ($c->tools->server_exists($server)) {
@@ -488,7 +488,7 @@ post '/disk/status' => sub {
         my $tx = $c->tools->_ua->post("$server/disk/status", $c->req->headers->to_hash, ''.$c->req->body );
         return $c->render_text( $tx->success ? $tx->res->body : 'failed '.$tx->error );
     }
-    $c->tools->disk_is_local($root) or return $c->reply->exception("Disk $root is not on ".$c->tools->server_url);
+    $c->tools->disk_is_local($root) or return $c->render_exception("Disk $root is not on ".$c->tools->server_url);
     my $success;
     for ($state) {
         /down/ and $success = $c->tools->mark_disk_down($root);

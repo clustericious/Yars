@@ -1,7 +1,6 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
-  - Avoid mojo 6.x deprecations
 
 1.02      2014-12-09 10:05:54 America/New_York
   - use Mojo::JSON's new API
