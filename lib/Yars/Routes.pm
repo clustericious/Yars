@@ -1,7 +1,7 @@
 package Yars::Routes;
 
 # ABSTRACT: set up the routes for Yars.
-our $VERSION = '1.01'; # VERSION
+our $VERSION = '1.02'; # VERSION
 
 
 use strict;
@@ -17,6 +17,7 @@ use List::Util qw/shuffle/;
 use List::MoreUtils qw/uniq/;
 use Digest::file qw/digest_file_hex/;
 use File::Basename qw/basename/;
+use Mojo::JSON qw( encode_json );
 
 BEGIN {
   if($^O eq 'MSWin32')
@@ -502,7 +503,7 @@ post '/check/manifest' => sub {
 
     for my $server (keys %remote) {
         TRACE "Looking for manifest files on $server";
-        my $content = Mojo::JSON->new->encode({ files => $remote{$server} });
+        my $content = encode_json { files => $remote{$server} };
         my $tx = $c->tools->_ua->post(
             "$server/check/manifest?show_found=1&show_corrupt=".($c->param("show_corrupt")//''),
             { "Content-type" => "application/json", "Connection" => "Close" }, $content );
@@ -616,7 +617,7 @@ Yars::Routes - set up the routes for Yars.
 
 =head1 VERSION
 
-version 1.01
+version 1.02
 
 =head1 ROUTES
 

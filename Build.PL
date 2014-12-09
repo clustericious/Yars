@@ -17,7 +17,7 @@ my %module_build_args = (
     "Graham Ollis <plicease\@cpan.org>"
   ],
   "dist_name" => "Yars",
-  "dist_version" => "1.01",
+  "dist_version" => "1.02",
   "license" => "perl",
   "module_name" => "Yars",
   "recommends" => {
@@ -36,7 +36,7 @@ my %module_build_args = (
     "List::MoreUtils" => 0,
     "Log::Log4perl" => 0,
     "Log::Log4perl::CommandLine" => 0,
-    "Mojolicious" => "4.31",
+    "Mojolicious" => "5.48",
     "Number::Bytes::Human" => "0.09",
     "Yars::Client" => "0.90",
     "perl" => "v5.10.1"

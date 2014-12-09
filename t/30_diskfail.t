@@ -7,7 +7,7 @@ use Test::More tests => 916;
 use Mojo::ByteStream qw( b );
 use Mojo::Loader;
 use File::Find::Rule;
-use Mojo::JSON;
+use Mojo::JSON qw( decode_json );
 
 $ENV{LOG_LEVEL} = 'FATAL';
 
@@ -40,7 +40,7 @@ my $i = 0;
 my @contents = do {
   my $loader = Mojo::Loader->new;
   $loader->load('main');
-  map { $_ x 5000 } @{ Mojo::JSON->new->decode($loader->data('main', 'test_data.json')) };
+  map { $_ x 5000 } @{ decode_json($loader->data('main', 'test_data.json')) };
 };
 my @locations;
 my @md5s;

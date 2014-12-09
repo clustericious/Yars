@@ -5,6 +5,7 @@ use Test::Clustericious::Cluster;
 use Test::More tests => 31;
 use Mojo::ByteStream qw( b );
 use Digest::file qw/digest_file_hex/;
+use Mojo::JSON qw( encode_json );
 
 my $root = create_directory_ok 'data';
 create_config_helper_ok data_dir => sub { $root };
@@ -33,12 +34,10 @@ my $manifest = join "\n", map "$md5s[$_]  some/stuff/$filenames[$_]", 0..$count-
 $manifest .= "\n";
 $manifest .= join "\n", map "$missing_md5s[$_]  not/there/$missing_filenames[$_]", 0..5;
 
-my $j = Mojo::JSON->new();
-
 $t->post_ok(
     "$url/check/manifest?show_found=1",
     { "Content-Type" => "application/json" },
-    $j->encode( { manifest => $manifest } )
+    encode_json( { manifest => $manifest } )
 )->status_is(200)
  ->json_is('', {
     missing => [ map +{ filename => $missing_filenames[$_], md5 => $missing_md5s[$_] }, 0..5 ],
@@ -58,7 +57,7 @@ $corrupt_md5 = digest_file_hex($corrupt_path,'MD5');
 $t->post_ok(
     "$url/check/manifest?show_found=1&show_corrupt=1",
     { "Content-Type" => "application/json" },
-    $j->encode( { manifest => $manifest } )
+    encode_json( { manifest => $manifest } )
 )->status_is(200)
  ->json_is('', {
     missing => [ map +{ filename => $missing_filenames[$_], md5 => $missing_md5s[$_] }, 0..5 ],

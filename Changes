@@ -1,5 +1,9 @@
 Revision history for Yars
 
+1.02      2014-12-09 10:05:54 America/New_York
+  - use Mojo::JSON's new API
+    the older OO API was deprecated
+
 1.01      2014-10-06 12:29:38 America/New_York
   - added --lock option for yars_disk_scan
 

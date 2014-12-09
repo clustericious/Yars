@@ -8,7 +8,7 @@ use Test::Clustericious::Cluster;
 use Test::More;
 use Mojo::ByteStream qw( b );
 use Mojo::Loader;
-use Mojo::JSON;
+use Mojo::JSON qw( decode_json );
 use IO::Socket::INET;
 
 plan skip_all => 'cannot turn off Mojo IPv6'
@@ -48,7 +48,7 @@ my $i = 0;
 my @contents = do {
   my $loader = Mojo::Loader->new;
   $loader->load('main');
-  @{ Mojo::JSON->new->decode($loader->data('main', 'test_data.json')) };
+  @{ decode_json($loader->data('main', 'test_data.json')) };
 };
 my @locations;
 my %assigned; # server => { disk => count }
