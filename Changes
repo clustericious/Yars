@@ -1,6 +1,8 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+
+1.02      2014-12-09 10:05:54 America/New_York
   - use Mojo::JSON's new API
     the older OO API was deprecated
 
