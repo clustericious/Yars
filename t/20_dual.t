@@ -5,6 +5,7 @@ use Test::Clustericious::Cluster;
 use Test::More tests => 105;
 use Mojo::ByteStream qw( b );
 use Mojo::Loader;
+use Mojo::JSON qw( encode_json );
 
 $ENV{LOG_LEVEL} = 'FATAL';
 
@@ -89,7 +90,7 @@ for my $url (@locations) {
 $manifest .= "11f488c161221e8a0d689202bc8ce5cd  dummy\n";
 
 my $tx = $t->ua->post( "$url[0]/check/manifest?show_found=1", { "Content-Type" => "application/json" },
-    Mojo::JSON->new->encode( { manifest => $manifest } ) );
+    encode_json( { manifest => $manifest } ) );
 my $res = $tx->success;
 ok $res, "posted to manifest";
 is $res->code, 200, "got 200 for manifest";

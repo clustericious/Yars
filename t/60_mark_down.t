@@ -4,6 +4,7 @@ use Test::Clustericious::Cluster;
 use Test::Clustericious::Config;
 use Test::More tests => 75;
 use Mojo::ByteStream qw( b );
+use Mojo::JSON qw( encode_json );
 
 my $test_files = 20;
 my $root = create_directory_ok 'data';
@@ -19,7 +20,7 @@ my $url = $cluster->url;
 sub _mark_down {
   my $t = shift;
   my $which = shift;
-  $t->post_ok("$url/disk/status", { "Content-Type" => "application/json" }, Mojo::JSON->new->encode( { root => "$root/$which", "state" => "down" }))
+  $t->post_ok("$url/disk/status", { "Content-Type" => "application/json" }, encode_json( { root => "$root/$which", "state" => "down" }))
     ->status_is(200)
     ->content_like(qr/ok/);
 }
@@ -85,7 +86,7 @@ TODO: {
   is $json->{"$root/$_"}{count}, 0 for qw/three four five/;
 
   # Ensure an invalid host causes an exception, not a request loop
-  $t->post_ok("$url/disk/status", { "Content-Type" => "application/json" }, Mojo::JSON->new->encode( { server => "http://101.010.0.0", root => "foo/bar", "state" => "up" }))
+  $t->post_ok("$url/disk/status", { "Content-Type" => "application/json" }, encode_json( { server => "http://101.010.0.0", root => "foo/bar", "state" => "up" }))
     ->status_is(400);
 }
 
