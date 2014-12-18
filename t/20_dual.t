@@ -6,6 +6,7 @@ use Test::More tests => 105;
 use Mojo::ByteStream qw( b );
 use Mojo::Loader;
 use Mojo::JSON qw( encode_json );
+use Yars::Util qw( format_tx_error );
 
 $ENV{LOG_LEVEL} = 'FATAL';
 
@@ -106,7 +107,7 @@ for my $url (@locations) {
     {
         my $tx = $t->ua->delete("$url[0]/file/$md5/$filename");
         ok $tx->success, "delete $url[0]/file/$md5/$filename";
-        diag join ',',$tx->error if $tx->error;
+        diag format_tx_error($tx->error) if $tx->error;
     }
     {
         my $tx = $t->ua->get("$url[0]/file/$md5/$filename");

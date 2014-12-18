@@ -10,6 +10,7 @@ use Mojo::ByteStream qw( b );
 use Mojo::Loader;
 use Mojo::JSON qw( decode_json );
 use IO::Socket::INET;
+use Yars::Util qw( format_tx_error );
 
 plan skip_all => 'cannot turn off Mojo IPv6'
   if IO::Socket::INET->isa('IO::Socket::IP');
@@ -93,7 +94,7 @@ TODO: {
         my $res;
         ok $res = $tx->success, "got usage";
         unless ($res) {
-            diag "failed to get $host/disk/usage?count=1".$tx->error;
+            diag "failed to get $host/disk/usage?count=1 ".format_tx_error($tx->error);
             next;
         }
         #my $got = $res->json;
