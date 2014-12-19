@@ -37,6 +37,7 @@ pod_coverage:
     - Yars#sanity_check
     - Yars#generate_config
     - Yars::Command::.*
+    - Yars::Client#.*
 
 unused_vars:
   global:
