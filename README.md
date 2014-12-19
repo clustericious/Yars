@@ -1,14 +1,8 @@
-=pod
+# Yars [![Build Status](https://secure.travis-ci.org/plicease/Yars.png)](http://travis-ci.org/plicease/Yars)
 
-=head1 NAME
+Yet Another RESTful-Archive Service
 
-Yars - Yet Another RESTful-Archive Service
-
-=head1 VERSION
-
-version 1.02
-
-=head1 DESCRIPTION
+# DESCRIPTION
 
 Yars is a simple RESTful server for data storage.
 
@@ -23,22 +17,22 @@ The first N digits of the md5 are considered the "bucket" for
 a file.  e.g. for N=2, 256 buckets are then distributed among
 the disks in proportion to the size of each disk.  The bucket
 distribution is done manually as part of the configuration (with
-the aid of an included tool, L<yars_generate_diskmap>).
+the aid of an included tool, [yars\_generate\_diskmap](https://metacpan.org/pod/yars_generate_diskmap)).
 
-The server is controlled with the command line tool L<yars>.
+The server is controlled with the command line tool [yars](https://metacpan.org/pod/yars).
 
 The basic operations of a running yars cluster are supporting
 requests of the form
 
-  PUT http://$host/file/$filename
-  GET http://$host/file/$md5/$filename
-  HEAD http://$host/file/$md5/$filename
-  GET http://$host/bucket_map
+    PUT http://$host/file/$filename
+    GET http://$host/file/$md5/$filename
+    HEAD http://$host/file/$md5/$filename
+    GET http://$host/bucket_map
 
 to store and retrieve files, where $host may be any of the
 hosts in the cluster, $md5 is the md5 of the content, and
 $filename is a filename for the content to be stored.  See
-L<Yars::Routes> for documentation of other routes.
+[Yars::Routes](https://metacpan.org/pod/Yars::Routes) for documentation of other routes.
 
 Failover is handled in the following manner :
 
@@ -53,14 +47,14 @@ unsuccessful one will take longer because all of the stashes
 on all of the servers must be checked before a "404 Not Found"
 is returned.
 
-Another tool L<yars_fast_balance> is provided which takes
+Another tool [yars\_fast\_balance](https://metacpan.org/pod/yars_fast_balance) is provided which takes
 files from stashes and returns them to their correct
 locations.
 
-A client L<Yars::Client> is also available (in a separate
+A client [Yars::Client](https://metacpan.org/pod/Yars::Client) is also available (in a separate
 distribution), for interacting with a yars server.
 
-=head1 EXAMPLE 1
+# EXAMPLE 1
 
 The following sequence of commands will start yars on
 a single host (with 16 buckets) :
@@ -93,7 +87,7 @@ And try to PUT and GET a file :
     # (notice the "Location" header
     GET http://localhost:9999/file/764efa883dda1e11db47671c4a3bbd9e/here
 
-Also you can use L<Yars::Client> :
+Also you can use [Yars::Client](https://metacpan.org/pod/Yars::Client) :
 
     echo "hi" > myfile
     yarsclient upload myfile
@@ -104,7 +98,7 @@ Or to see the requests and responses :
     yarsclient --trace root upload myfile
     yarsclient --trace root download myfile 764efa883dda1e11db47671c4a3bbd9e
 
-=head1 EXAMPLE 2
+# EXAMPLE 2
 
 To install Yars on a cluster of several hosts, the configuration
 for each host should be identical, except that the 'url'
@@ -147,24 +141,24 @@ the server specific information.
 Then run "yars start" on both servers and voila, you
 have an archive.
 
-See also, L<clad>, for a tool to facilitate
+See also, [clad](https://metacpan.org/pod/clad), for a tool to facilitate
 running "yars start" on multiple hosts at once.
 
-L<Yars> is the application package, it inherits from
-L<Clustericious::App> and overrides the following
+[Yars](https://metacpan.org/pod/Yars) is the application package, it inherits from
+[Clustericious::App](https://metacpan.org/pod/Clustericious::App) and overrides the following
 methods :
 
-=head2 startup
+## startup
 
 Called by the server to start up, we change
 the object classes to use Yars::Message::Request
 for incoming requests.
 
-=head1 SEE ALSO
+# SEE ALSO
 
-L<Yars::Client>
+[Yars::Client](https://metacpan.org/pod/Yars::Client)
 
-=head1 AUTHOR
+# AUTHOR
 
 original author: Marty Brandon
 
@@ -174,11 +168,9 @@ contributors:
 
 Brian Duggan
 
-=head1 COPYRIGHT AND LICENSE
+# COPYRIGHT AND LICENSE
 
 This software is copyright (c) 2013 by NASA GSFC.
 
 This is free software; you can redistribute it and/or modify it under
 the same terms as the Perl 5 programming language system itself.
-
-=cut
