@@ -1,6 +1,8 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+  - merge Yars::Client into this distro
+  - More mojo 5.x compat changes
 
 1.02      2014-12-09 10:05:54 America/New_York
   - use Mojo::JSON's new API

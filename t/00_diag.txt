@@ -1,6 +1,8 @@
 Acme::Override::INET
 Capture::Tiny
 Clustericious
+Clustericious::Client
+Clustericious::Client::Command
 Clustericious::Commands
 Clustericious::Config
 Clustericious::Log
@@ -13,11 +15,14 @@ File::HomeDir
 Hash::MoreUtils
 IO::Socket::INET
 IO::Socket::IP
+IO::Uncompress::Gunzip
 JSON::XS
 List::MoreUtils
 Log::Log4perl
 Log::Log4perl::CommandLine
 Module::Build
+Mojo::Asset::File
+Mojo::URL
 Mojolicious
 Number::Bytes::Human
 Smart::Comments
