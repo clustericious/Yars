@@ -21,8 +21,6 @@ List::MoreUtils
 Log::Log4perl
 Log::Log4perl::CommandLine
 Module::Build
-Mojo::Asset::File
-Mojo::URL
 Mojolicious
 Number::Bytes::Human
 Smart::Comments
@@ -31,5 +29,3 @@ Test::Clustericious::Config
 Test::Clustericious::Log
 Test::More
 YAML::XS
-Yars::Client
-lib

@@ -1,6 +1,7 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+  - remove bogus dep on Yars::Client
 
 1.03      2014-12-19 12:05:50 -0500
   - merge Yars::Client into this distro
