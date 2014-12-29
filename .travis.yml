@@ -3,7 +3,7 @@ language: perl
 install:
   - cpanm -n Dist::Zilla
   - dzil authordeps --missing | cpanm -n
-  - cpanm -n Capture::Tiny Clustericious Clustericious::Commands Clustericious::Config Clustericious::Log Digest::file
+  - cpanm -n Capture::Tiny Clustericious::Client Clustericious Clustericious::Commands Clustericious::Config Clustericious::Log Digest::file
   - cpanm -n File::HomeDir File::Path Filesys::Df Hash::MoreUtils JSON::XS List::MoreUtils Log::Log4perl Log::Log4perl::CommandLine
   - cpanm -n Mojolicious Number::Bytes::Human Smart::Comments Test::Clustericious::Cluster Test::Clustericious::Config
   - cpanm -n Test::Clustericious::Log Test::More Try::Tiny YAML::XS 
