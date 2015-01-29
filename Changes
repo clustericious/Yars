@@ -1,6 +1,7 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+  - Mojo compat: replace render_not_found with reply->not_found
 
 1.04      2014-12-21 01:07:35 -0500
   - remove bogus dep on Yars::Client

@@ -80,7 +80,7 @@ sub _get {
         return
              _get_from_local_stash( $c, $filename, $md5 )
           || _redirect_to_remote_stash( $c, $filename, $md5 )
-          || $c->render_not_found;
+          || $c->reply->not_found;
     };
     my $computed = digest_file_hex("$dir/$filename",'MD5');
     unless ($computed eq $md5) {
@@ -125,7 +125,7 @@ sub _head {
             _set_static_headers($c,"$found_dir/$filename");
             return $c->render(status => 200, text => 'found');
         }
-        return $c->render_not_found if $check_stash;
+        return $c->reply->not_found if $check_stash;
         return $c->render_moved("$url/file/$md5/$filename");
     }
 
@@ -133,7 +133,7 @@ sub _head {
     my $dir = $c->tools->storage_path($md5);
     my $found_dir = -r "$dir/$filename" ? $dir : undef;
     $found_dir ||= $c->tools->local_stashed_dir( $filename, $md5 );
-    return $c->render_not_found unless ( $found_dir or _redirect_to_remote_stash($c, $filename, $md5 ) );
+    return $c->reply->not_found unless ( $found_dir or _redirect_to_remote_stash($c, $filename, $md5 ) );
     _set_static_headers($c,"$found_dir/$filename");
     $c->render( status => 200, text => 'found' );
 }
@@ -402,7 +402,7 @@ sub _del {
         }
 
         $server = $c->tools->remote_stashed_server($md5,$filename);
-        return $c->render_not_found unless $server;
+        return $c->reply->not_found unless $server;
         # otherwise fall through...
     }
 
