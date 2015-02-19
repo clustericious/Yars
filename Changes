@@ -2,6 +2,9 @@ Revision history for {{$dist->name}}
 
 {{$NEXT}}
 
+1.07      2015-02-18 21:49:06 -0500
+  - Fix test for current version of Test::Mojo
+
 1.06      2015-01-31 11:25:31 -0500
   - Bump Clustericious requirement up to 0.9942
 
