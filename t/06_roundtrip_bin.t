@@ -5,6 +5,7 @@ use Test::Clustericious::Config;
 use Test::More tests => 15;
 use Mojo::ByteStream qw( b );
 use Mojo::Loader;
+use Data::Hexdumper qw(hexdump);
 
 my $cluster = Test::Clustericious::Cluster->new;
 $cluster->create_cluster_ok(qw( Yars ));
@@ -18,13 +19,33 @@ my $raw     = $loader->data('main','my_bin_file');
 my $content = b($raw)->b64_decode;
 my $digest  = b($content)->md5_sum->to_string;
 
-$t->put_ok("$url/file/my_bin_file", {}, $content)
+$t->put_ok("$url/file/my_bin_file", {Accept => '*/*'}, $content)
   ->status_is(201)
   ->content_is('ok');
 
-$t->get_ok("$url/file/my_bin_file/$digest")
-  ->content_is($content)
-  ->status_is(200)
+$t->get_ok("$url/file/my_bin_file/$digest");
+#  ->content_is($content)
+ok($t->tx->res->body eq $content, "content matches") || do {
+  my @got = split /\n/, hexdump(
+    $t->tx->res->text,
+    { output_format => '%4a : %C %S< %L> : %d' },
+  );
+  my @expected = split /\n/, hexdump(
+    $content,
+    { output_format => '%4a : %C %S< %L> : %d' },
+  );
+  
+  while(scalar(@got) || scalar(@expected))
+  {
+    # 0x0586 : 08 0605 090A0000 : .......
+    # 12345678901234567890123456789012345
+    my $got      = shift(@got)      || ' ' x 35;
+    my $expected = shift(@expected) || '';
+    my $extra = $got eq $expected ? ' ' : '*';
+    diag "$got  $extra   $expected";
+  }
+};
+$t->status_is(200)
   ->content_type_is('application/octet-stream');
 
 $t->delete_ok("$url/file/my_bin_file/$digest")
