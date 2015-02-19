@@ -6,6 +6,7 @@ Clustericious::Client::Command
 Clustericious::Commands
 Clustericious::Config
 Clustericious::Log
+Data::Hexdumper
 Digest::MD5
 Digest::file
 EV
