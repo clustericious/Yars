@@ -42,11 +42,10 @@ is_deeply($t->tx->res->json, {
     }
 );
 
-my $loader = Mojo::Loader->new;
-$loader->load('main');
+Mojo::Loader::load_class('main');
 
 my $i = 0;
-my @contents = map { "$_\n" } split /\n/, $loader->data('main', 'data');
+my @contents = map { "$_\n" } split /\n/, Mojo::Loader::data_section('main', 'data');
 my @locations;
 my @digests;
 my @filenames;

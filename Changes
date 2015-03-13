@@ -1,6 +1,7 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+  - Mojo 6.x compatability
 
 1.07      2015-02-18 21:49:06 -0500
   - Fix test for current version of Test::Mojo

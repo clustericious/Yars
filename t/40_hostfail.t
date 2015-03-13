@@ -47,9 +47,8 @@ is $ua->get($urls[1].'/status')->res->json->{server_url}, $urls[1], "started sec
 
 my $i = 0;
 my @contents = do {
-  my $loader = Mojo::Loader->new;
-  $loader->load('main');
-  @{ decode_json($loader->data('main', 'test_data.json')) };
+  Mojo::Loader::load_class('main');
+  @{ decode_json(Mojo::Loader::data_section('main', 'test_data.json')) };
 };
 my @locations;
 my %assigned; # server => { disk => count }
