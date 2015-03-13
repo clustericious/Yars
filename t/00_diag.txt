@@ -22,7 +22,6 @@ List::MoreUtils
 Log::Log4perl
 Log::Log4perl::CommandLine
 Module::Build
-Mojolicious
 Number::Bytes::Human
 Smart::Comments
 Test::Clustericious::Cluster
