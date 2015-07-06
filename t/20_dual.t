@@ -33,7 +33,7 @@ $t->get_ok("$url[1]/status")
   ->status_is(200);
 
 $t->ua->max_redirects(3);
-$_->tools->_set_ua(map { $_->max_redirects(3) } $cluster->create_ua) for @{ $cluster->apps };
+$_->tools->_set_ua(sub { $cluster->create_ua }) for @{ $cluster->apps };
 
 $t->get_ok("$url[0]/servers/status");
 is_deeply($t->tx->res->json, {

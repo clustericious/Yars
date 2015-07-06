@@ -40,7 +40,7 @@ my @urls = @{ $cluster->urls };
 
 my $ua = $cluster->t->ua;
 $ua->max_redirects(3);
-$_->tools->_set_ua(map { $_->max_redirects(3) } $cluster->create_ua) for @{ $cluster->apps };
+$_->tools->_set_ua(sub { my $ua = $cluster->create_ua; $ua }) for @{ $cluster->apps };
 
 is $ua->get($urls[0].'/status')->res->json->{server_url}, $urls[0], "started first server at $urls[0]";
 is $ua->get($urls[1].'/status')->res->json->{server_url}, $urls[1], "started second server at $urls[1]";

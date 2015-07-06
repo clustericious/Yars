@@ -4,7 +4,7 @@ use Test::Clustericious::Config;
 use Test::Clustericious::Cluster;
 use Test::More;
 
-plan tests => 5;
+plan tests => 7;
 
 subtest 'setup helpers' => sub {
   plan tests => 7;
@@ -25,7 +25,7 @@ require Yars::Client;
 my $c = Yars::Client->new;
 $c->client($cluster->create_ua);
 
-$_->tools->_set_ua($cluster->create_ua) for @{ $cluster->apps };
+$_->tools->_set_ua(sub { $cluster->create_ua }) for @{ $cluster->apps };
 
 subtest 'delete indirect' => sub {
   plan tests => 5;
@@ -55,8 +55,7 @@ subtest 'delete direct' => sub {
   is $c->check( $fn, $md5 ), undef, 'gone';
 };
 
-subtest 'delete from stash' => sub {
-  plan skip_all => 'broken';
+subtest 'delete from stash (1)' => sub {
   plan tests => 6;
 
   my $fn      = 'hello.txt';
@@ -66,11 +65,53 @@ subtest 'delete from stash' => sub {
   $cluster->stop_ok(0);
 
   is $c->upload($fn, \$content), 'ok', 'uploaded';
-  is $c->check( $fn, $md5 ), 1, 'there...';
 
   $cluster->start_ok(0);
 
+
+  is $c->check( $fn, $md5 ), 1, 'there...';
   is $c->remove($fn, $md5), '1', 'removed';
+  is $c->check( $fn, $md5 ), undef, 'gone';
+
+};
+
+subtest 'delete from stash (2)' => sub {
+  plan tests => 6;
+
+  my $fn      = 'hello2.txt';
+  my $content = 'and again';
+  my $md5     = 'b3b1bb046d2a7e9fad53b9853fb5dfbd';
+
+  $cluster->stop_ok(1);
+
+  is $c->upload($fn, \$content), 'ok', 'uploaded';
+
+  $cluster->start_ok(1);
+
+
+  is $c->check( $fn, $md5 ), 1, 'there...';
+  is $c->remove($fn, $md5), '1', 'removed';
+  is $c->check( $fn, $md5 ), undef, 'gone';
+
+};
+
+subtest 'delete failover' => sub {
+  plan skip_all => 'TODO';
+  plan tests => 7;
+  my $fn      = 'hello.txt';
+  my $content = 'hello there';
+  my $md5     = '161bc25962da8fed6d2f59922fb642aa';
+  
+  is $c->check( $fn, $md5 ), undef, 'not there yet...';
+  is $c->upload($fn, \$content), 'ok', 'uploaded';
+  is $c->check( $fn, $md5 ), 1, 'there...';
+  
+  $cluster->stop_ok(1);
+  
+  is $c->remove($fn, $md5), '1', 'removed';
+  
+  $cluster->start_ok(1);
+  
   is $c->check( $fn, $md5 ), undef, 'gone';
 
 };
@@ -80,6 +121,9 @@ __DATA__
 @@ etc/Yars.conf
 ---
 url: <%= cluster->url %>
+
+failover_urls:
+  - <%= cluster->urls->[0] %>
 
 servers:
   - url: <%= cluster->urls->[0] %>

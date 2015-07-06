@@ -69,14 +69,9 @@ sub _set_ua
 sub _ua
 {
   my($self) = @_;
-  
-  unless($self->{ua})
-  {
-    $self->{ua} = Mojo::UserAgent->new;
-    $self->{ua}->max_redirects(1);
-  }
-  
-  return $self->{ua};
+  my $ua = $self->{ua} ? $self->{ua}->() : Mojo::UserAgent->new;
+  $ua->max_redirects(30);
+  $ua;
 }
 
 =head2 refresh_config
