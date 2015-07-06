@@ -43,7 +43,7 @@ sub new
 {
   my($class, $config) = @_;
   WARN "No url found in config file" unless eval { $config->url };
-  bless {
+  my $self = bless {
     bucket_to_url                => { }, # map buckets to server urls
     bucket_to_root               => { }, # map buckets to disk roots
     disk_is_local                => { }, # our disk roots (values are just 1)
@@ -55,6 +55,8 @@ sub new
     server_status_cache_lifetime => 3,
     default_dir                  => '',
   }, $class;
+  $self->refresh_config($config);
+  $self;
 }
 
 sub _set_ua
@@ -71,6 +73,7 @@ sub _ua
   unless($self->{ua})
   {
     $self->{ua} = Mojo::UserAgent->new;
+    $self->{ua}->max_redirects(1);
   }
   
   return $self->{ua};

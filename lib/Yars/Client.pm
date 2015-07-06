@@ -5,7 +5,7 @@ package Yars::Client;
 
 use strict;
 use warnings;
-
+use 5.010;
 use Clustericious::Client;
 use Clustericious::Client::Command;
 use Clustericious::Config;
@@ -20,7 +20,7 @@ use Digest::file qw/digest_file_hex/;
 use Data::Dumper;
 use IO::Uncompress::Gunzip qw(gunzip $GunzipError);
 use Number::Bytes::Human qw( format_bytes parse_bytes );
-use 5.10.0;
+use File::Temp qw( tempdir );
 
 route_doc upload   => "<filename>";
 route_doc content  => "<filename> <md5>";
@@ -70,6 +70,17 @@ sub new {
     $self->client->max_redirects(30);
     $self->client->connect_timeout(30);
     return $self;
+}
+
+sub client {
+    my($self, $new) = @_;
+    
+    $new ? do { 
+        $new->max_redirects(30);
+        $new->connect_timeout(30);
+        $self->SUPER::client($new);
+        $new;
+    } : $self->SUPER::client;
 }
 
 sub _get_url {
@@ -273,6 +284,7 @@ sub _all_hosts {
 
 sub upload {
     my $self = shift;
+    my $content = ref($_[-1]) eq 'SCALAR' ? pop : undef;
     my $filename = pop;
     my $nostash;
     if (@_) {
@@ -292,7 +304,17 @@ sub upload {
     }
 
     LOGDIE "file needed for upload" unless $filename;
-    $filename = File::Spec->rel2abs($filename);
+    if(defined $content) {
+        # intended mainly for testing only,
+        # may be ulsewise later
+        $filename = File::Spec->catfile( tempdir( CLEANUP => 1 ), $filename );
+        open my $fh, '>', $filename;
+        binmode $fh;
+        print $fh $$content;
+        close $fh;
+    } else {
+        $filename = File::Spec->rel2abs($filename);
+    }
     -r $filename or LOGDIE "Could not read " . $filename;
 
     # Don't read the file.
