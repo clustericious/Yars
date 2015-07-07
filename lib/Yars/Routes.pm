@@ -396,7 +396,7 @@ sub _del {
     if ($server eq $c->tools->server_url) {
         DEBUG "This is our file, we will delete it.";
         my $dir  = $c->tools->storage_path( $md5 );
-        if (-r "$dir/$filename" || ($dir = $c->tools->local_stashed_dir($filename,$md5))) {
+        if (-r "$dir/$filename") {
             unlink "$dir/$filename" or return $c->render->exception($!);
             $c->tools->cleanup_tree($dir);
             return $c->render(status => 200, text =>'ok');
@@ -405,6 +405,12 @@ sub _del {
         $server = $c->tools->remote_stashed_server($filename, $md5);
         return $c->reply->not_found unless $server;
         # otherwise fall through...
+    }
+
+    if (my $dir = $c->tools->local_stashed_dir($filename,$md5)) {
+        unlink "$dir/$filename" or return $c->render->exception($!);
+        $c->tools->cleanup_tree($dir);
+        return $c->render(status => 200, text =>'ok');
     }
 
     DEBUG "Proxying delete to $server";
