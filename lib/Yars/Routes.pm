@@ -402,7 +402,7 @@ sub _del {
             return $c->render(status => 200, text =>'ok');
         }
 
-        $server = $c->tools->remote_stashed_server($md5,$filename);
+        $server = $c->tools->remote_stashed_server($filename, $md5);
         return $c->reply->not_found unless $server;
         # otherwise fall through...
     }
