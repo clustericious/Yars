@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use v5.10;
+use 5.010;
 use Test::Clustericious::Cluster;
 use Test::Clustericious::Config;
 use Test::More tests => 28;

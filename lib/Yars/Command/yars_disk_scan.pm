@@ -29,7 +29,7 @@ If there is already a scan in process, the scan will not commence, and instead t
 
 use strict;
 use warnings;
-use v5.10;
+use 5.010;
 use Clustericious::Config;
 use Log::Log4perl::CommandLine qw/:all/;
 use Clustericious::Log;

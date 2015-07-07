@@ -1,7 +1,7 @@
 package inc::Scripts;
 
 use Moose;
-use v5.10;
+use 5.010;
 use Dist::Zilla::File::InMemory;
 
 with 'Dist::Zilla::Role::FileMunger';
@@ -53,7 +53,7 @@ sub munge_files
         "",
         "use strict;",
         "use warnings;",
-        "use v5.10;",
+        "use 5.010;",
         "use Yars::Command::$basename;",
         "",
         "Yars::Command::$basename->main(\@ARGV);",

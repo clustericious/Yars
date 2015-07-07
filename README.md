@@ -160,11 +160,11 @@ for incoming requests.
 
 # AUTHOR
 
-original author: Marty Brandon
+Original author: Marty Brandon
 
-current maintainer: Graham Ollis <plicease@cpan.org>
+Current maintainer: Graham Ollis <plicease@cpan.org>
 
-contributors:
+Contributors:
 
 Brian Duggan
 

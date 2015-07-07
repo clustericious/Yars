@@ -23,7 +23,7 @@ expensive, and things won't get balanced.
 
 use strict;
 use warnings;
-use v5.10;
+use 5.010;
 use Yars::Client;
 use Log::Log4perl qw(:levels);
 use Log::Log4perl::CommandLine ':all', ':loginit' => { level => $INFO };

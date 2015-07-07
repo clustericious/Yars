@@ -1,6 +1,8 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+  - Added some tests for file removals
+    and fixed bugs revealed by those tests
 
 1.08      2015-03-13 03:59:13 -0400
   - Mojo 6.x compatability
