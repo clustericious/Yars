@@ -372,7 +372,8 @@ sub _rand_filename {
 
 sub send {
     my $self = shift;
-    my %args = $self->meta_for->process_args(@_);
+    my $meta = $self->meta_for;
+    my %args = $meta->process_args(@_);
     my $content = $args{content};
     my $filename = $args{name} || $self->_rand_filename;
     my $status = $self->put($filename, $content);
