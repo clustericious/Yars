@@ -1,16 +1,10 @@
 Acme::Override::INET
 Capture::Tiny
 Clustericious
-Clustericious::Client
-Clustericious::Client::Command
-Clustericious::Commands
-Clustericious::Config
-Clustericious::Log
 Data::Hexdumper
 Digest::MD5
 Digest::file
 EV
-Exporter
 File::Find::Rule
 File::HomeDir
 Hash::MoreUtils
@@ -25,7 +19,5 @@ Module::Build
 Number::Bytes::Human
 Smart::Comments
 Test::Clustericious::Cluster
-Test::Clustericious::Config
-Test::Clustericious::Log
 Test::More
 YAML::XS
