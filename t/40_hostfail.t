@@ -15,7 +15,7 @@ use Yars::Util qw( format_tx_error );
 plan skip_all => 'cannot turn off Mojo IPv6'
   if IO::Socket::INET->isa('IO::Socket::IP');
 
-plan tests => 375;
+plan tests => 373;
 
 $ENV{LOG_LEVEL} = 'FATAL';
 
@@ -85,23 +85,6 @@ for my $url (@locations) {
 
 # Now start it back up.
 $cluster->start_ok(1);
-
-TODO: {
-    local $TODO = "Run yars_fast_balance";
-    for my $host (keys %assigned) {
-        my $tx = $ua->get("$host/disk/usage?count=1");
-        my $res;
-        ok $res = $tx->success, "got usage";
-        unless ($res) {
-            diag "failed to get $host/disk/usage?count=1 ".format_tx_error($tx->error);
-            next;
-        }
-        #my $got = $res->json;
-        #for my $disk (keys %$got) {
-        #    is( $got->{$disk}{count}, $assigned{$host}{$disk}{count}, "$host,$disk has the right count ($assigned{$host}{$disk}{count})" );
-        #}
-    }
-}
 
 __DATA__
 

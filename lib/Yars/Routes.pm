@@ -133,7 +133,8 @@ sub _head {
     my $dir = $c->tools->storage_path($md5);
     my $found_dir = -r "$dir/$filename" ? $dir : undef;
     $found_dir ||= $c->tools->local_stashed_dir( $filename, $md5 );
-    return $c->reply->not_found unless ( $found_dir or _redirect_to_remote_stash($c, $filename, $md5 ) );
+    return if _redirect_to_remote_stash($c, $filename, $md5 );
+    return $c->reply->not_found unless $found_dir;
     _set_static_headers($c,"$found_dir/$filename");
     $c->render( status => 200, text => 'found' );
 }

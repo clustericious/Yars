@@ -108,7 +108,8 @@ sub reset_yars {
   remove_tree(
     (map {
       my $base = $_;
-      opendir my $dh, $base;
+      my $dh;
+      opendir $dh, $base;
       readdir $dh;
       map { File::Spec->catdir($base, $_) } grep !/^\./, readdir $dh;
     }
