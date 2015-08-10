@@ -171,7 +171,7 @@ sub download {
                 WARN "Error : $msg (may retry)";
                 next;
             }
-            WARN "Error (may retry) : $msg";
+            WARN "Error (may retry) : " . (ref($msg) ? Dumper($msg) : $msg);
             next;
         };
         DEBUG "Received asset with size ".$res->content->asset->size;
