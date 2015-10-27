@@ -10,9 +10,6 @@ use File::Spec;
 use File::Basename 'dirname';
 use Clustericious::Log;
 
-use lib join '/', File::Spec->splitdir(dirname(__FILE__)), 'lib';
-use lib join '/', File::Spec->splitdir(dirname(__FILE__)), '..', 'lib';
-
 use Yars::Client;
 use Clustericious::Client::Command;
 use Log::Log4perl::CommandLine (':all', ':loginit' => <<"EOT");
