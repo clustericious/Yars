@@ -2,6 +2,9 @@ Revision history for {{$dist->name}}
 
 {{$NEXT}}
 
+1.11      2015-10-27 13:20:19 -0400
+  - Yars::Client no longer overides @INC
+
 1.10      2015-10-27 12:51:51 -0400
   - Compatability for Mojolicious changes
 
