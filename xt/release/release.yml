@@ -28,6 +28,7 @@ pod_spelling_system:
     - http
     - https
     - txt
+    - yarsclient
 
 pod_coverage:
   # format is "Class#method" or "Class", regex allowed
