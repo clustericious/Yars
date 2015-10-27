@@ -84,7 +84,7 @@ a single host (with 16 buckets) :
     - url : http://localhost:9999
       disks :
         - root : /usr/local/data/disk1
-          buckets : [ <%= join ',', '0'..'f' %> ]
+          buckets : [ <%= join ',', '0'..'9', 'a'..'f' %> ]
     ^D
 
     $ yars start
