@@ -83,12 +83,8 @@ sub _get {
           || $c->reply->not_found;
     };
 
-    if ($c->req->headers->header('X-Use-X-Accel'))
-    {
-        my $b64 = $c->tools->hex2b64($md5);
-        $c->res->headers->add("Content-MD5", $b64);
-        $c->res->headers->add('X-Accel-Redirect', "/static$dir/$filename");
-        return $c->render(status => 200, text => '');
+    if ($c->req->headers->header('X-Use-X-Accel')) {
+        return _x_accel_redirect($c, "$dir/$filename", $md5);
     }
 
     my $computed = digest_file_hex("$dir/$filename",'MD5');
@@ -102,6 +98,20 @@ sub _get {
     _set_static_headers($c,"$dir/$filename");
     $c->rendered;
 };
+
+sub _x_accel_redirect
+{
+    my ($c, $localfile, $md5) = @_;
+
+    my $b64 = $c->tools->hex2b64($md5);
+    $c->res->headers->add("Content-MD5", $b64);
+    my $types = $c->app->types;
+    my $type  = $localfile =~ /\.(\w+)$/ ? $types->type($1) : undef;
+    $c->res->headers->content_type($type || $types->type('bin'));
+    $c->res->headers->add('X-Accel-Redirect', "/static$localfile");
+
+    return $c->render(status => 200, text => '');
+}
 
 sub _set_static_headers {
     # Based on Mojolicious::Static.  Probably should support if-modified..?
@@ -154,12 +164,8 @@ sub _get_from_local_stash {
     # Otherwise return false.
     my $dir = $c->tools->local_stashed_dir($filename,$md5) or return 0;
 
-    if ($c->req->headers->header('X-Use-X-Accel'))
-    {
-        my $b64 = $c->tools->hex2b64($md5);
-        $c->res->headers->add("Content-MD5", $b64);
-        $c->res->headers->add('X-Accel-Redirect', "/static$dir/$filename");
-        return $c->render(status => 200, text => '');
+    if ($c->req->headers->header('X-Use-X-Accel')) {
+        return _x_accel_redirect($c, "$dir/$filename", $md5);
     }
 
     my $computed = digest_file_hex("$dir/$filename",'MD5');

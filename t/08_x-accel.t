@@ -27,7 +27,7 @@ subtest 'prep' => sub {
 };
 
 subtest 'basic' => sub {
-  plan tests => 12;
+  plan tests => 13;
 
   my $content = 'Yabba Dabba Dooo!';
 
@@ -52,6 +52,9 @@ subtest 'basic' => sub {
 
   chomp (my $b64 = b(pack 'H*',$digest)->b64_encode);
   is $t->tx->res->headers->header("Content-MD5"), $b64, "Check Content-MD5";
+
+  like($t->tx->res->headers->content_type, qr{^text/plain},
+       "Check Content-Type");
 
   my $local_file = $t->tx->res->headers->header('X-Accel-Redirect');
 
