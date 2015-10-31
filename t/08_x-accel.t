@@ -27,15 +27,13 @@ subtest 'prep' => sub {
 };
 
 subtest 'basic' => sub {
-  plan tests => 20;
+  plan tests => 11;
 
   my $content = 'Yabba Dabba Dooo!';
 
   my $digest = b($content)->md5_sum->to_string;
 
   my $file = 'fred.txt';
-
-# Put the file
 
   $t->put_ok("$url/file/$file", {}, $content)
     ->status_is(201);
@@ -44,43 +42,30 @@ subtest 'basic' => sub {
 
   ok $location, "got location header";
 
-# Get it back normally
-
-  $t->get_ok("$url/file/$file/$digest")
-    ->status_is(200)
-    ->content_is($content);
-
-  chomp (my $b64 = b(pack 'H*',$digest)->b64_encode);
-
-  is $t->tx->res->headers->header("Content-MD5"), $b64;
-
-  $t->get_ok("$url/file/$digest/$file")
-    ->status_is(200)
-    ->content_is($content);
-
   $t->get_ok($location)
     ->status_is(200)
     ->content_is($content);
-
-  $t->get_ok("$url/disk/usage?count=1")
-    ->status_is(200);
-
-  is $t->tx->res->json->{$root}{count}, 1;
-
-# Now give it the extra X-Use-X-Accel header
 
   $t->get_ok($location => { 'X-Use-X-Accel' => 'yes' })
     ->status_is(200)
     ->content_is('');
 
+  my $local_file = $t->tx->res->headers->header('X-Accel-Redirect');
+
   my $digest_path = '/data/' . join('/', ($digest =~ m/../g)) . "/$file";
 
-# Should get back the X-Accel-Redirect header
+  like($local_file, qr($digest_path$), "Got X-Accel-Redirect with full path");
 
-  like($t->tx->res->headers->header('X-Accel-Redirect'),
-       qr($digest_path$),
-       "Got X-Accel-Redirect with full path");
+  is(slurp($local_file), $content, "X-Accel-Redirect file content correct");
 };
+
+sub slurp {
+    open my $fh, '<', shift;
+    local $/ = undef;
+    my $content = <$fh>;
+    close $fh;
+    return $content;
+}
 
 __DATA__
 
