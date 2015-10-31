@@ -110,7 +110,6 @@ sub reset_yars {
       my $base = $_;
       my $dh;
       opendir $dh, $base;
-      readdir $dh;
       map { File::Spec->catdir($base, $_) } grep !/^\./, readdir $dh;
     }
   @data_dir), { verbose => 0 });

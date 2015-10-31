@@ -82,6 +82,13 @@ sub _get {
           || _redirect_to_remote_stash( $c, $filename, $md5 )
           || $c->reply->not_found;
     };
+
+    if ($c->req->headers->header('X-Use-X-Accel'))
+    {
+        $c->res->headers->add('X-Accel-Redirect', "$dir/$filename");
+        return $c->render(status => 200, text => '');
+    }
+
     my $computed = digest_file_hex("$dir/$filename",'MD5');
     unless ($computed eq $md5) {
         WARN "Content mismatch, possible disk corruption ($filename), $md5 != $computed";
@@ -144,6 +151,13 @@ sub _get_from_local_stash {
     # If this is stashed locally, serve it and return true.
     # Otherwise return false.
     my $dir = $c->tools->local_stashed_dir($filename,$md5) or return 0;
+
+    if ($c->req->headers->header('X-Use-X-Accel'))
+    {
+        $c->res->headers->add('X-Accel-Redirect', "$dir/$filename");
+        return $c->render(status => 200, text => '');
+    }
+
     my $computed = digest_file_hex("$dir/$filename",'MD5');
     unless ($computed eq $md5) {
         WARN "Content mismatch, possible disk corruption for stashed file ($filename), $md5 != $computed";
