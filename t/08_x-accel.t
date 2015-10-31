@@ -27,7 +27,7 @@ subtest 'prep' => sub {
 };
 
 subtest 'basic' => sub {
-  plan tests => 11;
+  plan tests => 12;
 
   my $content = 'Yabba Dabba Dooo!';
 
@@ -49,6 +49,9 @@ subtest 'basic' => sub {
   $t->get_ok($location => { 'X-Use-X-Accel' => 'yes' })
     ->status_is(200)
     ->content_is('');
+
+  chomp (my $b64 = b(pack 'H*',$digest)->b64_encode);
+  is $t->tx->res->headers->header("Content-MD5"), $b64, "Check Content-MD5";
 
   my $local_file = $t->tx->res->headers->header('X-Accel-Redirect');
 
