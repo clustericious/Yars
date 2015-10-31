@@ -86,7 +86,7 @@ sub _get {
     if ($c->req->headers->header('X-Use-X-Accel'))
     {
         $c->res->headers->add('X-Accel-Redirect', "$dir/$filename");
-        return $c->render(status => 200);
+        return $c->render(status => 200, text => '');
     }
 
     my $computed = digest_file_hex("$dir/$filename",'MD5');
@@ -155,7 +155,7 @@ sub _get_from_local_stash {
     if ($c->req->headers->header('X-Use-X-Accel'))
     {
         $c->res->headers->add('X-Accel-Redirect', "$dir/$filename");
-        return $c->render(status => 200);
+        return $c->render(status => 200, text => '');
     }
 
     my $computed = digest_file_hex("$dir/$filename",'MD5');

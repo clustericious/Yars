@@ -27,7 +27,7 @@ subtest 'prep' => sub {
 };
 
 subtest 'basic' => sub {
-  plan tests => 18;
+  plan tests => 20;
 
   my $content = 'Yabba Dabba Dooo!';
 
@@ -69,7 +69,9 @@ subtest 'basic' => sub {
 
 # Now give it the extra X-Use-X-Accel header
 
-  $t->get_ok($location => { 'X-Use-X-Accel' => 'yes' });
+  $t->get_ok($location => { 'X-Use-X-Accel' => 'yes' })
+    ->status_is(200)
+    ->content_is('');
 
   my $digest_path = '/data/' . join('/', ($digest =~ m/../g)) . "/$file";
 
