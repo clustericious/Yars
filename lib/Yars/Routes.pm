@@ -87,7 +87,7 @@ sub _get {
     {
         my $b64 = $c->tools->hex2b64($md5);
         $c->res->headers->add("Content-MD5", $b64);
-        $c->res->headers->add('X-Accel-Redirect', "$dir/$filename");
+        $c->res->headers->add('X-Accel-Redirect', "/static$dir/$filename");
         return $c->render(status => 200, text => '');
     }
 
@@ -158,7 +158,7 @@ sub _get_from_local_stash {
     {
         my $b64 = $c->tools->hex2b64($md5);
         $c->res->headers->add("Content-MD5", $b64);
-        $c->res->headers->add('X-Accel-Redirect', "$dir/$filename");
+        $c->res->headers->add('X-Accel-Redirect', "/static$dir/$filename");
         return $c->render(status => 200, text => '');
     }
 

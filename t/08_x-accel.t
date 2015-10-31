@@ -57,7 +57,10 @@ subtest 'basic' => sub {
 
   my $digest_path = '/data/' . join('/', ($digest =~ m/../g)) . "/$file";
 
-  like($local_file, qr($digest_path$), "Got X-Accel-Redirect with full path");
+  like($local_file, qr(^/static(.*$digest_path)$),
+       "Got X-Accel-Redirect with full path");
+
+  $local_file =~ s{^/static}{};
 
   is(slurp($local_file), $content, "X-Accel-Redirect file content correct");
 };
