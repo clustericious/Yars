@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 use Test::Clustericious::Config;
-use Test::Clustericious::Cluster;
+use Test::Clustericious::Cluster 0.22;
 use Test::More;
 use Digest::file qw( digest_file_hex );
 use Yars::Client;
@@ -11,7 +11,6 @@ $cluster->create_cluster_ok(qw( Yars ));
 my $t = $cluster->t;
 
 my $y = Yars::Client->new;
-$y->client($t->ua);
 
 do {
   my $status = $y->status;
