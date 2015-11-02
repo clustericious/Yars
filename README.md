@@ -162,7 +162,7 @@ for incoming requests.
 
 Original author: Marty Brandon
 
-Current maintainer: Graham Ollis <plicease@cpan.org>
+Current maintainer: Graham Ollis &lt;plicease@cpan.org>
 
 Contributors:
 

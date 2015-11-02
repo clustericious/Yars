@@ -34,7 +34,8 @@ use File::Find::Rule;
 use Fcntl qw(:DEFAULT :flock);
 use Data::Dumper;
 use File::Basename qw/dirname/;
-#use Smart::Comments;
+use Getopt::Long qw( GetOptions );
+use Pod::Usage qw( pod2usage );
 
 our $conf;
 our $yc;
@@ -141,7 +142,14 @@ sub check_disk {
 }
 
 sub main {
-    #my $class = shift;
+    local @_ = @ARGV;
+    GetOptions(
+        'help|h'  => sub { pod2usage({ -verbose => 2}) },
+        'version' => sub {
+            say 'Yars version ', ($Yars::Command::yars_fast_balance::VERSION // 'dev');
+            exit 1;
+        },
+    ) || pod2usage(1);
     $conf = Clustericious::Config->new("Yars");
     my @disks = map $_->{root}, map @{ $_->{disks} }, $conf->servers;
     LOGDIE "No disks" unless @disks;
