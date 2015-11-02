@@ -51,7 +51,7 @@ sub main {
         'help|h'  => sub { pod2usage({ -verbose => 2}) },
         'lock=s'  => \$opt_lock,
         'version' => sub {
-            say 'Yars version ', ($Yars::VERSION // 'dev');
+            say 'Yars version ', ($Yars::Command::yars_disk_scan::VERSION // 'dev');
             exit 1;
         },
     ) || pod2usage(1);

@@ -70,7 +70,7 @@ sub main {
         'protocol=s' => \$protocol,
         'help|h'     => sub { pod2usage({ -verbose => 2}) },
         'version'    => sub {
-            say 'Yars version ', ($Yars::VERSION // 'dev');
+            say 'Yars version ', ($Yars::Command::yars_generate_diskmap::VERSION // 'dev');
             exit 1;
         },
     ) || pod2usage(1);
