@@ -69,6 +69,10 @@ sub new {
     my $self = shift->SUPER::new(@_);
     $self->client->max_redirects(30);
     $self->client->connect_timeout(30);
+    $self->client->on(start => sub {
+      # tx
+      $_[1]->req->headers->header('X-Yars-Skip-Verify' => 'on');
+    });
     return $self;
 }
 

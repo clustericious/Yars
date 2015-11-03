@@ -19,10 +19,11 @@ my $t = $cluster->t;
 my $y = Yars::Client->new;
 
 subtest 'Yars::Client#status' => sub {
-  plan tests => 2;
+  plan tests => 3;
   my $status = $y->status;
   is $status->{app_name}, 'Yars', 'status.app_name = Yars';
   is $status->{server_url}, $cluster->url, 'status.server_url = ' . $cluster->url;
+  is $y->tx->req->headers->header('X-Yars-Skip-Verify'), 'on', 'X-Yars-Skip-Verify: on';;
 };
 
 subtest 'Yars::Client#upload, #download' => sub {

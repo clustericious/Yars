@@ -46,7 +46,7 @@ subtest 'basic' => sub {
     ->status_is(200)
     ->content_is($content);
 
-  $t->get_ok($location => { 'X-Use-X-Accel' => 'yes' })
+  $t->get_ok($location => { 'X-Yars-Use-X-Accel' => 'yes' })
     ->status_is(200)
     ->content_is('');
 

@@ -83,17 +83,19 @@ sub _get {
           || $c->reply->not_found;
     };
 
-    if ($c->req->headers->header('X-Use-X-Accel')) {
+    if($c->config->download_md5_verify(default => 1) || !$c->req->headers->header('X-Yars-Skip-Verify')) {
+        my $computed = digest_file_hex("$dir/$filename",'MD5');
+        unless($computed eq $md5) {
+            WARN "Content mismatch, possible disk corruption ($filename), $md5 != $computed";
+            return $c->render(text => "content-mismatch", status => 500);
+        }
+    }
+
+    if ($c->req->headers->header('X-Yars-Use-X-Accel')) {
         return _x_accel_redirect($c, "$dir/$filename", $md5);
     }
 
-    my $computed = digest_file_hex("$dir/$filename",'MD5');
-    unless ($computed eq $md5) {
-        WARN "Content mismatch, possible disk corruption ($filename), $md5 != $computed";
-        return $c->render(text => "content-mismatch", status => 500);
-    }
-    my $b64 = $c->tools->hex2b64($computed);
-    $c->res->headers->add("Content-MD5", $b64);
+    $c->res->headers->add("Content-MD5", $c->tools->hex2b64($md5));
     $c->app->static->paths([$dir])->serve($c,$filename);
     _set_static_headers($c,"$dir/$filename");
     $c->rendered;
@@ -164,16 +166,19 @@ sub _get_from_local_stash {
     # Otherwise return false.
     my $dir = $c->tools->local_stashed_dir($filename,$md5) or return 0;
 
-    if ($c->req->headers->header('X-Use-X-Accel')) {
+    if($c->config->download_md5_verify(default => 1) || !$c->req->headers->header('X-Yars-Skip-Verify')) {
+        my $computed = digest_file_hex("$dir/$filename",'MD5');
+        unless($computed eq $md5) {
+            WARN "Content mismatch, possible disk corruption ($filename), $md5 != $computed";
+            return $c->render(text => "content-mismatch", status => 500);
+        }
+    }
+
+    if ($c->req->headers->header('X-Yars-Use-X-Accel')) {
         return _x_accel_redirect($c, "$dir/$filename", $md5);
     }
 
-    my $computed = digest_file_hex("$dir/$filename",'MD5');
-    unless ($computed eq $md5) {
-        WARN "Content mismatch, possible disk corruption for stashed file ($filename), $md5 != $computed";
-        return 0;
-    }
-    $c->res->headers->add("Content-MD5", $c->tools->hex2b64($computed));
+    $c->res->headers->add("Content-MD5", $c->tools->hex2b64($md5));
     $c->app->static->paths([$dir])->serve($c,$filename);
     $c->rendered;
     return 1;
