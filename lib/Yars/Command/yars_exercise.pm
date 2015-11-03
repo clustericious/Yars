@@ -59,7 +59,6 @@ use Yars::Client;
 use Number::Bytes::Human qw(format_bytes parse_bytes);
 use Parallel::ForkManager;
 use Path::Tiny;
-use Bytes::Random;
 use Digest::MD5;
 use List::Util qw(shuffle);
 use Time::HiRes qw(gettimeofday tv_interval);
@@ -227,5 +226,12 @@ sub make_temp_file
              filepath => $newfile->stringify,
              md5 => $md5->hexdigest };
 }
-    
+
+sub random_bytes
+{
+    my $number = shift;
+    return '' unless $number > 0;
+    pack("C$number", map { int(rand()*256) } 0..$number);
+}
+
 1;
