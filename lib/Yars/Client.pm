@@ -23,7 +23,6 @@ use Number::Bytes::Human qw( format_bytes parse_bytes );
 use File::Temp qw( tempdir );
 
 route_doc upload   => "<filename>";
-route_doc content  => "<filename> <md5>";
 route_doc download => "<filename> <md5> [dir]";
 route_doc remove   => "<filename> <md5>";
 
