@@ -252,6 +252,8 @@ sub sanity_check
         $sane = 0;
     }
     
+    my %buckets;
+    
     foreach my $server (@{ $self->config->{servers} })
     {
       my $name = $server->{url} // 'unknown';
@@ -267,12 +269,27 @@ sub sanity_check
           my $name2 = $disk->{root} // 'unknown';
           unless($disk->{root})
           {
-            say "server $name disk $name has no root";
+            say "server $name disk $name2 has no root";
             $sane = 0;
           }
-          unless(@{ $disk->{buckets} })
+          if(@{ $disk->{buckets} })
           {
-            say "server $name disk$name has no buckets assigned";
+            foreach my $bucket (@{ $disk->{buckets} })
+            {
+              if($buckets{$bucket})
+              {
+                say "server $name disk $name2 has duplicate bucket (also seen at $buckets{$bucket})";
+                $sane = 0;
+              }
+              else
+              {
+                $buckets{$bucket} = "server $name disk $name2";
+              }
+            }
+          }
+          else
+          {
+            say "server $name disk $name2 has no buckets assigned";
             $sane = 0;
           }
         }
