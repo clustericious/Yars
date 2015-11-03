@@ -252,6 +252,38 @@ sub sanity_check
         $sane = 0;
     }
     
+    foreach my $server (@{ $self->config->{servers} })
+    {
+      my $name = $server->{url} // 'unknown';
+      unless($server->{url})
+      {
+        say "server $name has no URL";
+        $sane = 0;
+      }
+      if(@{ $server->{disks} } > 0)
+      {
+        foreach my $disk (@{ $server->{disks} })
+        {
+          my $name2 = $disk->{root} // 'unknown';
+          unless($disk->{root})
+          {
+            say "server $name disk $name has no root";
+            $sane = 0;
+          }
+          unless(@{ $disk->{buckets} })
+          {
+            say "server $name disk$name has no buckets assigned";
+            $sane = 0;
+          }
+        }
+      }
+      else
+      {
+        say "server $name has no disks";
+        $sane = 0;
+      }
+    }
+    
     $sane;
 }
 
