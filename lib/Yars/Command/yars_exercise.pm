@@ -35,7 +35,7 @@ intermingle.
 All actions are performed through Yars::Client -- it uses the
 upload(), download() and remove() methods.
 
-size and chunksize can be specified with K, KiB, M, MiB, G, GiB units.
+size and chunksize can be specified with K, KB, KiB, M, MB, MiB, etc.
 
 chunksize is only used for creating the temp files, changing it won't
 affect the Yars actions.
@@ -56,7 +56,7 @@ use Log::Log4perl qw(:easy);
 use Log::Log4perl::CommandLine ':all', ':loginit' => { level => $INFO };
 use Pod::Usage::CommandLine qw(GetOptions pod2usage);
 use Yars::Client;
-use Number::Format qw(:subs);
+use Number::Bytes::Human qw(format_bytes parse_bytes);
 use Parallel::ForkManager;
 use Path::Tiny;
 use Bytes::Random;
@@ -81,10 +81,10 @@ sub main
         'temppath:s'   => \($temppath = '/tmp')
     ) or pod2usage;
 
-    $size = unformat_number($human_size);
+    $size = parse_bytes($human_size);
     $human_size = format_bytes($size);
 
-    $chunksize = unformat_number($human_chunksize);
+    $chunksize = parse_bytes($human_chunksize);
 
     my $totalfiles = $clients * $numfiles;
 
