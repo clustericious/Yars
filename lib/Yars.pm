@@ -83,7 +83,7 @@ content:
  start_mode : 'hypnotoad'
  url : http://localhost:9999
  hypnotoad :
-   pid_file : <%= file home, 'var/run/yars.pid' %>
+   pid_file : <%= home %>/var/run/yars.pid
    listen :
       - http://localhost:9999
  
@@ -93,7 +93,7 @@ content:
  servers :
  - url : http://localhost:9999
    disks :
-     - root : <%= file home, 'var/data/disk1' %>
+     - root : <%= home %>/var/data/disk1
        buckets : <%= json [ 0..9, 'a'..'f' ] %>
 
 The configuration file is a L<Mojo::Template> template with
