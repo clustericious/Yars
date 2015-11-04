@@ -19,6 +19,8 @@ BEGIN {
 
  $ yars_exercise [with no options, uses the defaults above]
 
+ $ yars_exercise -runs runs_desc.txt
+
 =head1 DESCRIPTION
 
 Forks <numclients>.  Each client first creates <files> files of size
@@ -39,6 +41,31 @@ size and chunksize can be specified with K, KB, KiB, M, MB, MiB, etc.
 
 chunksize is only used for creating the temp files, changing it won't
 affect the Yars actions.
+
+You can also put your config options in a YAML file and specify it
+with "--runs" or "-r":
+
+ $ cat runs_desc.txt
+   clients: [2,4]
+   files: [5,10]
+   gets: [10,20,40,80]
+   size: [256,256K,8M]
+
+If you list more than one option, it iterates through various
+parameters listed.
+
+--runs also outputs CSV of stats from each run.
+
+Use "-q" or "--quiet" option to supress INFO log messages, or
+yars_exercise -runs runs_desc.txt | tee stats.csv
+
+If you are really brave, you can specify STDIN with filename '-'
+
+ $ yars_exercise -r - | tee stats.csv
+ clients: [2,4]
+ files: [5,10]
+ gets: [10,20,40,80]
+ size: [256,256K,8M]
 
 =head1 LOGGING
 
@@ -62,10 +89,12 @@ use Path::Tiny;
 use Digest::MD5;
 use List::Util qw(shuffle);
 use Time::HiRes qw(gettimeofday tv_interval);
+use YAML::XS qw(LoadFile);
 
 my $chunksize;
 my $temppath;
-my $size;
+
+main(@ARGV) unless caller;
 
 sub main
 {
@@ -76,20 +105,95 @@ sub main
         'files:i'      => \(my $numfiles = 20),      # update SYNOPSIS
         'size:s'       => \(my $human_size = '8KiB'),
         'gets:i'       => \(my $gets = 10),
+        'runs:s'       => \(my $runsfilename),
         'chunksize:s'  => \(my $human_chunksize = '8KiB'),
         'temppath:s'   => \($temppath = '/tmp')
     ) or pod2usage;
 
-    $size = parse_bytes($human_size);
-    $human_size = format_bytes($size);
-
     $chunksize = parse_bytes($human_chunksize);
+
+    exit multiruns($runsfilename) if $runsfilename;
+
+    my $size = parse_bytes($human_size);
+    $human_size = format_bytes($size);
 
     my $totalfiles = $clients * $numfiles;
 
     INFO "Create $totalfiles files, each about $human_size bytes.";
     INFO "PUT each file to Yars, then GET $gets times, then DELETE.";
     INFO "$clients clients will work in parallel on $numfiles each.";
+
+    my ($times, $ret) = exercise($clients, $numfiles, $size, $gets);
+
+    say "PUT avg time    ", $times->{PUT};
+    say "GET avg time    ", $times->{GET};
+    say "DELETE avg time ", $times->{DELETE};
+
+    foreach my $method (qw(PUT GET DELETE))
+    {
+        say "$method $_ ", $ret->{$method}{$_} foreach keys %{$ret->{$method}};
+    }
+}
+
+sub multiruns
+{
+    my ($runsfilename) = @_;
+
+    my $runsdesc = LoadFile($runsfilename);
+
+    foreach my $field (qw(clients files size gets))
+    {
+        if (not defined $runsdesc->{$field}
+            or ref $runsdesc->{$field} ne 'ARRAY')
+        {
+            LOGDIE "Poorly formatted runs description file $field";
+        }
+    }
+
+    say "clients,files,gets,size,PUT avg time,GET avg time,DELETE avg time,",
+        "PUTs,GETs,DELETEs";
+
+    foreach my $clients (@{ $runsdesc->{clients} })
+    {
+        foreach my $files (@{ $runsdesc->{files} })
+        {
+            foreach my $gets (@{ $runsdesc->{gets} })
+            {
+                foreach my $size (map {parse_bytes $_} @{ $runsdesc->{size} })
+                {
+                    INFO "Starting clients=$clients, files=$files, ",
+                         "gets=$gets, size=$size";
+
+                    my ($times, $ret) = exercise($clients, $files,
+                                                 $size, $gets);
+
+                    say join ',', $clients, $files, $gets, $size,
+                        $times->{PUT}, $times->{GET}, $times->{DELETE},
+                        $ret->{PUT}{ok}, $ret->{GET}{ok}, $ret->{DELETE}{1};
+
+                    if ($ret->{PUT}{ok} != $clients*$files)
+                    {
+                        ERROR "Failed PUTs";
+                    }
+                    if ($ret->{GET}{ok} != $clients*$files*$gets)
+                    {
+                        ERROR "Failed GETs";
+                    }
+                    if ($ret->{DELETE}{1} != $clients*$files)
+                    {
+                        ERROR "Failed DELETEs";
+                    }
+                }
+            }
+        }
+    }
+
+    return 0;
+}
+
+sub exercise
+{
+    my ($clients, $numfiles, $size, $gets) = @_;
 
     my $pm = Parallel::ForkManager->new($clients)
         or LOGDIE;
@@ -105,7 +209,7 @@ sub main
     for (my $i = 0; $i < $clients; $i++)
     {
         $pm->start and next CLIENT;
-        $pm->finish(0, exercise($i, $numfiles, $gets));
+        $pm->finish(0, exercise_worker($i, $numfiles, $size, $gets));
     }
 
     $pm->wait_all_children;
@@ -122,20 +226,16 @@ sub main
                 foreach keys %{$stat->{ret}{$method}};
         }
     }
+    $times{PUT}    /= $clients*$numfiles;
+    $times{GET}    /= $clients*$numfiles*$gets;
+    $times{DELETE} /= $clients*$numfiles;
 
-    say "PUT avg time    ", $times{PUT} / ($clients*$numfiles);
-    say "GET avg time    ", $times{GET} / ($clients*$numfiles*$gets);
-    say "DELETE avg time ", $times{DELETE} / ($clients*$numfiles);
-
-    foreach my $method (qw(PUT GET DELETE))
-    {
-        say "$method $_ ", $ret{$method}{$_} foreach keys %{$ret{$method}};
-    }
+    return \%times, \%ret;
 }
 
-sub exercise
+sub exercise_worker
 {
-    my ($clientno, $numfiles, $gets) = @_;
+    my ($clientno, $numfiles, $size, $gets) = @_;
 
     srand(($clientno+1) * gettimeofday);
 
