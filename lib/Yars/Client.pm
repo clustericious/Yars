@@ -71,6 +71,7 @@ sub new {
     $self->client->on(start => sub {
       # tx
       $_[1]->req->headers->header('X-Yars-Skip-Verify' => 'on');
+      $_[1]->res->max_message_size(parse_bytes($self->_config->max_message_size_client(default => 53687091200)));
     });
     return $self;
 }
@@ -158,10 +159,8 @@ sub download {
             $url->path("/file/$filename/$md5");
         }
         TRACE "GET $url";
-        my $tx = $self->client->build_tx(GET => $url, { "Connection" => "Close", "Accept-Encoding" => "gzip" } );
+        my $tx = $self->client->get($url => { "Connection" => "Close", "Accept-Encoding" => "gzip" });
         # TODO: set timeout for mojo 4.0
-        $tx->res->max_message_size(parse_bytes($self->_config->max_message_size_client(default => 53687091200)));
-        $self->client->start($tx);
         $self->res($tx->res);
         $self->tx($tx);
         my $res = $tx->success or do {
