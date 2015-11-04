@@ -34,7 +34,7 @@ hosts in the cluster, $md5 is the md5 of the content, and
 $filename is a filename for the content to be stored.  See
 [Yars::Routes](https://metacpan.org/pod/Yars::Routes) for documentation of other routes.
 
-Failover is handled in the following manner :
+Failover is handled in the following manner:
 
 If the host to which a file is assigned is not available, then
 the file will be "stashed" on the filesystem for the host
@@ -64,17 +64,28 @@ Create a configuration file in `~/etc/Yars.conf` with this
 content:
 
     ---
+    
+    # The first half of the configuration specifies the
+    # generic Clustericious / web server settings for
+    # the server
     start_mode : 'hypnotoad'
     url : http://localhost:9999
     hypnotoad :
       pid_file : <%= file home, 'var/run/yars.pid' %>
       listen :
          - http://localhost:9999
+    
+    # The rest defines the servers, disks and buckets
+    # used by the Yars cluster.  In this single server
+    # example, there is only one server and one disk
     servers :
     - url : http://localhost:9999
       disks :
         - root : <%= file home, 'var/data/disk1' %>
           buckets : <%= json [ 0..9, 'a'..'f' ] %>
+
+The configuration file is a [Mojo::Template](https://metacpan.org/pod/Mojo::Template) template with
+helpers provided by [Clustericious::Config::Helpers](https://metacpan.org/pod/Clustericious::Config::Helpers).
 
 Create the directories needed for the server:
 

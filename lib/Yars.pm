@@ -36,17 +36,17 @@ The server is controlled with the command line tool L<yars>.
 The basic operations of a running yars cluster are supporting
 requests of the form
 
-  PUT http://$host/file/$filename
-  GET http://$host/file/$md5/$filename
-  HEAD http://$host/file/$md5/$filename
-  GET http://$host/bucket_map
+ PUT http://$host/file/$filename
+ GET http://$host/file/$md5/$filename
+ HEAD http://$host/file/$md5/$filename
+ GET http://$host/bucket_map
 
 to store and retrieve files, where $host may be any of the
 hosts in the cluster, $md5 is the md5 of the content, and
 $filename is a filename for the content to be stored.  See
 L<Yars::Routes> for documentation of other routes.
 
-Failover is handled in the following manner :
+Failover is handled in the following manner:
 
 If the host to which a file is assigned is not available, then
 the file will be "stashed" on the filesystem for the host
@@ -76,18 +76,29 @@ Create a configuration file in C<~/etc/Yars.conf> with this
 content:
 
  ---
+ 
+ # The first half of the configuration specifies the
+ # generic Clustericious / web server settings for
+ # the server
  start_mode : 'hypnotoad'
  url : http://localhost:9999
  hypnotoad :
    pid_file : <%= file home, 'var/run/yars.pid' %>
    listen :
       - http://localhost:9999
+ 
+ # The rest defines the servers, disks and buckets
+ # used by the Yars cluster.  In this single server
+ # example, there is only one server and one disk
  servers :
  - url : http://localhost:9999
    disks :
      - root : <%= file home, 'var/data/disk1' %>
        buckets : <%= json [ 0..9, 'a'..'f' ] %>
- 
+
+The configuration file is a L<Mojo::Template> template with
+helpers provided by L<Clustericious::Config::Helpers>.
+
 Create the directories needed for the server:
 
  % mkdir -p ~/var/run ~/var/data
