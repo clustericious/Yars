@@ -217,10 +217,6 @@ have an archive.
 See also, L<clad>, for a tool to facilitate
 running "yars start" on multiple hosts at once.
 
-L<Yars> is the application package, it inherits from
-L<Clustericious::App> and overrides the following
-methods :
-
 =head2 Accelerated downloads with nginx
 
 TODO

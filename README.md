@@ -205,10 +205,6 @@ have an archive.
 See also, [clad](https://metacpan.org/pod/clad), for a tool to facilitate
 running "yars start" on multiple hosts at once.
 
-[Yars](https://metacpan.org/pod/Yars) is the application package, it inherits from
-[Clustericious::App](https://metacpan.org/pod/Clustericious::App) and overrides the following
-methods :
-
 ## Accelerated downloads with nginx
 
 TODO
