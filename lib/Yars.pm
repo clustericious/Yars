@@ -96,6 +96,8 @@ Now you can start the server process
 
  % yars start
 
+=head3 check status
+
 Now verify that it works:
 
  % curl http://localhost:9999/status
@@ -118,6 +120,8 @@ Or via L<Yars::Client>:
  server_hostname: iscah
  server_url: http://localhost:9999
  server_version: '1.11'
+
+=head3 upload and downloads
 
 Now try storing a file:
 

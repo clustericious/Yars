@@ -84,6 +84,8 @@ Now you can start the server process
 
     % yars start
 
+### check status
+
 Now verify that it works:
 
     % curl http://localhost:9999/status
@@ -106,6 +108,8 @@ Or via [Yars::Client](https://metacpan.org/pod/Yars::Client):
     server_hostname: iscah
     server_url: http://localhost:9999
     server_version: '1.11'
+
+### upload and downloads
 
 Now try storing a file:
 
