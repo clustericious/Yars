@@ -66,51 +66,108 @@ locations.
 A client L<Yars::Client> is also available (in a separate
 distribution), for interacting with a yars server.
 
-=head1 EXAMPLE 1
+=head1 EXAMPLES
 
-The following sequence of commands will start yars on
-a single host (with 16 buckets) :
+=head2 simple single server configuration
 
-    $ mkdir ~/etc
-    $ cat > ~/etc/Yars.conf
-    ---
-    start_mode : 'hypnotoad'
-    url : http://localhost:9999
-    hypnotoad :
-      pid_file : /tmp/yars.pid
-      listen :
-         - http://localhost:9999
-    servers :
-    - url : http://localhost:9999
-      disks :
-        - root : /usr/local/data/disk1
-          buckets : [ <%= join ',', '0'..'9', 'a'..'f' %> ]
-    ^D
+This creates a single Yars server using hypnotoad with sixteen buckets.
 
-    $ yars start
+Create a configuration file in C<~/etc/Yars.conf> with this
+content:
 
-Now, verify that it works :
+ ---
+ start_mode : 'hypnotoad'
+ url : http://localhost:9999
+ hypnotoad :
+   pid_file : <%= file home, 'var/run/yars.pid' %>
+   listen :
+      - http://localhost:9999
+ servers :
+ - url : http://localhost:9999
+   disks :
+     - root : <%= file home, 'var/data/disk1' %>
+       buckets : <%= json [ 0..9, 'a'..'f' ] %>
+ 
+Create the directories needed for the server:
 
-    $ GET http://localhost:9999/status
+ % mkdir -p ~/var/run ~/var/data
 
-And try to PUT and GET a file :
+Now you can start the server process
 
-    echo "hi" | lwp-request -em PUT http://localhost:9999/file/here
-    # (notice the "Location" header
-    GET http://localhost:9999/file/764efa883dda1e11db47671c4a3bbd9e/here
+ % yars start
 
-Also you can use L<Yars::Client> :
+Now verify that it works:
 
-    echo "hi" > myfile
-    yarsclient upload myfile
-    yarsclient download myfile 764efa883dda1e11db47671c4a3bbd9e
+ % curl http://localhost:9999/status
+ {"server_url":"http://localhost:9999","server_version":"1.11","app_name":"Yars","server_hostname":"iscah"}
 
-Or to see the requests and responses :
+You can also verify that it works with L<yarsclient>:
 
-    yarsclient --trace root upload myfile
-    yarsclient --trace root download myfile 764efa883dda1e11db47671c4a3bbd9e
+ % yarsclient status
+ ---
+ app_name: Yars
+ server_hostname: iscah
+ server_url: http://localhost:9999
+ server_version: '1.11'
 
-=head1 EXAMPLE 2
+Or via L<Yars::Client>:
+
+ % perl -MYars::Client -MYAML::XS=Dump -E 'say Dump(Yars::Client->new->status)'
+ ---
+ app_name: Yars
+ server_hostname: iscah
+ server_url: http://localhost:9999
+ server_version: '1.11'
+
+Now try storing a file:
+
+ % echo "hi" | curl -D headers.txt -T - http://localhost:9999/file/test_file1
+ ok
+ % grep Location headers.txt 
+ Location: http://localhost:9999/file/764efa883dda1e11db47671c4a3bbd9e/test_file1
+
+You can use the Location header to fetch the file at a later time
+
+ % curl http://localhost:9999/file/764efa883dda1e11db47671c4a3bbd9e/test_file1
+ hi
+
+With L<yarsclient>
+
+ % echo "hi" > test_file2
+ % md5sum test_file2
+ 764efa883dda1e11db47671c4a3bbd9e  test_file2
+ % yarsclient upload test_file2
+ 
+ ... some time later ...
+ 
+ % yarsclient downbload test_file2 764efa883dda1e11db47671c4a3bbd9e
+
+You can see the HTTP requests and responses using the C<--trace> option:
+
+ % yarsclient --trace upload test_file2
+ % yarsclient --trace download test_file2 764efa883dda1e11db47671c4a3bbd9e
+
+And from Perl:
+
+ use 5.010;
+ use Yars::Client;
+ use Digest::MD5 qw( md5_hex );
+ 
+ my $y = Yars::Client->new;
+ 
+ # filename as first argument,
+ # reference to content as second argument
+ $y->upload("test_file3", \"hi\n");
+ 
+ # you can also skip the content like this:
+ # $y->upload("test_file3");
+ # to upload content from a local file
+ 
+ my $md5 = md5_hex("hi\n");
+ 
+ $y->download("test_file3", $md5);
+
+=head2 Multiple hosts
 
 To install Yars on a cluster of several hosts, the configuration
 for each host should be identical, except that the 'url'
@@ -160,17 +217,13 @@ L<Yars> is the application package, it inherits from
 L<Clustericious::App> and overrides the following
 methods :
 
+=head2 Accelerated downloads with nginx
+
+TODO
+
 =cut
 
 has secret => rand;
-
-=head2 startup
-
-Called by the server to start up, we change
-the object classes to use Yars::Message::Request
-for incoming requests.
-
-=cut
 
 sub startup {
     my $self = shift;
@@ -343,7 +396,30 @@ CONF2
 
 =head1 SEE ALSO
 
-L<Yars::Client>
+=over 4
+
+=item L<Yars::Client>
+
+Perl API interface to Yars.
+
+=item L<yarsclient>
+
+Command line client interface to Yars.
+
+=item L<Yars::Routes>
+
+HTTP REST routes useable for interfacing with Yars.
+
+=item L<yars_exercise>
+
+Automated upload / download of files to Yars for performance testing.
+
+=item L<Clustericious>
+
+Yars is built on the L<Clustericious> framework, itself heavily utilizing
+L<Mojolicious>
+
+=back
 
 =cut
 

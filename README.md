@@ -54,51 +54,108 @@ locations.
 A client [Yars::Client](https://metacpan.org/pod/Yars::Client) is also available (in a separate
 distribution), for interacting with a yars server.
 
-# EXAMPLE 1
+# EXAMPLES
 
-The following sequence of commands will start yars on
-a single host (with 16 buckets) :
+## simple single server configuration
 
-    $ mkdir ~/etc
-    $ cat > ~/etc/Yars.conf
+This creates a single Yars server using hypnotoad with sixteen buckets.
+
+Create a configuration file in `~/etc/Yars.conf` with this
+content:
+
     ---
     start_mode : 'hypnotoad'
     url : http://localhost:9999
     hypnotoad :
-      pid_file : /tmp/yars.pid
+      pid_file : <%= file home, 'var/run/yars.pid' %>
       listen :
          - http://localhost:9999
     servers :
     - url : http://localhost:9999
       disks :
-        - root : /usr/local/data/disk1
-          buckets : [ <%= join ',', '0'..'9', 'a'..'f' %> ]
-    ^D
+        - root : <%= file home, 'var/data/disk1' %>
+          buckets : <%= json [ 0..9, 'a'..'f' ] %>
 
-    $ yars start
+Create the directories needed for the server:
 
-Now, verify that it works :
+    % mkdir -p ~/var/run ~/var/data
 
-    $ GET http://localhost:9999/status
+Now you can start the server process
 
-And try to PUT and GET a file :
+    % yars start
 
-    echo "hi" | lwp-request -em PUT http://localhost:9999/file/here
-    # (notice the "Location" header
-    GET http://localhost:9999/file/764efa883dda1e11db47671c4a3bbd9e/here
+Now verify that it works:
 
-Also you can use [Yars::Client](https://metacpan.org/pod/Yars::Client) :
+    % curl http://localhost:9999/status
+    {"server_url":"http://localhost:9999","server_version":"1.11","app_name":"Yars","server_hostname":"iscah"}
 
-    echo "hi" > myfile
-    yarsclient upload myfile
-    yarsclient download myfile 764efa883dda1e11db47671c4a3bbd9e
+You can also verify that it works with [yarsclient](https://metacpan.org/pod/yarsclient):
 
-Or to see the requests and responses :
+    % yarsclient status
+    ---
+    app_name: Yars
+    server_hostname: iscah
+    server_url: http://localhost:9999
+    server_version: '1.11'
 
-    yarsclient --trace root upload myfile
-    yarsclient --trace root download myfile 764efa883dda1e11db47671c4a3bbd9e
+Or via [Yars::Client](https://metacpan.org/pod/Yars::Client):
 
-# EXAMPLE 2
+    % perl -MYars::Client -MYAML::XS=Dump -E 'say Dump(Yars::Client->new->status)'
+    ---
+    app_name: Yars
+    server_hostname: iscah
+    server_url: http://localhost:9999
+    server_version: '1.11'
+
+Now try storing a file:
+
+    % echo "hi" | curl -D headers.txt -T - http://localhost:9999/file/test_file1
+    ok
+    % grep Location headers.txt 
+    Location: http://localhost:9999/file/764efa883dda1e11db47671c4a3bbd9e/test_file1
+
+You can use the Location header to fetch the file at a later time
+
+    % curl http://localhost:9999/file/764efa883dda1e11db47671c4a3bbd9e/test_file1
+    hi
+
+With [yarsclient](https://metacpan.org/pod/yarsclient)
+
+    % echo "hi" > test_file2
+    % md5sum test_file2
+    764efa883dda1e11db47671c4a3bbd9e  test_file2
+    % yarsclient upload test_file2
+    
+    ... some time later ...
+    
+    % yarsclient downbload test_file2 764efa883dda1e11db47671c4a3bbd9e
+
+You can see the HTTP requests and responses using the `--trace` option:
+
+    % yarsclient --trace upload test_file2
+    % yarsclient --trace download test_file2 764efa883dda1e11db47671c4a3bbd9e
+
+And from Perl:
+
+    use 5.010;
+    use Yars::Client;
+    use Digest::MD5 qw( md5_hex );
+    
+    my $y = Yars::Client->new;
+    
+    # filename as first argument,
+    # reference to content as second argument
+    $y->upload("test_file3", \"hi\n");
+    
+    # you can also skip the content like this:
+    # $y->upload("test_file3");
+    # to upload content from a local file
+    
+    my $md5 = md5_hex("hi\n");
+    
+    $y->download("test_file3", $md5);
+
+## Multiple hosts
 
 To install Yars on a cluster of several hosts, the configuration
 for each host should be identical, except that the 'url'
@@ -148,15 +205,32 @@ running "yars start" on multiple hosts at once.
 [Clustericious::App](https://metacpan.org/pod/Clustericious::App) and overrides the following
 methods :
 
-## startup
+## Accelerated downloads with nginx
 
-Called by the server to start up, we change
-the object classes to use Yars::Message::Request
-for incoming requests.
+TODO
 
 # SEE ALSO
 
-[Yars::Client](https://metacpan.org/pod/Yars::Client)
+- [Yars::Client](https://metacpan.org/pod/Yars::Client)
+
+    Perl API interface to Yars.
+
+- [yarsclient](https://metacpan.org/pod/yarsclient)
+
+    Command line client interface to Yars.
+
+- [Yars::Routes](https://metacpan.org/pod/Yars::Routes)
+
+    HTTP REST routes useable for interfacing with Yars.
+
+- [yars\_exercise](https://metacpan.org/pod/yars_exercise)
+
+    Automated upload / download of files to Yars for performance testing.
+
+- [Clustericious](https://metacpan.org/pod/Clustericious)
+
+    Yars is built on the [Clustericious](https://metacpan.org/pod/Clustericious) framework, itself heavily utilizing
+    [Mojolicious](https://metacpan.org/pod/Mojolicious)
 
 # AUTHOR
 

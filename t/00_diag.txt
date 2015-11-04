@@ -17,6 +17,7 @@ Log::Log4perl
 Log::Log4perl::CommandLine
 Module::Build
 Number::Bytes::Human
+Path::Class
 Smart::Comments
 Test::Clustericious::Cluster
 Test::More
