@@ -1,6 +1,30 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+  - Added support for nginx X-Accel-Redirect
+    by using the X-Yars-Use-X-Accel header
+    (see Yars#EXAMPLES for example usage)
+  - yars_fast_banace now accepts --help
+    and --version like the other yars_*
+    scripts
+  - You can disable MD5 checks server side
+    for download when using Yars::Client or
+    yarsclient (which do a MD5 check client
+    side after download) by using the 
+    download_md5_verify server side
+    configuration (see Yars#EXAMPLES for
+    example usage).
+  - Removed documentation for a "countent"
+    subcommand for yarsclient which was 
+    never implmeneted
+  - Added a number of additional sanity
+    checks for the 'yars configtest' command.
+  - Fixed a Yars::Client / yarsclient bug
+    where files stashed on a non-primary,
+    non-failover host would not download
+    correctly due to the client not correctly
+    following redirects.
+  - Much improved documentation.
 
 1.11      2015-10-27 13:20:19 -0400
   - Yars::Client no longer overides @INC
