@@ -201,7 +201,7 @@ And from Perl:
     
     $y->download("test_file3", $md5);
 
-## Multiple hosts
+## Multiple servers
 
 ### set up the URL
 
@@ -346,6 +346,20 @@ and `yarsclient` to use when the primary is not available:
     url: http://yars2:9001
     failover_urls:
       - http://yars1:9001
+
+### randomizing the server choices
+
+In order to more evenly spread the load over each node in the Yars
+cluster, you can randomize the servers that the client considers the
+"primary" and the "failover(s)":
+
+    ---
+    # ~/etc/Yars.conf on client systems
+    % use List::Util qw( shuffle );
+    % my @url = shuffle map { "http://yars$_:9001" } 1..3;
+    url: <%= $url[0] %>
+    failover_urls:
+      - <%= $url[1] %>
 
 ## Accelerated downloads with nginx
 
