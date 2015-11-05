@@ -39,6 +39,8 @@ pod_spelling_system:
     - md5sum
     - b642hex
     - hex2b64
+    - Clustericious
+    - redownload
 
 pod_coverage:
   # format is "Class#method" or "Class", regex allowed
