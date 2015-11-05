@@ -23,13 +23,16 @@ use Mojo::UserAgent;
 use File::Spec;
 use Yars::Util qw( format_tx_error );
 
-
 # ABSTRACT: various utility functions dealing with servers, hosts, etc
 # VERSION
 
 =head1 DESCRIPTION
 
-Just some useful functions here.
+This module is largely used internally by L<Yars>.  Documentation for some of
+its capabilities are provided here for the understanding of how the rest of
+the L<Yars> server works, but they should not be considered to be a public
+interface and they may change in the future, though probably not for a good
+reason.
 
 =head1 FUNCTIONS
 

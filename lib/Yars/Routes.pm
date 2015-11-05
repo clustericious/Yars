@@ -3,7 +3,16 @@ package Yars::Routes;
 # ABSTRACT: set up the routes for Yars.
 # VERSION
 
-=head1 ROUTES
+=head1 SYNOPSIS
+
+ % curl http://localhost:9001/file/764efa883dda1e11db47671c4a3bbd9e/test_file1
+
+=head1 DESCRIPTION
+
+This document provides information on the Yars specific REST API (the HTTP "routes") provided
+by Yars servers.  For a Perl interface to this API, see L<Yars::Client>.  For a command line
+interface see L<yarsclient>.  For the generic L<Clustericious> REST API that comes with all
+L<Clustericious> services, see L<Clustericious::RouteBuilder::Common>.
 
 =cut
 
@@ -37,9 +46,11 @@ BEGIN {
   }
 }
 
+=head1 ROUTES
+
 =head2 GET /
 
-Get a welcome message.
+Get a welcome message.  This is usually simply the text string "welcome to Yars".
 
 =cut
 
@@ -48,6 +59,9 @@ get '/' => sub { shift->render_text("welcome to Yars") } => 'index';
 =head2 GET /file/#filename/:md5, GET /:md5/#filename
 
 Retrieve a file with the given name and md5.
+
+You can also make a HEAD request on the same route to determine if the
+file is available without making the yars server send the file.
 
 =cut
 
@@ -129,6 +143,8 @@ sub _set_static_headers {
     $c->res->headers->content_type($type || $types->type('bin'));
     return 1;
 }
+
+
 
 sub _head {
     my $c        = shift;
@@ -708,7 +724,7 @@ get '/bucket/usage' => sub {
 
 =head1 SEE ALSO
 
-L<Yars>, L<Yars::Client>
+L<Yars>, L<Yars::Client>, L<yarsclient>, L<Clustericious>
 
 =cut
 
