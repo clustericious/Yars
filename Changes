@@ -1,6 +1,8 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+
+1.12      2015-11-05 07:49:04 -0500
   - Added support for nginx X-Accel-Redirect
     by using the X-Yars-Use-X-Accel header
     (see Yars#EXAMPLES for example usage)
