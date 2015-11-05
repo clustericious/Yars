@@ -81,17 +81,17 @@ content:
  # generic Clustericious / web server settings for
  # the server
  start_mode : 'hypnotoad'
- url : http://localhost:9999
+ url : http://localhost:9001
  hypnotoad :
    pid_file : <%= home %>/var/run/yars.pid
    listen :
-      - http://localhost:9999
+      - http://localhost:9001
  
  # The rest defines the servers, disks and buckets
  # used by the Yars cluster.  In this single server
  # example, there is only one server and one disk
  servers :
- - url : http://localhost:9999
+ - url : http://localhost:9001
    disks :
      - root : <%= home %>/var/data/disk1
        buckets : <%= json [ 0..9, 'a'..'f' ] %>
@@ -111,8 +111,8 @@ Now you can start the server process
 
 Now verify that it works:
 
- % curl http://localhost:9999/status
- {"server_url":"http://localhost:9999","server_version":"1.11","app_name":"Yars","server_hostname":"iscah"}
+ % curl http://localhost:9001/status
+ {"server_url":"http://localhost:9001","server_version":"1.11","app_name":"Yars","server_hostname":"iscah"}
 
 You can also verify that it works with L<yarsclient>:
 
@@ -120,7 +120,7 @@ You can also verify that it works with L<yarsclient>:
  ---
  app_name: Yars
  server_hostname: iscah
- server_url: http://localhost:9999
+ server_url: http://localhost:9001
  server_version: '1.11'
 
 Or via L<Yars::Client>:
@@ -129,21 +129,21 @@ Or via L<Yars::Client>:
  ---
  app_name: Yars
  server_hostname: iscah
- server_url: http://localhost:9999
+ server_url: http://localhost:9001
  server_version: '1.11'
 
 =head3 upload and downloads
 
 Now try storing a file:
 
- % echo "hi" | curl -D headers.txt -T - http://localhost:9999/file/test_file1
+ % echo "hi" | curl -D headers.txt -T - http://localhost:9001/file/test_file1
  ok
  % grep Location headers.txt 
- Location: http://localhost:9999/file/764efa883dda1e11db47671c4a3bbd9e/test_file1
+ Location: http://localhost:9001/file/764efa883dda1e11db47671c4a3bbd9e/test_file1
 
 You can use the Location header to fetch the file at a later time
 
- % curl http://localhost:9999/file/764efa883dda1e11db47671c4a3bbd9e/test_file1
+ % curl http://localhost:9001/file/764efa883dda1e11db47671c4a3bbd9e/test_file1
  hi
 
 With L<yarsclient>
@@ -184,49 +184,149 @@ And from Perl:
 
 =head2 Multiple hosts
 
-To install Yars on a cluster of several hosts, the configuration
-for each host should be identical, except that the 'url'
-should reflect the host on which the server is running.
+=head3 set up the URL
 
-To accomplish this, the above configuration may be divided
-into two files, one with the bucket map, and another with
-the server specific information.
+When configuring a cluster of several hosts, the C<url> value
+in the configuration must have the correct hostname or IP
+address for each host that the server is running on.  One
+way to handle this would be to have a configuration file for
+each host:
 
-    yars1 ~$ cat > ~/etc/Yars.conf :
-    ----
-    extends_config 'disk_map';
-    url : http://yars1:9999
-    hypnotoad :
-      pid_file : /tmp/yars.pid
-      listen :
-         - http://yars1:9999
+ ---
+ # ~/etc/Yars.conf on yars1
+ url: http://yars1:9001
 
-    yars2 ~$ cat > ~/etc/Yars.conf :
-    ----
-    extends_config 'disk_map';
-    url : http://yars2:9999
-    hypnotoad :
-      pid_file : /tmp/yars.pid
-      listen :
-         - http://yars2:9999
+ ---
+ # ~/etc/Yars.conf on yars2
+ url: http://yars2:9001
 
-    Then on both servers :
-    $ cat > ~/etc/disk_map.conf :
-    servers :
-    - url : http://yars1:9999
-      disks :
-        - root : /usr/local/data/disk1
-          buckets : [ <%= join ',', '0'..'9' %> ]
-    - url : http://yars2:9999
-      disks :
-        - root : /usr/local/data/disk1
-          buckets : [ <%= join ',', 'a'..'f' %> ]
+A less tedious way is to use the C<hostname> or C<hostname_full>
+helper from L<Clustericious::Config::Helpers>.  This allows you
+to use the same configuration for all servers in the cluster:
 
-Then run "yars start" on both servers and voila, you
-have an archive.
+ ---
+ # works for yars1, yars2 but not for
+ # a client host
+ url: http://<%= hostname %>:9001
 
-See also, L<clad>, for a tool to facilitate
-running "yars start" on multiple hosts at once.
+=head3 abstract the webserver configuration
+
+If you have multiple L<Clustericious> services on the same host,
+or if you share configurations between multiple hosts, it may be
+useful to use the <%= extends_config %> helper and put the web
+server configuration in a separate file.  For example:
+
+ ---
+ # ~/etc/Yars.conf
+ % my $url = "http://" . hostname . ":9001";
+ url: <%= $url %>
+ % extends_config 'hypnotoad', url => $url, name => 'yars';
+
+ ---
+ # ~/etc/hypnotoad.conf
+ hypnotoad :
+   pid_file : <%= home %>/var/run/<%= $name %>.pid
+   listen :
+      - <%= $url %>
+
+Now if you were also going to use L<PlugAuth> on the same host
+they could share the same C<hypnotoad.conf> file with different
+parameters:
+
+ ---
+ # ~/etc/PlugAuth.conf
+ % my $url = "http://" . hostname . ":3001";
+ url: <%= $url %>
+ % extends_config 'hypnotoad', url => $url, name => 'plugauth';
+
+=head3 generate the disk map
+
+Given a file with a list of hosts and disks like this called diskmap.txt:
+
+ yars1 /disk1a
+ yars1 /disk1b
+ yars2 /disk2a
+ yars2 /disk2b
+ yars3 /disk3a
+ yars3 /disk3b
+
+You can generate a disk map using the L<yars_generate_diskmap> command:
+
+ % yars_generate_diskmap 2 diskmap.txt > ~/etc/yars_diskmap.conf
+
+This will generate a diskmap configuration with the buckets evenly 
+allocated to the available disks:
+
+ ---
+ servers :
+ - url : http://yars1:9001
+   disks :
+   - root : /disk1a
+     buckets : [ 00, 06, 0c, 12, 18, 1e, 24, 2a, 30, 36, 3c, 42, 48,
+                 4e, 54, 5a, 60, 66, 6c, 72, 78, 7e, 84, 8a, 90, 96, 9c,
+                 a2, a8, ae, b4, ba, c0, c6, cc, d2, d8, de, e4, ea, f0,
+                 f6, fc ]
+   - root : /disk1b
+     buckets : [ 01, 07, 0d, 13, 19, 1f, 25, 2b, 31, 37, 3d, 43, 49,
+                 4f, 55, 5b, 61, 67, 6d, 73, 79, 7f, 85, 8b, 91, 97, 9d,
+                 a3, a9, af, b5, bb, c1, c7, cd, d3, d9, df, e5, eb, f1,
+                 f7, fd ]
+ - url : http://yars2:9001
+   disks :
+   - root : /disk2a
+     buckets : [ 02, 08, 0e, 14, 1a, 20, 26, 2c, 32, 38, 3e, 44, 4a,
+                 50, 56, 5c, 62, 68, 6e, 74, 7a, 80, 86, 8c, 92, 98, 9e,
+                 a4, aa, b0, b6, bc, c2, c8, ce, d4, da, e0, e6, ec, f2,
+                 f8, fe ]
+   - root : /disk2b
+     buckets : [ 03, 09, 0f, 15, 1b, 21, 27, 2d, 33, 39, 3f, 45, 4b,
+                 51, 57, 5d, 63, 69, 6f, 75, 7b, 81, 87, 8d, 93, 99, 9f,
+                 a5, ab, b1, b7, bd, c3, c9, cf, d5, db, e1, e7, ed, f3,
+                 f9, ff ]
+ - url : http://yars3:9001
+   disks :
+   - root : /disk3a
+     buckets : [ 04, 0a, 10, 16, 1c, 22, 28, 2e, 34, 3a, 40, 46, 4c,
+                 52, 58, 5e, 64, 6a, 70, 76, 7c, 82, 88, 8e, 94, 9a, a0,
+                 a6, ac, b2, b8, be, c4, ca, d0, d6, dc, e2, e8, ee, f4,
+                 fa ]
+   - root : /disk3b
+     buckets : [ 05, 0b, 11, 17, 1d, 23, 29, 2f, 35, 3b, 41, 47, 4d,
+                 53, 59, 5f, 65, 6b, 71, 77, 7d, 83, 89, 8f, 95, 9b, a1,
+                 a7, ad, b3, b9, bf, c5, cb, d1, d7, dd, e3, e9, ef, f5,
+                 fb ]
+
+which you can now extend from the Yars.conf file:
+
+ ---
+ # ~/etc/Yars.conf
+ % my $url = "http://" . hostname . ":9001";
+ url: <%= $url %>
+ % extends_config 'hypnotoad', url => $url, name => 'yars';
+ % extends_config 'yars_diskmap';
+
+Also, if for whatever reason you are unable to use the C<hostname>
+or C<hostname_full> helper in your C<Yars.conf> file, it helps to
+keep your diskmap configuration in a separate file that can be shared
+between the different Yars server configuration files.
+
+You can now run C<yars start> on each host to start the servers.
+L<clad> may be useful for starting "yars start" on multiple hosts
+at once.
+
+=head3 client configuration
+
+If you are using the C<hostname> or C<hostname_full> helpers to
+generate the URL in the serve configuration, then you won't be
+able to share that configuration with client systems.  In addition
+you can specify one or more failover hosts for L<Yars::Client>
+and C<yarsclient> to use when the primary is not available:
+
+ ---
+ # ~/etc/Yars.conf on client systems
+ url: http://yars2:9001
+ failover_urls:
+   - http://yars1:9001
 
 =head2 Accelerated downloads with nginx
 
@@ -384,13 +484,13 @@ sub generate_config {
 ---
 % my $root = $ENV{HOME};
 start_mode : 'hypnotoad'
-url : http://localhost:9999
+url : http://localhost:9001
 hypnotoad :
   pid_file : <%= $root %>/var/run/yars.pid
   listen :
-     - http://localhost:9999
+     - http://localhost:9001
 servers :
-- url : http://localhost:9999
+- url : http://localhost:9001
   disks :
     - root : <%= $root %>/var/lib/yars/data
       buckets : [ <%= join ',', '0'..'9', 'a' .. 'f' %> ]

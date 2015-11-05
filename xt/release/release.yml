@@ -33,6 +33,12 @@ pod_spelling_system:
     - hypnotoad
     - nginx
     - useable
+    - diskmap
+    - md5
+    - md5s
+    - md5sum
+    - b642hex
+    - hex2b64
 
 pod_coverage:
   # format is "Class#method" or "Class", regex allowed
