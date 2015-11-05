@@ -14,6 +14,37 @@ use Number::Bytes::Human qw( format_bytes parse_bytes );
 # ABSTRACT: Yet Another RESTful-Archive Service
 # VERSION
 
+=head1 SYNOPSIS
+
+Create a configuration in ~/etc/Yars.conf
+
+ ---
+ url: http://localhost:9001
+ start_mode: hypnotoad
+ hypnotoad:
+   pid_file: <%= home %>/var/run/yars.pid
+   listen: [ 'http://localhost:9001' ]
+ servers:
+   - url: http://localhost:9001
+     disks:
+       - root: <%= home %>/var/data/disk1
+         buckets: <%= json [ 0..9, 'a'..'f' ] %>
+
+Create needed directories and run the server
+
+ % mkdir -p ~/var/run ~/var/data/disk1
+ % yars start
+
+Upload a file:
+
+ % md5sum foo.jog
+ 469f9b131cce1631ddd449fbef9059ba  foo.jpg
+ % yarsclient upload foo.jpg
+
+Download a file
+
+ % yarsclient download foo.jpg 469f9b131cce1631ddd449fbef9059ba
+
 =head1 DESCRIPTION
 
 Yars is a simple RESTful server for data storage.
