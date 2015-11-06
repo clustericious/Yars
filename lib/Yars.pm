@@ -72,9 +72,9 @@ requests of the form
  HEAD http://$host/file/$md5/$filename
  GET http://$host/bucket_map
 
-to store and retrieve files, where $host may be any of the
-hosts in the cluster, $md5 is the md5 of the content, and
-$filename is a filename for the content to be stored.  See
+to store and retrieve files, where C<$host> may be any of the
+hosts in the cluster, C<$md5> is the md5 of the content, and
+C<$filename> is a filename for the content to be stored.  See
 L<Yars::Routes> for documentation of other routes.
 
 Failover is handled in the following manner:
