@@ -1,6 +1,13 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+  - Yars::Client#upload and "yarsclient upload" now
+    take an optional pre-computed md5, which allows
+    the client code to skip the computation.
+  - The bundled examples have been cleaned up and
+    verified to work with most recent versions of
+    Yars and Clustericious.
+  - Additional documentation improvements
 
 1.12      2015-11-05 07:49:04 -0500
   - Added support for nginx X-Accel-Redirect
