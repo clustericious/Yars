@@ -27,7 +27,7 @@ use warnings;
 
 $ENV{MOJO_APP} ||= 'Yars';
 
-&main;
+main();
 
 sub main {
     my $app = Yars->new();
