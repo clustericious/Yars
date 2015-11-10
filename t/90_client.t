@@ -2,7 +2,7 @@ use strict;
 use warnings;
 use Test::Clustericious::Config;
 use Test::Clustericious::Cluster 0.22;
-use Test::More tests => 5;
+use Test::More tests => 6;
 use Digest::file qw( digest_file_hex );
 use Yars::Client;
 
@@ -76,6 +76,21 @@ subtest 'Yars::Client#send, #retrieve with filename' => sub {
   ok !$y->errorstring, "No error";
   my $same = $y->retrieve(name => "barney", md5 => $md5);
   is $same, "rubble", "Got same content back";
+};
+
+subtest 'Yars::Client#upload without md5' => sub {
+  plan tests => 8;
+  ok !$y->upload("file_sans_md5.txt", '1da9fac348de8fbf9d242d1d956ddaea', \"some content without md5"), 'upload with wrong md5 fails';
+  is $y->tx->req->url->path, '/file/file_sans_md5.txt/1da9fac348de8fbf9d242d1d956ddaea', 'really did request with wrong md5';
+
+  ok !$y->check("file_sans_md5.txt", '1da9fac348de8fbf9d242d1d956ddaea'), 'not stored under ...ea';
+  ok !$y->check("file_sans_md5.txt", '1da9fac348de8fbf9d242d1d956ddaec'), 'not stored under ...ec';
+
+  ok !!$y->upload("file_sans_md5.txt", '1da9fac348de8fbf9d242d1d956ddaec', \"some content without md5"), 'upload with wrong md5 works';
+  is $y->tx->req->url->path, '/file/file_sans_md5.txt/1da9fac348de8fbf9d242d1d956ddaec', 'really did request with wrong md5';
+
+  ok !$y->check("file_sans_md5.txt", '1da9fac348de8fbf9d242d1d956ddaea'), 'not stored under ...ea';
+  ok !!$y->check("file_sans_md5.txt", '1da9fac348de8fbf9d242d1d956ddaec'), 'not stored under ...ec';
 };
 
 # TODO

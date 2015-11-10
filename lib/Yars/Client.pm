@@ -22,7 +22,7 @@ use IO::Uncompress::Gunzip qw(gunzip $GunzipError);
 use Number::Bytes::Human qw( format_bytes parse_bytes );
 use File::Temp qw( tempdir );
 
-route_doc upload   => "<filename>";
+route_doc upload   => "<filename> [md5]";
 route_doc download => "<filename> <md5> [dir]";
 route_doc remove   => "<filename> <md5>";
 
@@ -287,6 +287,7 @@ sub _all_hosts {
 sub upload {
     my $self = shift;
     my $content = ref($_[-1]) eq 'SCALAR' ? pop : undef;
+    my $md5 = defined $_[-1] && $_[-1] =~ /^[0-9a-f]+$/i ? lc pop : undef;
     my $filename = pop;
     my $nostash;
     if (@_) {
@@ -322,7 +323,7 @@ sub upload {
     # Don't read the file.
     my $basename = basename($filename);
     my $asset    = Mojo::Asset::File->new( path => $filename );
-    my $md5      = digest_file_hex($filename, 'MD5');
+    $md5 ||= digest_file_hex($filename, 'MD5');
 
     my @servers = $self->_all_hosts( $self->_server_for($md5) );
 
@@ -359,10 +360,10 @@ sub upload {
             }
         }
     }
+    $self->res($tx->res);
     return '' if !$code || !$tx->res->is_status_class(200);
 
     DEBUG "Response : ".$tx->res->code." ".$tx->res->message;
-    $self->res($tx->res);
     return 'ok';
 }
 
