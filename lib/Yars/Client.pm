@@ -287,21 +287,17 @@ sub _all_hosts {
 sub upload {
     my $self = shift;
     my $content = ref($_[-1]) eq 'SCALAR' ? pop : undef;
-    my $md5 = defined $_[-1] && $_[-1] =~ /^[0-9a-f]+$/i ? lc pop : undef;
-    my $filename = pop;
-    my $nostash;
-    if (@_) {
-        # To avoid failover :
-        # yarsclient upload --nostash 1 foo
-        # $yc->upload("--nostash",1","foo")
-        # This is undocumented since it is only intended to be
-        # used on a server when balancing, not as a public interface.
 
-        if ($_[0] =~ /nostash$/) {
-            shift;
-            $nostash = shift;
-        }
+    my $nostash;
+    if(defined $_[0] && $_[0] eq '--nostash')
+    {
+      shift;
+      $nostash = shift;
     }
+
+    my $filename = shift;
+    my $md5 = defined $_[0] && $_[0] =~ /^[0-9a-f]+$/i ? lc shift : undef;
+
     if (@_) {
         LOGDIE "unknown options to upload : @_";
     }
