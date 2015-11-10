@@ -289,6 +289,20 @@ sub upload {
     my $content = ref($_[-1]) eq 'SCALAR' ? pop : undef;
 
     my $nostash;
+    # OLD COMMENT (still valid):
+    #  To avoid failover:
+    #  yarsclient upload --nostash 1 foo
+    #  Yars::Client->new->upload("--nostash" => 1, 'foo');
+    #  This is undocumented since it is only intended to be
+    #  used on a server when blanacing, not as a public interface.
+    # UPDATE (Graham Ollis 2015-11-10)
+    #  This feature is only used by yars_fast_balance
+    #  (see Yars::Command::yars_fast_balance for implementation).
+    #  This used to match on /nostash$/ but the only place this
+    #  is used it specifies it as a command line option like thing
+    #  ("--nostash"), but that means that you can't upload files
+    #  that end in *nostash.  In truth the interface here should
+    #  be a little better thought out and a little less batshitcrazy.
     if(defined $_[0] && $_[0] eq '--nostash')
     {
       shift;
