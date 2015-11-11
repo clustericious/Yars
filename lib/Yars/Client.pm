@@ -21,12 +21,12 @@ use Data::Dumper;
 use IO::Uncompress::Gunzip qw(gunzip $GunzipError);
 use Number::Bytes::Human qw( format_bytes parse_bytes );
 use File::Temp qw( tempdir );
+use File::HomeDir;
+use YAML::XS;
 
 route_doc upload   => "<filename> [md5]";
 route_doc download => "<filename> <md5> [dir]";
 route_doc remove   => "<filename> <md5>";
-
-has bucket_map_cached  => sub { 0; }; # Computed on demand.
 
 route 'welcome'        => "GET",  '/';
 route 'bucket_map'     => "GET",  '/bucket_map';
@@ -85,6 +85,32 @@ sub client {
         $self->SUPER::client($new);
         $new;
     } : $self->SUPER::client;
+}
+
+sub bucket_map_cached {
+    my($self, $new) = @_;
+
+    state $fn = File::Spec->catfile(
+        File::HomeDir->my_dist_data('Yars', { create => 1 }),
+        'bucket_map_cache.yml',
+    );
+
+    if(defined $new) {
+        $self->{bucket_map_cached} = $new;
+
+        if(ref $new) {
+            YAML::XS::DumpFile($fn, $new);
+        } else {
+            unlink $fn;
+        }
+    }
+
+    elsif(! defined $self->{bucket_map_cached})
+    {
+        $self->{bucket_map_cached} = -r $fn ? YAML::XS::LoadFile($fn) : 0;
+    }
+
+    $self->{bucket_map_cached};
 }
 
 sub _get_url {
@@ -178,6 +204,17 @@ sub download {
         };
         DEBUG "Received asset with size ".$res->content->asset->size;
         TRACE "Received headers : ".$res->headers->to_string;
+
+        # host == 0 means we tried the assigned host
+        if($host == 0) {
+            my $prev = $res->previous;
+            # previous message in the chain was a 301
+            # Moved Permanently means our bucket map is
+            # wrong our out of date
+            if($prev && $prev->code == 301) {
+                $self->bucket_map_cached(0);
+            }
+        }
 
         my $out_file = $dest_dir ? $dest_dir . "/$filename" : $filename;
         DEBUG "Writing to $out_file";
