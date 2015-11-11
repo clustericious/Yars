@@ -9,13 +9,14 @@ use Path::Class qw( file dir );
 use Clustericious::Config;
 use File::Temp qw( tempdir );
 use File::HomeDir;
+use File::Path qw( remove_tree );
 
 plan tests => 2;
 
 my $cluster = Test::Clustericious::Cluster->new;
 
 subtest prep => sub {
-  plan tests => 5;
+  plan tests => 7;
   create_directory_ok 'foo1';
   create_directory_ok 'foo2';
   create_directory_ok 'foo3';
@@ -31,8 +32,8 @@ subtest prep => sub {
   #note YAML::XS::Dump(Clustericious::Config->new('Yars'));
 
   my $config = Clustericious::Config->new('Yars');
-  note "primary:  ", $config->url;
-  note "failover: ", $_ for $config->failover_urls;
+  is $config->url, $cluster->urls->[3], "primary is @{[ $cluster->urls->[3] ]}";
+  is $config->failover_urls->[0], $cluster->urls->[2], "failover is @{[ $cluster->urls->[2] ]}";
   note "url:      ", $_ for map { $_->{url} } $config->servers;
 };
 
@@ -69,9 +70,18 @@ subtest 'stashed on non-failover, non-primary' => sub {
     is $y->download('stuff', 'bc98d84673286ce1447eca1766f28504', $dest->parent), 'ok', 'download is ok';
     is $dest->slurp, $data, 'download content matches';
   };
-  
+
+  reset_store(); 
 };
 
+sub reset_store
+{
+  foreach my $dir (grep { $_->basename ne 'tmp' } map { dir($_)->children } map { $_->{root} } map { @{ $_->{disks} } } Clustericious::Config->new('Yars')->servers)
+  {
+    $DB::single = 1;
+    remove_tree("$dir", { verbose => 0 });
+  }
+}
 
 __DATA__
 
