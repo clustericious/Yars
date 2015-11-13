@@ -504,14 +504,14 @@ sub startup {
             $tx->req->content->on(body => sub {
                     my $content = shift;
                     my $md5_b64 = $content->headers->header('Content-MD5') or return;
-                    my $md5 = unpack 'H*', b($md5_b64)->b64_decode;
-                    my $disk = $tools->disk_for($md5) or return;
-                    my $tmpdir = join '/', $disk, 'tmp';
-                    -d $tmpdir or do { mkpath $tmpdir;  chmod 0777, $tmpdir; };
-                    -w $tmpdir or chmod 0777, $tmpdir;
                     $content->asset->on(
                         upgrade => sub {
                             #my ( $mem, $file ) = @_;
+                            my $md5 = unpack 'H*', b($md5_b64)->b64_decode;
+                            my $disk = $tools->disk_for($md5) or return;
+                            my $tmpdir = join '/', $disk, 'tmp';
+                            -d $tmpdir or do { mkpath $tmpdir;  chmod 0777, $tmpdir; };
+                            -w $tmpdir or chmod 0777, $tmpdir;
                             $_[1]->tmpdir($tmpdir);
                         }
                     );
