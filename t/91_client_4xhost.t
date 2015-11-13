@@ -10,8 +10,9 @@ use Clustericious::Config;
 use File::Temp qw( tempdir );
 use File::HomeDir;
 use File::Path qw( remove_tree );
+use YAML::XS qw( Dump );
 
-plan tests => 3;
+plan tests => 5;
 
 my $cluster = Test::Clustericious::Cluster->new;
 
@@ -169,6 +170,25 @@ subtest 'bucket cache' => sub {
 
   };
 
+};
+
+subtest 'persistent cache ignored if config has changed' => sub {
+  plan tests => 1;
+  Yars::Client->new->_server_for('bc98d84673286ce1447eca1766f28504');
+  my $bad_bucket_map = Yars::Client->new->bucket_map_cached;
+  $bad_bucket_map->{$_} = 'http://1.2.3.4:1234' for 0..9, 'a'..'f';
+  Yars::Client->new->bucket_map_cached($bad_bucket_map);
+  my $y = Yars::Client->new;
+  is $y->bucket_map_cached, 0, 'ignored';
+  note Dump($bad_bucket_map);  
+};
+
+subtest 'persistent cache not ignoredif config has not changed' => sub {
+  plan tests => 1;
+  Yars::Client->new->_server_for('bc98d84673286ce1447eca1766f28504');
+  my $y = Yars::Client->new;
+  isnt $y->bucket_map_cached, 0, 'not ignored';
+  note Dump($y->bucket_map_cached);
 };
 
 sub reset_store

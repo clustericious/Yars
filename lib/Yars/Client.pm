@@ -115,7 +115,28 @@ sub bucket_map_cached {
 
     elsif(! defined $self->{bucket_map_cached})
     {
-        $self->{bucket_map_cached} = -r $fn ? YAML::XS::LoadFile($fn) : 0;
+        if(-r $fn)
+        {
+            my $cache = YAML::XS::LoadFile($fn);
+
+            # make sure the cache and config are in sync:
+            # ie, all of the urls in the config refer to
+            # hosts in the cache.
+            my %r = map { $_ => 1 } values %$cache;
+            if(grep { ! $r{$_} } ($self->_config->url, $self->_config->failover_urls))
+            {
+                $self->{bucket_map_cached} = 0;
+                unlink $fn;
+            }
+            else
+            {
+                $self->{bucket_map_cached} = $cache;
+            }
+        }
+        else
+        {
+            $self->{bucket_map_cached} = 0;
+        }
     }
 
     $self->{bucket_map_cached};
