@@ -153,7 +153,7 @@ sub location {
 sub download {
     # Downloads a file and saves it to disk.
     my $self = shift;
-    my ( $filename, $md5, $dest_dir ) = @_;
+    my ( $filename, $md5, $dest ) = @_;
     my $abs_url;
     if (@_ == 1) {
         $abs_url = shift;
@@ -217,7 +217,10 @@ sub download {
             }
         }
 
-        my $out_file = $dest_dir ? $dest_dir . "/$filename" : $filename;
+        my $out_file = $dest
+            ? File::Spec->catfile((ref $dest eq 'SCALAR' ? tempdir(CLEANUP => 1) : $dest), $filename)
+            : $filename;
+
         DEBUG "Writing to $out_file";
         if (my $e = $res->headers->header("Content-Encoding")) {
             LOGDIE "unsupported encoding" unless $e eq 'gzip';
@@ -242,7 +245,18 @@ sub download {
             WARN "No md5 in response header";
             next;
         }
-        unless ($verify eq $md5) {
+        if ($verify eq $md5)
+        {
+            if(ref $dest eq 'SCALAR')
+            {
+                open my $fh, '<', $out_file;
+                binmode $fh;
+                $$dest = do { local $/; <$fh> };
+                close $fh;
+            }
+        }
+        else
+        {
             WARN "Bad md5 for file (got $verify instead of $md5)";
             WARN "Response headers : ".$res->headers->to_string;
             unlink $out_file or WARN "couldn't remove $out_file : $!";

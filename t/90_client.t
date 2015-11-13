@@ -27,7 +27,7 @@ subtest 'Yars::Client#status' => sub {
 };
 
 subtest 'Yars::Client#upload, #download' => sub {
-  plan tests => 3;
+  plan tests => 4;
 
   my $tmp = create_directory_ok 'tmp';
   my $data = "some data $$ ".time;
@@ -56,6 +56,11 @@ subtest 'Yars::Client#upload, #download' => sub {
     my $got = join "", IO::File->new("<foo")->getlines;
     is $got, $data, "got same contents";
     chdir(File::Spec->rootdir);
+  };
+  
+  subtest 'Yars::Client#download to scalar ref' => sub {
+    ok $y->download(digest_file_hex("$tmp/foo",'MD5'),'foo', \my $data2), "Download foo to scalar";
+    is $data, $data2, 'data matches';
   };
 };
 
