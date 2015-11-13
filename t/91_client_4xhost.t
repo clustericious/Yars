@@ -80,18 +80,22 @@ subtest 'bucket cache' => sub {
   my $good_bucket_map = $y->bucket_map_cached;
   my $bad_bucket_map  = { map { sprintf('%x', $_) => $good_bucket_map->{sprintf '%x', ($_+4)%16} } 0..15 };
   
-  subtest upload => sub {
+  subtest 'download not stashed'=> sub {
+    plan tests => 4;
+    $y->upload('stuff', \"\x68\x65\x72\x65\x0a");
     $y->bucket_map_cached($bad_bucket_map);
     is $y->bucket_map_cached, $bad_bucket_map, 'preload with incorrect bucket map';  
-    
-  };  
+    is $y->download('stuff', 'bc98d84673286ce1447eca1766f28504', \my $data), 'ok', 'download is ok';
+    is $data, "\x68\x65\x72\x65\x0a", "data matches";
+    is $y->bucket_map_cached, 0, 'cache has been cleared';
+    reset_store();
+  };
 };
 
 sub reset_store
 {
   foreach my $dir (grep { $_->basename ne 'tmp' } map { dir($_)->children } map { $_->{root} } map { @{ $_->{disks} } } Clustericious::Config->new('Yars')->servers)
   {
-    $DB::single = 1;
     remove_tree("$dir", { verbose => 0 });
   }
 }

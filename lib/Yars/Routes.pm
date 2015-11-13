@@ -86,6 +86,7 @@ sub _get {
         TRACE "$md5 should be on $url";
         # but check our local stash first, just in case.
         _get_from_local_stash($c,$filename,$md5) and return;
+        $c->res->headers->add("X-Yars-Cache" => 0);
         return $c->render_moved("$url/file/$md5/$filename");
     }
 

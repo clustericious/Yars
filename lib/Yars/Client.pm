@@ -73,6 +73,13 @@ sub new {
       # tx
       $_[1]->req->headers->header('X-Yars-Skip-Verify' => 'on');
       $_[1]->res->max_message_size(parse_bytes($self->_config->max_message_size_client(default => 53687091200)));
+      $_[1]->on(finish => sub {
+        my $tx = shift;
+        if(defined $tx->res->headers->header("X-Yars-Cache"))
+        {
+          $self->bucket_map_cached(0);
+        }
+      });
     });
     return $self;
 }
