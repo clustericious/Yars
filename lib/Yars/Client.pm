@@ -23,6 +23,7 @@ use Number::Bytes::Human qw( format_bytes parse_bytes );
 use File::Temp qw( tempdir );
 use File::HomeDir;
 use YAML::XS;
+use Mojo::JSON qw( encode_json );
 
 route_doc upload   => "<filename> [md5]";
 route_doc download => "<filename> <md5> [dir]";
@@ -403,7 +404,7 @@ sub upload {
             if ($code) {
                 INFO "Failed to PUT to $host : $code $msg";
             } else {
-                INFO "PUT to $host failed : ".$msg;
+                INFO "PUT to $host failed : ". ref $msg ? encode_json($msg) : $msg;
             }
         }
     }
