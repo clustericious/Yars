@@ -11,7 +11,7 @@ use File::Temp qw( tempdir );
 use File::HomeDir;
 use File::Path qw( remove_tree );
 
-plan tests => 2;
+plan tests => 3;
 
 my $cluster = Test::Clustericious::Cluster->new;
 
@@ -72,6 +72,19 @@ subtest 'stashed on non-failover, non-primary' => sub {
   };
 
   reset_store(); 
+};
+
+subtest 'bucket cache' => sub {
+
+  my $y = Yars::Client->new;
+  my $good_bucket_map = $y->bucket_map_cached;
+  my $bad_bucket_map  = { map { sprintf('%x', $_) => $good_bucket_map->{sprintf '%x', ($_+4)%16} } 0..15 };
+  
+  subtest upload => sub {
+    $y->bucket_map_cached($bad_bucket_map);
+    is $y->bucket_map_cached, $bad_bucket_map, 'preload with incorrect bucket map';  
+    
+  };  
 };
 
 sub reset_store
