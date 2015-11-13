@@ -344,7 +344,9 @@ sub _proxy_to {
    $tx->req->content->asset($asset);
    $tx = $c->tools->_ua->start($tx);
    if ($res = $tx->success) {
-       $c->res->headers->location($tx->res->headers->location);
+       my $headers = $c->res->headers;
+       $headers->location($tx->res->headers->location);
+       $headers->add("X-Yars-Cache" => 0) unless $temporary;
        $c->render(status => $tx->res->code, text => 'ok');
        return 1;
    }

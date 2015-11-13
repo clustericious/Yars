@@ -75,7 +75,7 @@ subtest 'stashed on non-failover, non-primary' => sub {
 };
 
 subtest 'bucket cache' => sub {
-  plan tests => 1;
+  plan tests => 2;
 
   my $y = Yars::Client->new;
   my $good_bucket_map = $y->bucket_map_cached;
@@ -97,8 +97,8 @@ subtest 'bucket cache' => sub {
   
     subtest 'download stashed with invalid cache' => sub {
       plan tests => 4;
-      $y->bucket_map_cached($bad_bucket_map);
       $y->upload('stuff', \"\x68\x65\x72\x65\x0a");
+      $y->bucket_map_cached($bad_bucket_map);
       is $y->bucket_map_cached, $bad_bucket_map, 'preload with incorrect bucket map';
     
       my $from = file(File::HomeDir->my_home, qw( foo2 bc 98 d8 46 73 28 6c e1 44 7e ca 17 66 f2 85 04 stuff ));
@@ -145,6 +145,30 @@ subtest 'bucket cache' => sub {
     };
 
   };
+
+  subtest 'upload' => sub {
+    plan tests => 2;
+
+    subtest 'upload with invalid cache' => sub {
+      plan tests => 3;
+      $y->bucket_map_cached($bad_bucket_map);
+      is $y->bucket_map_cached, $bad_bucket_map, 'preload with incorrect bucket map';
+      is $y->upload('stuff', \"\x68\x65\x72\x65\x0a"), 'ok';
+      is $y->bucket_map_cached, 0, 'cache has been cleared';
+      reset_store();
+    };
+
+    subtest 'upload with valid cache' => sub {
+      plan tests => 3;
+      $y->bucket_map_cached($good_bucket_map);
+      is $y->bucket_map_cached, $good_bucket_map, 'preload with incorrect bucket map';
+      is $y->upload('stuff', \"\x68\x65\x72\x65\x0a"), 'ok';
+      isnt $y->bucket_map_cached, 0, 'cache has been cleared';
+      reset_store();
+    };
+
+  };
+
 };
 
 sub reset_store
