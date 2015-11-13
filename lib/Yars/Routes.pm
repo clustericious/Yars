@@ -254,7 +254,7 @@ put '/file/#filename/:md5' => { md5 => 'calculate' } => sub {
 
     if ( $assigned_server ne $c->tools->server_url ) {
         TRACE "assigned $assigned_server != ".$c->tools->server_url;
-        return _proxy_to( $c, $assigned_server, $filename, $digest, $asset )
+        return _proxy_to( $c, $assigned_server, $filename, $digest, $asset, 0 )
               || _stash_locally( $c, $filename, $digest, $asset )
               || _stash_remotely( $c, $filename, $digest, $asset )
               || $c->render(status => 507, text => "Unable to proxy or stash");
