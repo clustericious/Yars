@@ -1,6 +1,17 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+  - Files can be downloaded to a scalar with
+    Yars::Client#download, by passing a scalar reference
+    as the last argument.
+  - Error mssages are decoded correctly by the
+    client (bug was introduced by incompatible changes
+    in Mojolicious).
+  - Yars::Client and yarsclient now have a persistent
+    bucket cache (previously an in-memory only cache
+    was used).  The cache is invalidated when the
+    server detects the client has asked the wrong
+    server to either upload or download a file.
   - Yars::Client#upload and "yarsclient upload" now
     take an optional pre-computed md5, which allows
     the client code to skip the computation.
