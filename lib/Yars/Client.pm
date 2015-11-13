@@ -122,6 +122,14 @@ sub bucket_map_cached {
             # make sure the cache and config are in sync:
             # ie, all of the urls in the config refer to
             # hosts in the cache.
+            # NOTE: Considered doing this based on the
+            # md5 on the config, but:
+            #  - doing it on the Yars.conf file requires
+            #    changes to Clustericious::Config
+            #  - doing it on the $self->_config means that
+            #    you can't randomly choose a different
+            #    server in the mojo template of the config.
+            #    (see https://github.com/plicease/Yars#randomizing-the-server-choices)
             my %r = map { $_ => 1 } values %$cache;
             if(grep { ! $r{$_} } ($self->_config->url, $self->_config->failover_urls))
             {
