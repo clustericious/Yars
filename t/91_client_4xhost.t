@@ -75,20 +75,75 @@ subtest 'stashed on non-failover, non-primary' => sub {
 };
 
 subtest 'bucket cache' => sub {
+  plan tests => 1;
 
   my $y = Yars::Client->new;
   my $good_bucket_map = $y->bucket_map_cached;
   my $bad_bucket_map  = { map { sprintf('%x', $_) => $good_bucket_map->{sprintf '%x', ($_+4)%16} } 0..15 };
-  
-  subtest 'download not stashed'=> sub {
+
+  subtest 'download' => sub {
     plan tests => 4;
-    $y->upload('stuff', \"\x68\x65\x72\x65\x0a");
-    $y->bucket_map_cached($bad_bucket_map);
-    is $y->bucket_map_cached, $bad_bucket_map, 'preload with incorrect bucket map';  
-    is $y->download('stuff', 'bc98d84673286ce1447eca1766f28504', \my $data), 'ok', 'download is ok';
-    is $data, "\x68\x65\x72\x65\x0a", "data matches";
-    is $y->bucket_map_cached, 0, 'cache has been cleared';
-    reset_store();
+    
+    subtest 'download not stashed with invalid cache'=> sub {
+      plan tests => 4;
+      $y->upload('stuff', \"\x68\x65\x72\x65\x0a");
+      $y->bucket_map_cached($bad_bucket_map);
+      is $y->bucket_map_cached, $bad_bucket_map, 'preload with incorrect bucket map';  
+      is $y->download('stuff', 'bc98d84673286ce1447eca1766f28504', \my $data), 'ok', 'download is ok';
+      is $data, "\x68\x65\x72\x65\x0a", "data matches";
+      is $y->bucket_map_cached, 0, 'cache has been cleared';
+      reset_store();
+    };
+  
+    subtest 'download stashed with invalid cache' => sub {
+      plan tests => 4;
+      $y->bucket_map_cached($bad_bucket_map);
+      $y->upload('stuff', \"\x68\x65\x72\x65\x0a");
+      is $y->bucket_map_cached, $bad_bucket_map, 'preload with incorrect bucket map';
+    
+      my $from = file(File::HomeDir->my_home, qw( foo2 bc 98 d8 46 73 28 6c e1 44 7e ca 17 66 f2 85 04 stuff ));
+      my $to   = file(File::HomeDir->my_home, qw( foo4 bc 98 d8 46 73 28 6c e1 44 7e ca 17 66 f2 85 04 stuff ));
+      note "move $from => $to";
+      $to->parent->mkpath(0, 0700);
+      $to->spew($from->slurp);
+      unlink $from;
+    
+      is $y->download('stuff', 'bc98d84673286ce1447eca1766f28504', \my $data), 'ok', 'download is ok';
+      is $data, "\x68\x65\x72\x65\x0a", "data matches";
+      is $y->bucket_map_cached, 0, 'cache has been cleared';
+      reset_store();
+    };
+
+    subtest 'download not stashed with valid cache'=> sub {
+      plan tests => 4;
+      $y->upload('stuff', \"\x68\x65\x72\x65\x0a");
+      $y->bucket_map_cached($good_bucket_map);
+      is $y->bucket_map_cached, $good_bucket_map, 'preload with correct bucket map';  
+      is $y->download('stuff', 'bc98d84673286ce1447eca1766f28504', \my $data), 'ok', 'download is ok';
+      is $data, "\x68\x65\x72\x65\x0a", "data matches";
+      isnt $y->bucket_map_cached, 0, 'cache has been cleared';
+      reset_store();
+    };
+  
+    subtest 'download stashed with valid cache' => sub {
+      plan tests => 4;
+      $y->bucket_map_cached($good_bucket_map);
+      $y->upload('stuff', \"\x68\x65\x72\x65\x0a");
+      is $y->bucket_map_cached, $good_bucket_map, 'preload with correct bucket map';
+    
+      my $from = file(File::HomeDir->my_home, qw( foo2 bc 98 d8 46 73 28 6c e1 44 7e ca 17 66 f2 85 04 stuff ));
+      my $to   = file(File::HomeDir->my_home, qw( foo4 bc 98 d8 46 73 28 6c e1 44 7e ca 17 66 f2 85 04 stuff ));
+      note "move $from => $to";
+      $to->parent->mkpath(0, 0700);
+      $to->spew($from->slurp);
+      unlink $from;
+    
+      is $y->download('stuff', 'bc98d84673286ce1447eca1766f28504', \my $data), 'ok', 'download is ok';
+      is $data, "\x68\x65\x72\x65\x0a", "data matches";
+      isnt $y->bucket_map_cached, 0, 'cache has been cleared';
+      reset_store();
+    };
+
   };
 };
 
