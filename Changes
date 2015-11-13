@@ -1,6 +1,8 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+
+1.14      2015-11-13 12:39:42 -0500
   - Files can be downloaded to a scalar with
     Yars::Client#download, by passing a scalar reference
     as the last argument.
