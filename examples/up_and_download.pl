@@ -3,8 +3,6 @@ use warnings;
 use Yars::Client;
 use Mojo::Asset::File;
 use Mojo::ByteStream qw/b/;
-use Log::Log4perl qw(:levels);
-use Log::Log4perl::CommandLine ':loginit' => { level => $TRACE };
 
 my @filenames;
 my @md5s;
