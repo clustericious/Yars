@@ -1,6 +1,8 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+
+1.15      2015-11-17 10:56:50 -0500
   - Fixed bug where failover_urls wasn't getting
     a default value in some cases in Yars::Client.
 
