@@ -131,7 +131,7 @@ sub bucket_map_cached {
             #    server in the mojo template of the config.
             #    (see https://github.com/plicease/Yars#randomizing-the-server-choices)
             my %r = map { $_ => 1 } values %$cache;
-            if(grep { ! $r{$_} } ($self->_config->url, $self->_config->failover_urls))
+            if(grep { ! $r{$_} } ($self->_config->url, $self->_config->failover_urls( default => [] )))
             {
                 $self->{bucket_map_cached} = 0;
                 unlink $fn;

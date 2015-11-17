@@ -1,6 +1,8 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+  - Fixed bug where failover_urls wasn't getting
+    a default value in some cases in Yars::Client.
 
 1.14      2015-11-13 12:39:42 -0500
   - Files can be downloaded to a scalar with
