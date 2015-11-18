@@ -13,7 +13,7 @@ use Data::Dumper;
 use File::Path qw/mkpath/;
 use File::Temp;
 use File::Compare;
-use JSON::XS;
+use JSON::MaybeXS ();
 # TODO: rm dep on stat
 use File::stat qw/stat/;
 use Mojo::ByteStream qw/b/;
@@ -167,7 +167,7 @@ sub _state {
     $self->refresh_config() unless $self->{state_file} && -e $self->{state_file};
     # TODO: rm dep on File::stat
     return $self->{_state}->{cached} if $self->{_state}->{mod_time} && $self->{_state}->{mod_time} == stat($self->{state_file})->mtime;
-    our $j ||= JSON::XS->new;
+    our $j ||= JSON::MaybeXS->new;
     -e $self->{state_file} or LOGDIE "Missing state file " . $self->{state_file};
     $self->{_state}->{cached} = $j->decode(Mojo::Asset::File->new(path => $self->{state_file})->slurp);
     # TODO: rm dep on File::stat
@@ -179,7 +179,7 @@ sub _write_state {
     my $self = shift;
     my $state = shift;
     my $dir = dirname($self->{state_file});
-    our $j ||= JSON::XS->new;
+    our $j ||= JSON::MaybeXS->new;
     mkpath $dir;
     my $temp = File::Temp->new(DIR => $dir, UNLINK => 0);
     print $temp $j->encode($state);

@@ -29,7 +29,7 @@ use List::Util qw/shuffle/;
 use List::MoreUtils qw/uniq/;
 use Digest::file qw/digest_file_hex/;
 use File::Basename qw/basename/;
-use Mojo::JSON qw( encode_json );
+use JSON::MaybeXS qw( encode_json );
 use Yars::Util qw( format_tx_error );
 
 BEGIN {

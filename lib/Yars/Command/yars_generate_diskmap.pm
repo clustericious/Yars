@@ -54,7 +54,7 @@ L<Yars>, L<Yars::Client>
 
 use strict;
 use warnings;
-use JSON::XS;
+use JSON::MaybeXS ();
 use Getopt::Long qw( GetOptions );
 use Pod::Usage qw( pod2usage );
 use feature 'say';
@@ -127,7 +127,7 @@ sub dense {
         ]};
     }
 
-    my $out = JSON::XS->new->space_after->encode({ servers => \@conf });
+    my $out = JSON::MaybeXS->new->space_after->encode({ servers => \@conf });
     $out =~ s/{/\n{/g;
     $out =~ s/\[/\n[/g;
     $out =~ s/\],/],\n/g;

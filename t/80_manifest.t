@@ -5,7 +5,7 @@ use Test::Clustericious::Cluster;
 use Test::More tests => 31;
 use Mojo::ByteStream qw( b );
 use Digest::file qw/digest_file_hex/;
-use Mojo::JSON qw( encode_json );
+use JSON::MaybeXS qw( encode_json );
 
 my $root = create_directory_ok 'data';
 create_config_helper_ok data_dir => sub { $root };

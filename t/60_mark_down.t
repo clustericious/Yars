@@ -4,7 +4,7 @@ use Test::Clustericious::Cluster;
 use Test::Clustericious::Config;
 use Test::More tests => 75;
 use Mojo::ByteStream qw( b );
-use Mojo::JSON qw( encode_json );
+use JSON::MaybeXS qw( encode_json );
 
 my $test_files = 20;
 my $root = create_directory_ok 'data';

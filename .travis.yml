@@ -4,7 +4,7 @@ install:
   - cpanm -n Dist::Zilla
   - dzil authordeps --missing | cpanm -n
   - cpanm -n Capture::Tiny Clustericious::Client Clustericious Clustericious::Commands Clustericious::Config Clustericious::Log Digest::file
-  - cpanm -n File::HomeDir File::Path Filesys::Df Hash::MoreUtils JSON::XS List::MoreUtils Log::Log4perl Log::Log4perl::CommandLine
+  - cpanm -n File::HomeDir File::Path Filesys::Df Hash::MoreUtils JSON::MaybeXS List::MoreUtils Log::Log4perl Log::Log4perl::CommandLine
   - cpanm -n Mojolicious Number::Bytes::Human Smart::Comments Test::Clustericious::Cluster Test::Clustericious::Config
   - cpanm -n Test::Clustericious::Log Test::More Try::Tiny YAML::XS Data::Hexdumper
   - cpanm -n Test::CPAN::Changes Test::EOL Test::Fixme Test::NoTabs Test::Pod::Spelling::CommonMistakes Test::Spelling Test::Strict Test::Version || true

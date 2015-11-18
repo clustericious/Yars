@@ -5,7 +5,7 @@ use Test::Clustericious::Cluster;
 use Test::More tests => 105;
 use Mojo::ByteStream qw( b );
 use Mojo::Loader;
-use Mojo::JSON qw( encode_json );
+use JSON::MaybeXS qw( encode_json );
 use Yars::Util qw( format_tx_error );
 
 $ENV{LOG_LEVEL} = 'FATAL';

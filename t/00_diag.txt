@@ -1,6 +1,7 @@
 Acme::Override::INET
 Capture::Tiny
 Clustericious
+Cpanel::JSON::XS
 Data::Hexdumper
 Digest::MD5
 Digest::file
@@ -11,6 +12,8 @@ Hash::MoreUtils
 IO::Socket::INET
 IO::Socket::IP
 IO::Uncompress::Gunzip
+JSON::MaybeXS
+JSON::PP
 JSON::XS
 List::MoreUtils
 Log::Log4perl

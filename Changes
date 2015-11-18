@@ -1,6 +1,7 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+  - Migrate from JSON::XS to JSON::MaybeXS
 
 1.15      2015-11-17 10:56:50 -0500
   - Fixed bug where failover_urls wasn't getting

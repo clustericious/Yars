@@ -8,7 +8,7 @@ use Test::Clustericious::Cluster;
 use Test::More;
 use Mojo::ByteStream qw( b );
 use Mojo::Loader;
-use Mojo::JSON qw( decode_json );
+use JSON::MaybeXS qw( decode_json );
 use IO::Socket::INET;
 use Yars::Util qw( format_tx_error );
 

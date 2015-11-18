@@ -7,7 +7,7 @@ use Test::More tests => 916;
 use Mojo::ByteStream qw( b );
 use Mojo::Loader;
 use File::Find::Rule;
-use Mojo::JSON qw( decode_json );
+use JSON::MaybeXS qw( decode_json );
 
 $ENV{LOG_LEVEL} = 'FATAL';
 
