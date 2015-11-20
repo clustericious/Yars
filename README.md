@@ -363,19 +363,19 @@ cluster, you can randomize the servers that the client considers the
 
 ## Accelerated downloads with nginx
 
-One of the advantages of Clustericious is that it integrates with
-a number of different webservers.  You can do testing with hypnotoad,
+One of the advantages of Clustericious is that it integrates with a 
+number of different webservers.  You can do testing with hypnotoad, 
 which comes with [Mojolicious](https://metacpan.org/pod/Mojolicious) (and thus a prerequisite of 
-[Clustericious](https://metacpan.org/pod/Clustericious) and Yars), and then deploy to production with a
-more capable webserver, such as nginx.  The integration with nginx
-allows for handing off some of the workload to nginx; hypnotoad is
-good for serving dynamic web apps, but nginx is better for serving
-static files.  So with this next configuration we will show you
-how to configure Yars to handle the selection of servers and disks
-and hand off the actual serving of the static file to nginx.
+[Clustericious](https://metacpan.org/pod/Clustericious) and Yars), and then deploy to production with a more 
+capable webserver, such as nginx.  The integration with nginx allows for 
+handing off some of the workload to nginx; hypnotoad is good for serving 
+dynamic web applications, but nginx is better for serving static files.  
+So with this next configuration we will show you how to configure Yars 
+to handle the selection of servers and disks and hand off the actual 
+serving of the static file to nginx.
 
-Once again we put the nginx configuration in its own file so that
-we can reuse it with other [Clustericious](https://metacpan.org/pod/Clustericious) services.
+Once again we put the nginx configuration in its own file so that we can 
+reuse it with other [Clustericious](https://metacpan.org/pod/Clustericious) services.
 
     ---
     # ~/etc/nginx.conf
