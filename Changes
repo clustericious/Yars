@@ -1,6 +1,8 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+
+1.16      2015-11-20 09:04:15 -0500
   - Migrate from JSON::XS to JSON::MaybeXS
 
 1.15      2015-11-17 10:56:50 -0500
