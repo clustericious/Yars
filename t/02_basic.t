@@ -3,7 +3,8 @@ use warnings;
 use 5.010;
 use Test::Clustericious::Cluster;
 use Test::Clustericious::Config;
-use Test::More tests => 28;
+use Test::Clustericious::Log import => 'log_unlike';
+use Test::More tests => 29;
 use Test::Mojo;
 use Mojo::Server::Daemon;
 use Yars;
@@ -85,6 +86,8 @@ do {
   
   is $data, "and again \n", 'file has correct content';
 };
+
+log_unlike qr{HASH\(0x[a-f0-9]+\)}, 'no hash references in log';
 
 __DATA__
 

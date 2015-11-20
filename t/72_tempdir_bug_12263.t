@@ -1,8 +1,9 @@
 use strict;
 use warnings;
 use autodie;
-use Test::Clustericious::Config;
 use Test::Clustericious::Cluster;
+use Test::Clustericious::Config;
+use Test::Clustericious::Log import => 'log_unlike';
 use Test::More;
 use File::Spec;
 use Scalar::Util qw( refaddr );
@@ -16,7 +17,7 @@ use Scalar::Util qw( refaddr );
 # rather than $TMPDIR and then moved to $disk_root/xx/xx/xx/...
 
 if(eval q{ use Monkey::Patch; use Yars::Client; *patch_class = \&Monkey::Patch::patch_class; 1 })
-{ plan tests => 12 }
+{ plan tests => 14 }
 else
 { plan skip_all => 'test requires Monkey::Patch and Yars::Client' }
 
@@ -126,6 +127,9 @@ do {
 ok( -e File::Spec->catfile( $root, qw( disk_5 5e b6 3b bb e0 1e ee d0 93 cb 22 bb 8f 5a cd c3 sample.txt )), 'file uploaded');
 ok( -e File::Spec->catfile( $tmpdir, qw( right.txt )), 'used correct tmp directory ' . ($tmpdir//'undef'));
 like $path, qr{disk_5}, 'path = ' . $path;
+
+log_unlike qr{HASH\(0x[a-f0-9]+\)}, 'no hash references in log';
+log_unlike qr{ARRAY\(0x[a-f0-9]+\)}, 'no array references in log';
 
 $done = 1;
 

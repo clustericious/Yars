@@ -1,8 +1,9 @@
 use strict;
 use warnings;
-use Test::Clustericious::Config;
 use Test::Clustericious::Cluster 0.22;
-use Test::More tests => 6;
+use Test::Clustericious::Config;
+use Test::Clustericious::Log import => 'log_unlike';
+use Test::More tests => 7;
 use Digest::file qw( digest_file_hex );
 use Yars::Client;
 
@@ -101,6 +102,8 @@ subtest 'Yars::Client#upload without md5' => sub {
 # TODO
 # my $status = $y->check_manifest($filename);
 # diag explain $status;
+
+log_unlike qr{HASH\(0x[a-f0-9]+\)}, 'no hash references in log';
 
 __DATA__
 

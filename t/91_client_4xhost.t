@@ -1,8 +1,9 @@
 use strict;
 use warnings;
 use 5.010;
-use Test::Clustericious::Config;
 use Test::Clustericious::Cluster;
+use Test::Clustericious::Config;
+use Test::Clustericious::Log import => 'log_unlike';
 use Test::More;
 use Yars::Client;
 use Path::Class qw( file dir );
@@ -12,7 +13,7 @@ use File::HomeDir;
 use File::Path qw( remove_tree );
 use YAML::XS qw( Dump );
 
-plan tests => 5;
+plan tests => 6;
 
 my $cluster = Test::Clustericious::Cluster->new;
 
@@ -198,6 +199,8 @@ sub reset_store
     remove_tree("$dir", { verbose => 0 });
   }
 }
+
+log_unlike qr{HASH\(0x[a-f0-9]+\)}, 'no hash references in log';
 
 __DATA__
 

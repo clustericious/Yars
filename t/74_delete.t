@@ -2,9 +2,10 @@ use strict;
 use warnings;
 use Test::Clustericious::Config;
 use Test::Clustericious::Cluster;
+use Test::Clustericious::Log import => 'log_unlike';
 use Test::More;
 
-plan tests => 7;
+plan tests => 8;
 
 subtest 'setup helpers' => sub {
   plan tests => 7;
@@ -115,6 +116,8 @@ subtest 'delete failover' => sub {
   is $c->check( $fn, $md5 ), undef, 'gone';
 
 };
+
+log_unlike qr{HASH\(0x[a-f0-9]+\)}, 'no hash references in log';
 
 __DATA__
 

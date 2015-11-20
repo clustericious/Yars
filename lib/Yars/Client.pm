@@ -81,7 +81,8 @@ sub new {
         }
       });
     });
-    return $self;
+    
+    $self;
 }
 
 sub client {

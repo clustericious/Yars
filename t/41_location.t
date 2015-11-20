@@ -1,12 +1,13 @@
 use strict;
 use warnings;
-use Test::Clustericious::Config;
 use Test::Clustericious::Cluster;
+use Test::Clustericious::Config;
+use Test::Clustericious::Log import => 'log_unlike';
 use Test::More;
 use File::Path 2.0 qw( remove_tree );
 use File::Spec;
 
-plan tests => 5;
+plan tests => 6;
 
 my @data_dir;
 
@@ -103,6 +104,8 @@ subtest 'failover' => sub {
   
   done_testing();
 };
+
+log_unlike qr{HASH\(0x[a-f0-9]+\)}, 'no hash references in log';
 
 sub reset_yars {
   remove_tree(
