@@ -2,7 +2,7 @@ use strict;
 use warnings;
 use Test::Clustericious::Cluster;
 use Test::Clustericious::Config;
-use Test::Clustericious::Log import => 'log_unlike';
+use Test::Clustericious::Log import => 'log_unlike', note => 'TRACE..ERROR', diag => 'FATAL..FATAL';
 use Test::More;
 use File::Path 2.0 qw( remove_tree );
 use File::Spec;

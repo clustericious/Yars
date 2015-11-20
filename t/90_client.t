@@ -1,11 +1,12 @@
 use strict;
 use warnings;
+use Test::Clustericious::Log import => ':all', note => 'TRACE..ERROR', diag => 'FATAL..FATAL';
 use Test::Clustericious::Cluster 0.22;
 use Test::Clustericious::Config;
-use Test::Clustericious::Log import => 'log_unlike';
 use Test::More tests => 7;
 use Digest::file qw( digest_file_hex );
 use Yars::Client;
+use Monkey::Patch qw( patch_class );
 
 my $cluster = Test::Clustericious::Cluster->new;
 
@@ -28,7 +29,7 @@ subtest 'Yars::Client#status' => sub {
 };
 
 subtest 'Yars::Client#upload, #download' => sub {
-  plan tests => 4;
+  plan tests => 6;
 
   my $tmp = create_directory_ok 'tmp';
   my $data = "some data $$ ".time;
@@ -60,8 +61,36 @@ subtest 'Yars::Client#upload, #download' => sub {
   };
   
   subtest 'Yars::Client#download to scalar ref' => sub {
+    plan tests => 2;
     ok $y->download(digest_file_hex("$tmp/foo",'MD5'),'foo', \my $data2), "Download foo to scalar";
     is $data, $data2, 'data matches';
+  };
+    
+  subtest 'Yars::Client#download down' => sub {
+    plan tests => 6;
+    my @sleeps;
+    my $gard = patch_class 'Yars::Client' => '_sleep' => sub {
+      use Clustericious::Log;
+      INFO "fake sleep for $_[1]";
+      push @sleeps, $_[1];
+    };
+    $cluster->stop_ok(0);
+    log_context {
+      ok !$y->download('57b25564a7054b98816abafa7a32eacf', 'roger'), '';
+      log_like qr{connection refused.*may retry}i, 'logged connection refussed';
+      log_unlike qr{HASH\(0x[a-f0-9]+\)}, 'no hash references in log';      
+    };
+    $cluster->start_ok(0);
+    is_deeply \@sleeps, [qw( 3 4 5 6 7 8 9 10 )], 'sleep pattern';
+  };
+  
+  subtest 'Yars::Client#download 404' => sub {
+    plan tests => 3;
+    log_context {
+      ok !$y->download('57b25564a7054b98816abafa7a32eacf', 'roger'), "file that isnot there.";
+      log_like 'Yars download : 404 Not Found';
+      log_unlike qr{HASH\(0x[a-f0-9]+\)}, 'no hash references in log';
+    };
   };
 };
 

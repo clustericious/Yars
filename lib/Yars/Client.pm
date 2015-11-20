@@ -187,6 +187,10 @@ sub location {
     return $self->_get_url("/file/$md5/$filename")->to_abs->to_string;
 }
 
+sub _sleep {
+  sleep @_
+}
+
 sub download {
     # Downloads a file and saves it to disk.
     my $self = shift;
@@ -212,7 +216,7 @@ sub download {
         if ($tries > @hosts + 1) {
             TRACE "Attempt $tries";
             WARN "Waiting $tries seconds before retrying...";
-            sleep $tries;
+            _sleep $tries;
         }
         my $url;
         if ($abs_url) {
@@ -228,16 +232,16 @@ sub download {
         $self->res($tx->res);
         $self->tx($tx);
         my $res = $tx->success or do {
-            my ($msg,$code) = $tx->error;
-            if ($code) {
-                ERROR "$code $msg";
+            my $error = $tx->error;
+            if ($error->{code}) {
+                ERROR "Yars download : $error->{code} $error->{message}";
                 last;
             }
-            if ($msg =~ /connection refused/i) {
-                WARN "Error : $msg (may retry)";
+            if ($error->{message} =~ /connection refused/i) {
+                WARN "Yars download : $error->{message} (may retry)";
                 next;
             }
-            WARN "Error (may retry) : " . (ref($msg) ? Dumper($msg) : $msg);
+            WARN "Error (may retry) : " . encode_json($error);
             next;
         };
         DEBUG "Received asset with size ".$res->content->asset->size;
@@ -451,12 +455,9 @@ sub upload {
         $self->tx($tx);
 
         if (!$tx->success) {
-            my ($msg,$code) = $tx->error;
-            if ($code) {
-                INFO "Failed to PUT to $host : $code $msg";
-            } else {
-                INFO "PUT to $host failed : ". ref $msg ? encode_json($msg) : $msg;
-            }
+            my ($error) = $tx->error;
+            $error = encode_json $error if ref $error;
+            INFO "PUT to $host failed : $error";
         }
     }
     $self->res($tx->res);
