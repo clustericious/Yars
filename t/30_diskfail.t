@@ -1,6 +1,7 @@
 use strict;
 use warnings;
 use 5.010;
+use Test::Clustericious::Log;
 use Test::Clustericious::Config;
 use Test::Clustericious::Cluster;
 use Test::More tests => 916;
@@ -8,8 +9,6 @@ use Mojo::ByteStream qw( b );
 use Mojo::Loader;
 use File::Find::Rule;
 use JSON::MaybeXS qw( decode_json );
-
-$ENV{LOG_LEVEL} = 'FATAL';
 
 my $root = create_directory_ok 'data';
 create_config_helper_ok data_dir => sub {

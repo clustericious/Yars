@@ -1,11 +1,10 @@
 use strict;
 use warnings;
+use Test::Clustericious::Log;
 use Test::Clustericious::Config;
 use Test::Clustericious::Cluster;
 use Test::More tests => 16;
 use Mojo::ByteStream qw( b );
-
-BEGIN { $ENV{LOG_LEVEL} = 'FATAL' }
 
 my $root = create_directory_ok 'data';
 create_config_helper_ok data_dir => sub { $root };

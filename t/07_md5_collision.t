@@ -1,11 +1,10 @@
 use strict;
 use warnings;
+use Test::Clustericious::Log;
 use Test::Clustericious::Cluster;
 use Test::Clustericious::Config;
 use Test::More tests => 9;
 use Mojo::ByteStream qw( b );
-
-BEGIN { $ENV{LOG_LEVEL} = 'FATAL' }
 
 my $cluster = Test::Clustericious::Cluster->new;
 $cluster->create_cluster_ok(qw( Yars ));

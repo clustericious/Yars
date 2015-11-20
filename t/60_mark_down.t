@@ -1,5 +1,6 @@
 use strict;
 use warnings;
+use Test::Clustericious::Log;
 use Test::Clustericious::Cluster;
 use Test::Clustericious::Config;
 use Test::More tests => 75;
@@ -9,8 +10,6 @@ use JSON::MaybeXS qw( encode_json );
 my $test_files = 20;
 my $root = create_directory_ok 'data';
 create_config_helper_ok data_dir => sub { $root . '/' . shift };
-
-$ENV{LOG_LEVEL} = "WARN";
 
 my $cluster = Test::Clustericious::Cluster->new;
 $cluster->create_cluster_ok(qw( Yars ));

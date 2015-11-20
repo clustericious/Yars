@@ -1,5 +1,6 @@
 use strict;
 use warnings;
+use Test::Clustericious::Log;
 use Test::Clustericious::Config;
 use Test::Clustericious::Cluster;
 use Test::More tests => 105;
@@ -7,8 +8,6 @@ use Mojo::ByteStream qw( b );
 use Mojo::Loader;
 use JSON::MaybeXS qw( encode_json );
 use Yars::Util qw( format_tx_error );
-
-$ENV{LOG_LEVEL} = 'FATAL';
 
 my $root = create_directory_ok 'data';
 my $state = create_directory_ok 'state';

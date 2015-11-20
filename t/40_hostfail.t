@@ -17,8 +17,6 @@ plan skip_all => 'cannot turn off Mojo IPv6'
 
 plan tests => 373;
 
-$ENV{LOG_LEVEL} = 'FATAL';
-
 my $root = create_directory_ok 'data';
 create_config_helper_ok data_dir => sub {
   my $path = "$root/" . shift;
