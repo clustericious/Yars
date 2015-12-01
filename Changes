@@ -1,6 +1,9 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+
+1.17      2015-12-01 10:28:44 -0500
+  - Compatability fixes for Clustericious::Log 1.06
   - Moved repository to clustericious org on github
     (updated meta appropriately)
 
