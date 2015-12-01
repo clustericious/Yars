@@ -1,6 +1,8 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+  - Moved repository to clustericious org on github
+    (updated meta appropriately)
 
 1.16      2015-11-20 09:04:15 -0500
   - Migrate from JSON::XS to JSON::MaybeXS
