@@ -31,6 +31,13 @@ create_config_helper_ok state_file => sub {
   "$dir/$index";
 };
 
+sub url
+{
+  my @urls = map { Mojo::URL->new($_) } @_;
+  $_->path("/") for @urls;
+  map { $_->to_string } @urls;
+}
+
 my $cluster = Test::Clustericious::Cluster->new;
 $cluster->create_cluster_ok(qw( Yars Yars ));
 my $t = $cluster->t;
@@ -40,8 +47,8 @@ my $ua = $cluster->t->ua;
 $ua->max_redirects(3);
 $_->tools->_set_ua(sub { my $ua = $cluster->create_ua; $ua }) for @{ $cluster->apps };
 
-is $ua->get($urls[0].'/status')->res->json->{server_url}, $urls[0], "started first server at $urls[0]";
-is $ua->get($urls[1].'/status')->res->json->{server_url}, $urls[1], "started second server at $urls[1]";
+is url($ua->get($urls[0].'/status')->res->json->{server_url}), url($urls[0]), "started first server at $urls[0]";
+is url($ua->get($urls[1].'/status')->res->json->{server_url}), url($urls[1]), "started second server at $urls[1]";
 
 my $i = 0;
 my @contents = do {
