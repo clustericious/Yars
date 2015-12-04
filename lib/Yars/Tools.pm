@@ -9,7 +9,6 @@ use Hash::MoreUtils qw/safe_reverse/;
 use Clustericious::Log;
 use File::Find::Rule;
 use File::Basename qw/dirname/;
-use Data::Dumper;
 use File::Path qw/mkpath/;
 use File::Temp;
 use File::Compare;
@@ -111,7 +110,7 @@ sub refresh_config {
     $self->_write_state({disks => \%disks});
   };
   -e $state_file or LOGDIE "Could not write state file $state_file";
-  TRACE "bucket2url : ".Dumper($self->{bucket_to_url});
+  #TRACE "bucket2url : ".Dumper($self->{bucket_to_url});
 }
 
 sub _dir_is_empty {
@@ -286,7 +285,7 @@ sub server_is_up {
         if (defined($got->{server_version}) && length($got->{server_version})) {
             return ($self->{server_status_cache}->{$server_url}{result} = 1);
         }
-        TRACE "/status did not return version, got : ".Dumper($got);
+        TRACE "/status did not return version, got : ". JSON::MaybeXS::encode_json($got);
         return ($self->{server_status_cache}->{$server_url}{result} = 0);
     }
     TRACE "Server $server_url is not up : response was ".format_tx_error($tx->error);

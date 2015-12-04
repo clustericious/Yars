@@ -493,7 +493,7 @@ the `X-Yars-Skip-Verify` header to any value.
 
 Original author: Marty Brandon
 
-Current maintainer: Graham Ollis &lt;plicease@cpan.org>
+Current maintainer: Graham Ollis <plicease@cpan.org>
 
 Contributors:
 

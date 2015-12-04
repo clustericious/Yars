@@ -32,7 +32,6 @@ use Clustericious::Config;
 use Hash::MoreUtils qw/safe_reverse/;
 use File::Find::Rule;
 use Fcntl qw(:DEFAULT :flock);
-use Data::Dumper;
 use File::Basename qw/dirname/;
 use Getopt::Long qw( GetOptions );
 use Pod::Usage qw( pod2usage );

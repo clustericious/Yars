@@ -23,7 +23,6 @@ use Clustericious::Log;
 use File::Path qw/mkpath/;
 use File::Temp;
 use Clustericious::RouteBuilder;
-use Data::Dumper;
 use if $^O ne 'MSWin32', 'Filesys::Df' => qw/df/;
 use List::Util qw/shuffle/;
 use List::MoreUtils qw/uniq/;
