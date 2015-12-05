@@ -2,6 +2,11 @@ Revision history for {{$dist->name}}
 
 {{$NEXT}}
 
+1.18      2015-12-04 20:33:27 -0500
+  - Test fixes in preperation for Clustericious 1.08
+    URLs needed to be normalized in several places
+    in the test suite.
+
 1.17      2015-12-01 10:28:44 -0500
   - Compatability fixes for Clustericious::Log 1.06
   - Moved repository to clustericious org on github
