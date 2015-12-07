@@ -11,6 +11,7 @@ use Clustericious::Config;
 use File::Temp qw( tempdir );
 use File::HomeDir;
 use File::Path qw( remove_tree );
+use File::Copy qw( move );
 use YAML::XS qw( Dump );
 
 plan tests => 6;
@@ -64,7 +65,7 @@ subtest 'stashed on non-failover, non-primary' => sub {
   # recreate as stashed file
   my $dir = dir(File::HomeDir->my_home, qw( foo1 bc 98 d8 46 73 28 6c e1 44 7e ca 17 66 f2 85 04 ));
   $dir->mkpath(0,0755);
-  $dir->file('stuff')->spew($data);
+  $dir->file('stuff')->spew(iomode => '>:raw', $data);
   
   subtest 'stashed' => sub {
     plan tests => 2;
@@ -107,8 +108,7 @@ subtest 'bucket cache' => sub {
       my $to   = file(File::HomeDir->my_home, qw( foo4 bc 98 d8 46 73 28 6c e1 44 7e ca 17 66 f2 85 04 stuff ));
       note "move $from => $to";
       $to->parent->mkpath(0, 0700);
-      $to->spew($from->slurp);
-      unlink $from;
+      move("$from", "$to") || die "copy $from => $to failed: $!";
     
       is $y->download('stuff', 'bc98d84673286ce1447eca1766f28504', \my $data), 'ok', 'download is ok';
       is $data, "\x68\x65\x72\x65\x0a", "data matches";
@@ -137,8 +137,7 @@ subtest 'bucket cache' => sub {
       my $to   = file(File::HomeDir->my_home, qw( foo4 bc 98 d8 46 73 28 6c e1 44 7e ca 17 66 f2 85 04 stuff ));
       note "move $from => $to";
       $to->parent->mkpath(0, 0700);
-      $to->spew($from->slurp);
-      unlink $from;
+      move("$from", "$to") || die "copy $from => $to failed: $!";
     
       is $y->download('stuff', 'bc98d84673286ce1447eca1766f28504', \my $data), 'ok', 'download is ok';
       is $data, "\x68\x65\x72\x65\x0a", "data matches";
