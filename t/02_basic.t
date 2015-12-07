@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 use 5.010;
-use Test::Clustericious::Cluster;
+use Test::Clustericious::Cluster 0.28;
 use Test::Clustericious::Config;
 use Test::Clustericious::Log import => 'log_unlike';
 use Test::More tests => 29;
@@ -37,7 +37,6 @@ $t->get_ok("$url[1]/status")
   ->json_is('/app_name', 'Yars');
 
 my $client = Yars::Client->new;
-$client->client($t->ua);
 
 my $upload   = create_directory_ok 'up';
 my $download = create_directory_ok 'dl';

@@ -23,6 +23,7 @@ use Number::Bytes::Human qw( format_bytes parse_bytes );
 use File::Temp qw( tempdir );
 use File::HomeDir;
 use YAML::XS;
+use Carp qw( carp );
 use JSON::MaybeXS qw( encode_json );
 
 route_doc upload   => "<filename> [md5]";
@@ -68,7 +69,7 @@ route_args retrieve => [
 sub new {
     my $self = shift->SUPER::new(@_);
     $self->client->max_redirects(30);
-    $self->client->connect_timeout(30);
+    $self->client->connect_timeout($ENV{YARS_CONNECT_TIMEOUT} // 30);
     $self->client->on(start => sub {
       # tx
       $_[1]->req->headers->header('X-Yars-Skip-Verify' => 'on');
@@ -87,10 +88,12 @@ sub new {
 
 sub client {
     my($self, $new) = @_;
-    
+
     $new ? do { 
+        my $caller = caller;
+        carp "setting a new client is deprecated" if $caller ne 'Clustericious::Client';
         $new->max_redirects(30);
-        $new->connect_timeout(30);
+        $new->connect_timeout($ENV{YARS_CONNECT_TIMEOUT} // 30);
         $self->SUPER::client($new);
         $new;
     } : $self->SUPER::client;

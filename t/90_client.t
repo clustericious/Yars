@@ -1,5 +1,6 @@
 use strict;
 use warnings;
+BEGIN { $ENV{YARS_CONNECT_TIMEOUT} = $ENV{MOJO_CONNECT_TIMEOUT} = 1 }
 use Test::Clustericious::Log import => ':all', note => 'TRACE..ERROR', diag => 'FATAL..FATAL';
 use Test::Clustericious::Cluster 0.22;
 use Test::Clustericious::Config;

@@ -1,5 +1,6 @@
 use strict;
 use warnings;
+BEGIN { $ENV{YARS_CONNECT_TIMEOUT} = $ENV{MOJO_CONNECT_TIMEOUT} = 1 }
 use Test::Clustericious::Config;
 use Test::Clustericious::Cluster;
 use Test::Clustericious::Log import => 'log_unlike', note => 'TRACE..ERROR', diag => 'FATAL..FATAL';
@@ -24,7 +25,6 @@ my @url = @{ $cluster->urls };
 
 require Yars::Client;
 my $c = Yars::Client->new;
-$c->client($cluster->create_ua);
 
 $_->tools->_set_ua(sub { $cluster->create_ua }) for @{ $cluster->apps };
 

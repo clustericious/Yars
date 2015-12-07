@@ -55,7 +55,6 @@ do {
 };
 
 my $client = Yars::Client->new;
-$client->client($t->ua);
 
 $t->get_ok("$url/version")
   ->status_is(200);

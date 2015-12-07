@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-BEGIN { $ENV{MOJO_NO_IPV6} = 1; $ENV{MOJO_NO_TLS} = 1; }
+BEGIN { $ENV{MOJO_NO_IPV6} = 1; $ENV{MOJO_NO_TLS} = 1; $ENV{YARS_CONNECT_TIMEOUT} = $ENV{MOJO_CONNECT_TIMEOUT} = 1 }
 use 5.010;
 use Test::Clustericious::Log diag => 'NONE';
 use Test::Clustericious::Config;
