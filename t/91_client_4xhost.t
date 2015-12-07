@@ -70,7 +70,7 @@ subtest 'stashed on non-failover, non-primary' => sub {
     plan tests => 2;
     my $dest = file(tempdir( CLEANUP => 1 ), 'stuff');  
     is $y->download('stuff', 'bc98d84673286ce1447eca1766f28504', $dest->parent), 'ok', 'download is ok';
-    is $dest->slurp, $data, 'download content matches';
+    is -f "$dest" && $dest->slurp, $data, 'download content matches';
   };
 
   reset_store(); 
