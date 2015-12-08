@@ -53,7 +53,7 @@ Get a welcome message.  This is usually simply the text string "welcome to Yars"
 
 =cut
 
-get '/' => sub { shift->render_text("welcome to Yars") } => 'index';
+get '/' => sub { shift->render(text => "welcome to Yars") } => 'index';
 
 =head2 GET /file/#filename/:md5, GET /:md5/#filename
 
@@ -541,7 +541,7 @@ post '/disk/status' => sub {
         }
         WARN "Sending ".$c->req->body;
         my $tx = $c->tools->_ua->post("$server/disk/status", $c->req->headers->to_hash, ''.$c->req->body );
-        return $c->render_text( $tx->success ? $tx->res->body : 'failed '.format_tx_error($tx->error) );
+        return $c->render( text => $tx->success ? $tx->res->body : 'failed '.format_tx_error($tx->error) );
     }
     $c->tools->disk_is_local($root) or return $c->render->exception("Disk $root is not on ".$c->tools->server_url);
     my $success;
@@ -549,7 +549,7 @@ post '/disk/status' => sub {
         /down/ and $success = $c->tools->mark_disk_down($root);
         /up/   and $success = $c->tools->mark_disk_up($root);
     }
-    $c->render_text($success ? "ok" : "failed" );
+    $c->render(text => $success ? "ok" : "failed" );
 };
 
 =head2 POST /check/manifest
