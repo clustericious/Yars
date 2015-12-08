@@ -1,6 +1,7 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+  - use render(autodata => ...) instead of render_json(...)
 
 1.19      2015-12-07 13:20:24 -0500
   - Reduce connect timeout in tests to keep test suite

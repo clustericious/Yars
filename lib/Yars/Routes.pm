@@ -508,7 +508,7 @@ get '/disk/usage' => sub {
         }
         $r{$disk}{count} = $c->tools->count_files($disk) if $count;
     }
-    return $c->render_json(\%r) unless $c->param('all');
+    return $c->render(autodata => \%r) unless $c->param('all');
     my %all = ( $c->tools->server_url => \%r );
     for my $server ($c->tools->server_urls) {
         next if exists $all{$server};
@@ -519,7 +519,7 @@ get '/disk/usage' => sub {
         };
         $all{$server} = $res->json;
     }
-    return $c->render_json(\%all);
+    return $c->render(autodata => \%all);
 };
 
 =head2 POST /disk/status
@@ -636,7 +636,7 @@ post '/check/manifest' => sub {
     }
 
     $ret{found} = scalar @{ $ret{found} } unless $c->param("show_found");
-    $c->render_json(\%ret);
+    $c->render(autodata => \%ret);
 };
 
 =head2 GET /servers/status
@@ -662,7 +662,7 @@ get '/servers/status' => sub {
             $all{$server} = "down";
         }
     }
-    $c->render_json(\%all);
+    $c->render(autodata => \%all);
 };
 
 =head2 GET /server/status
@@ -676,7 +676,7 @@ get '/server/status' => sub {
     my %disks =
       map { $_ => $c->tools->disk_is_up_verified($_) ? "up" : "down" }
       $c->tools->disk_roots;
-    $c->render_json(\%disks);
+    $c->render(autodata => \%disks);
 };
 
 =head2 GET /bucket_map
@@ -687,7 +687,7 @@ Get a mapping from buckets to hosts.
 
 get '/bucket_map' => sub {
     my $c = shift;
-    $c->render_json($c->tools->bucket_map)
+    $c->render(autodata => $c->tools->bucket_map)
 };
 
 =head2 GET /bucket/usage
@@ -721,7 +721,7 @@ get '/bucket/usage' => sub {
         my @buckets = uniq map substr($_,0,$bucket_size), @dirs;
         $used{$disk} = \@buckets;
     }
-    $c->render_json({ used => \%used, assigned => \%assigned } );
+    $c->render(autodata => { used => \%used, assigned => \%assigned } );
 };
 
 =head1 SEE ALSO
