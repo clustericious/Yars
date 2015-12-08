@@ -85,7 +85,7 @@ subtest 'Yars::Client#upload, #download' => sub {
     $cluster->stop_ok(0);
     log_context {
       ok !$y->download('57b25564a7054b98816abafa7a32eacf', 'roger'), '';
-      log_like qr{(connection refused.*may retry|may retry.*connect timeout)}i, 'logged connection refussed';
+      log_like qr{Error \(may retry\) :}i, 'logged connection refussed';
       log_unlike qr{HASH\(0x[a-f0-9]+\)}, 'no hash references in log';      
     };
     $cluster->start_ok(0);

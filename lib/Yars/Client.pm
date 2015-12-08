@@ -240,10 +240,6 @@ sub download {
                 ERROR "Yars download : $error->{code} $error->{message}";
                 last;
             }
-            if ($error->{message} =~ /connection refused/i) {
-                WARN "Yars download : $error->{message} (may retry)";
-                next;
-            }
             WARN "Error (may retry) : " . encode_json($error);
             next;
         };
