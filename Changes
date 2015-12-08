@@ -2,6 +2,9 @@ Revision history for {{$dist->name}}
 
 {{$NEXT}}
 
+1.21      2015-12-08 04:40:01 -0500
+  - Remove english specific test
+
 1.20      2015-12-07 19:52:12 -0500
   - use render(autodata => ...) instead of render_json(...)
     this was deprecated and removed from Mojolicious a long
