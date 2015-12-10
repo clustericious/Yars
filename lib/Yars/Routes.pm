@@ -71,13 +71,6 @@ sub _get {
     my $filename = $c->stash("filename");
     my $md5      = $c->stash("md5");
 
-    if (my $secs = $c->param('zombie')) {
-        WARN "zombie alert.  Sleeping for $secs seconds.";
-        # test timeout limits
-        sleep $secs;
-        WARN "zombie is done sleeping for $secs seconds";
-    }
-
     return _head($c, @_) if $c->req->method eq 'HEAD';
 
     my $url = $c->tools->server_for($md5);
