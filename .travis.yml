@@ -4,6 +4,7 @@ sudo: false
 install:
   - dzil authordeps --missing | cpanm -n
   - dzil listdeps --missing | cpanm -n
+  - cpanm -n Filesys::Df
 
 script:
   - dzil test -v
