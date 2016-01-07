@@ -4,7 +4,7 @@ install:
   - choco install strawberryperl
   - SET PATH=C:\Perl5\bin;C:\strawberry\c\bin;C:\strawberry\perl\site\bin;C:\strawberry\perl\bin;%PATH%
   - perl -v
-  - mkdir C:\Perl5
+  - if not exist C:\Perl5 mkdir C:\Perl5
   - SET PERL5LIB=C:/Perl5/lib/perl5
   - SET PERL_LOCAL_LIB_ROOT=C:/Perl5
   - SET PERL_MB_OPT=--install_base C:/Perl5
