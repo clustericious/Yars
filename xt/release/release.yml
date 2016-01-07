@@ -52,6 +52,7 @@ pod_coverage:
     - Yars#generate_config
     - Yars::Command::.*
     - Yars::Client#.*
+    - Yars::Routes#df
 
 unused_vars:
   global:
