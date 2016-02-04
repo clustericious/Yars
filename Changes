@@ -1,6 +1,7 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+  - Compatability for Clustericious 1.14
 
 1.21      2015-12-08 04:40:01 -0500
   - Remove english specific test

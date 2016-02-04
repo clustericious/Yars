@@ -68,12 +68,12 @@ route_args retrieve => [
 
 sub new {
     my $self = shift->SUPER::new(@_);
-    $self->client->max_redirects(30);
-    $self->client->connect_timeout($ENV{YARS_CONNECT_TIMEOUT} // 30);
-    $self->client->on(start => sub {
+    $self->ua->max_redirects(30);
+    $self->ua->connect_timeout($ENV{YARS_CONNECT_TIMEOUT} // 30);
+    $self->ua->on(start => sub {
       # tx
       $_[1]->req->headers->header('X-Yars-Skip-Verify' => 'on');
-      $_[1]->res->max_message_size(parse_bytes($self->_config->max_message_size_client(default => 53687091200)));
+      $_[1]->res->max_message_size(parse_bytes($self->config->max_message_size_client(default => 53687091200)));
       $_[1]->on(finish => sub {
         my $tx = shift;
         if(defined $tx->res->headers->header("X-Yars-Cache"))
@@ -130,12 +130,12 @@ sub bucket_map_cached {
             # md5 on the config, but:
             #  - doing it on the Yars.conf file requires
             #    changes to Clustericious::Config
-            #  - doing it on the $self->_config means that
+            #  - doing it on the $self->config means that
             #    you can't randomly choose a different
             #    server in the mojo template of the config.
             #    (see https://github.com/plicease/Yars#randomizing-the-server-choices)
             my %r = map { $_ => 1 } values %$cache;
-            if(grep { ! $r{$_} } ($self->_config->url, $self->_config->failover_urls( default => [] )))
+            if(grep { ! $r{$_} } ($self->config->url, $self->config->failover_urls( default => [] )))
             {
                 $self->{bucket_map_cached} = 0;
                 unlink $fn;
@@ -230,7 +230,7 @@ sub download {
             $url->path("/file/$filename/$md5");
         }
         TRACE "GET $url";
-        my $tx = $self->client->get($url => { "Connection" => "Close", "Accept-Encoding" => "gzip" });
+        my $tx = $self->ua->get($url => { "Connection" => "Close", "Accept-Encoding" => "gzip" });
         # TODO: set timeout for mojo 4.0
         $self->res($tx->res);
         $self->tx($tx);
@@ -357,7 +357,7 @@ sub put {
     my $url = Mojo::URL->new($self->_server_for($md5));
     $url->path("/file/$remote_filename");
     TRACE "PUT $url";
-    my $tx = $self->client->put("$url" => { "Content-MD5" => _hex2b64($md5), "Connection" => "Close" } => $content);
+    my $tx = $self->ua->put("$url" => { "Content-MD5" => _hex2b64($md5), "Connection" => "Close" } => $content);
     $self->res($tx->res);
     $self->tx($tx);
     return $tx->success ? 'ok' : '';
@@ -370,8 +370,8 @@ sub _all_hosts {
     # the list.
     my @servers = ($assigned);
     push @servers, $self->server_url;
-    push @servers, $self->_config->url;
-    push @servers, @{ $self->_config->failover_urls(default => []) };
+    push @servers, $self->config->url;
+    push @servers, @{ $self->config->failover_urls(default => []) };
     my %seen;
     return grep { !$seen{$_}++ } @servers;
 }
@@ -439,7 +439,7 @@ sub upload {
         DEBUG "Sending $md5 to $url";
 
         my @nostash = ($nostash ? ("X-Yars-NoStash" => 1) : ());
-        $tx = $self->client->build_tx(
+        $tx = $self->ua->build_tx(
             PUT => "$url" => {
                 @nostash,
                 "Content-MD5" => _hex2b64($md5),
@@ -448,7 +448,7 @@ sub upload {
         );
         $tx->req->content->asset($asset);
         # TODO: set timeout for mojo 4.0
-        $tx = $self->client->start($tx);
+        $tx = $self->ua->start($tx);
         $code = $tx->res->code;
         $self->res($tx->res);
         $self->tx($tx);
@@ -487,7 +487,7 @@ sub retrieve {
     my $self = shift;
     my %args = $self->meta_for->process_args(@_);
     if (my $location = $args{location}) {
-        my $tx = $self->client->get($location);
+        my $tx = $self->ua->get($location);
         my $res = $tx->success or do {
             $self->tx($tx);
             $self->res($tx->res);
