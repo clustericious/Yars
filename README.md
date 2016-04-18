@@ -37,6 +37,11 @@ Download a file
 
 Yars is a simple RESTful server for data storage.
 
+Properly configured it provides consistent WRITE availablity,
+and eventual READ availability.  Once files are written to
+the storage cluster they are emutable (new files can -- even
+with the same filename) can also be written to the cluster.
+
 It allows files to be PUT and GET based on their md5 sums
 and filenames, and uses a distributed hash table to store
 the files across any number of hosts and disks.
@@ -466,6 +471,13 @@ When you download files with other clients like `curl` or
 side.  You may request this check be skipped by setting
 the `X-Yars-Skip-Verify` header to any value.
 
+# ACKNOWLEDGEMENT
+
+Thanks to Brian Duggan (BDUGGAN) for doing most of the initial
+work on Yars, and David Golden (XDG, DAGOLDEN) for describing
+Yars strength as "Write availablity and eventual read
+consistency and availablity".
+
 # SEE ALSO
 
 - [Yars::Client](https://metacpan.org/pod/Yars::Client)
@@ -493,7 +505,7 @@ the `X-Yars-Skip-Verify` header to any value.
 
 Original author: Marty Brandon
 
-Current maintainer: Graham Ollis &lt;plicease@cpan.org>
+Current maintainer: Graham Ollis <plicease@cpan.org>
 
 Contributors:
 
