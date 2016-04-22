@@ -12,8 +12,6 @@ $cluster->create_cluster_ok(qw( Yars ));
 my $t = $cluster->t;
 my $url = $cluster->url;
 
-Mojo::Loader::load_class('main');
-
 my $raw     = Mojo::Loader::data_section('main','my_bin_file');
 my $content = b($raw)->b64_decode;
 my $digest  = b($content)->md5_sum->to_string;

@@ -44,7 +44,6 @@ is url($ua->get($urls[1].'/status')->res->json->{server_url}), url($urls[1]), "s
 
 my $i = 0;
 my @contents = do {
-  Mojo::Loader::load_class('main');
   map { $_ x 5000 } @{ decode_json(Mojo::Loader::data_section('main', 'test_data.json')) };
 };
 my @locations;

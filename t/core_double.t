@@ -41,8 +41,6 @@ is_deeply($t->tx->res->json, {
     }
 );
 
-Mojo::Loader::load_class('main');
-
 my $i = 0;
 my @contents = map { "$_\n" } split /\n/, Mojo::Loader::data_section('main', 'data');
 my @locations;
