@@ -41,6 +41,9 @@ pod_spelling_system:
     - hex2b64
     - Clustericious
     - redownload
+    - BDUGGAN
+    - DAGOLDEN
+    - XDG
 
 pod_coverage:
   # format is "Class#method" or "Class", regex allowed

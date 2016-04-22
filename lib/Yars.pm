@@ -49,9 +49,9 @@ Download a file
 
 Yars is a simple RESTful server for data storage.
 
-Properly configured it provides consistent WRITE availablity,
+Properly configured it provides consistent WRITE availability,
 and eventual READ availability.  Once files are written to
-the storage cluster they are emutable (new files can -- even
+the storage cluster they are immutable (new files can -- even
 with the same filename) can also be written to the cluster.
 
 It allows files to be PUT and GET based on their md5 sums
@@ -660,8 +660,8 @@ CONF2
 
 Thanks to Brian Duggan (BDUGGAN) for doing most of the initial
 work on Yars, and David Golden (XDG, DAGOLDEN) for describing
-Yars strength as "Write availablity and eventual read
-consistency and availablity".
+Yars strength as "Write availability and eventual read
+consistency and availability".
 
 =head1 SEE ALSO
 
