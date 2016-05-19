@@ -26,7 +26,7 @@ my @url = @{ $cluster->urls };
 
 $t->get_ok("$url[0]/")
   ->status_is(200)
-  ->content_type_like(qr{text/html})
+  ->content_type_like(qr{^text/plain})
   ->content_like(qr{welcome}i);
 
 $t->get_ok("$url[0]/status")

@@ -11,8 +11,8 @@ my $t = $cluster->t;
 
 $t->get_ok($cluster->url)
   ->status_is(200)
-  ->content_type_like('/text\/html/')
-  ->content_like(qr/welcome/i);
+  ->content_like(qr/welcome/i)
+  ->content_type_like(qr{^text/plain(;.*)?$});
 
 __DATA__
 

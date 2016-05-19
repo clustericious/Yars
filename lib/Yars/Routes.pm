@@ -53,7 +53,7 @@ Get a welcome message.  This is usually simply the text string "welcome to Yars"
 
 =cut
 
-get '/' => sub { shift->render(text => "welcome to Yars") } => 'index';
+get '/' => sub { shift->render(text => "welcome to Yars", format => 'txt', status => 200 ) } => 'index';
 
 =head2 GET /file/#filename/:md5, GET /:md5/#filename
 
