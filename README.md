@@ -440,6 +440,22 @@ and once again, our `Yars.conf` file is short and sweet:
     % extends_config 'nginx', port => $port, name => 'yars';
     % extends_config 'yars_diskmap';
 
+If you are storing large files in your Yars cluster the nginx default 
+maximum request size will probably not be adequate.  If you see an error 
+message like this:
+
+    % yarsclient upload large-file.iso
+    [ERROR] 2016/09/30 11:23:48 Command.pm (204) (413) Request Entity Too Large
+
+Then you need to set
+[client\_max\_body\_size](http://nginx.org/en/docs/http/ngx_http_core_module.html#client_max_body_size)
+appropriately.
+
+    http {
+      server {
+        client_max_body_size 0; # zero for no max
+        ...
+
 ## Accelerate by not checking the md5 twice
 
 By default, Yars checks the MD5 of files before serving them to the 
