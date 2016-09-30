@@ -9,10 +9,12 @@ package Yars::Routes;
 
 =head1 DESCRIPTION
 
-This document provides information on the Yars specific REST API (the HTTP "routes") provided
-by Yars servers.  For a Perl interface to this API, see L<Yars::Client>.  For a command line
-interface see L<yarsclient>.  For the generic L<Clustericious> REST API that comes with all
-L<Clustericious> services, see L<Clustericious::RouteBuilder::Common>.
+This document provides information on the Yars specific REST API (the 
+HTTP "routes") provided by Yars servers.  For a Perl interface to this 
+API, see L<Yars::Client>.  For a command line interface see 
+L<yarsclient>.  For the generic L<Clustericious> REST API that comes 
+with all L<Clustericious> services, see 
+L<Clustericious::RouteBuilder::Common>.
 
 =cut
 
@@ -49,7 +51,8 @@ BEGIN {
 
 =head2 GET /
 
-Get a welcome message.  This is usually simply the text string "welcome to Yars".
+Get a welcome message.  This is usually simply the text string "welcome 
+to Yars".
 
 =cut
 
@@ -59,7 +62,7 @@ get '/' => sub { shift->render(text => "welcome to Yars", format => 'txt', statu
 
 Retrieve a file with the given name and md5.
 
-You can also make a HEAD request on the same route to determine if the
+You can also make a HEAD request on the same route to determine if the 
 file is available without making the yars server send the file.
 
 =cut
@@ -547,10 +550,9 @@ post '/disk/status' => sub {
 
 =head2 POST /check/manifest
 
-Given JSON with 'manifest' which is a return-delimited string
-of filenames and md5s (like the output of md5sum), check each
-file for existence on the server (or proxy to the right
-server)
+Given JSON with 'manifest' which is a return-delimited string of 
+filenames and md5s (like the output of md5sum), check each file for 
+existence on the server (or proxy to the right server)
 
 =cut
 

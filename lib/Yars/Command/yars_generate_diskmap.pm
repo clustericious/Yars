@@ -23,18 +23,19 @@ then include from your Yars.conf file:
 
 =head1 DESCRIPTION
 
-This script generates a disk map for use with the Yars service.  The first argument is the
-number of hex digits to use in prefixes, subsequent arguments are files where each line
-contains a hostname and a path to use for disk storage separated by a space.  Given this list 
-of hosts and disks, distribute 16^n buckets onto the disks.
+This script generates a disk map for use with the Yars service.  The 
+first argument is the number of hex digits to use in prefixes, 
+subsequent arguments are files where each line contains a hostname and a 
+path to use for disk storage separated by a space.  Given this list of 
+hosts and disks, distribute 16^n buckets onto the disks.
 
 =head1 OPTIONS
 
 =head2 --port | -p I<port_number>
 
-The port number to use for each server, defaults to 9001.
-You can also specify a port for each host by adding a colon
-and port number, for example:
+The port number to use for each server, defaults to 9001. You can also 
+specify a port for each host by adding a colon and port number, for 
+example:
 
  host1:1234 /disk1
 

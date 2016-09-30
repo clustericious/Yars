@@ -13,11 +13,10 @@ package Yars::Command::yars_fast_balance;
 
 Attempt to fix all files on this server.
 
-Don't run this unless all disks and
-servers are fully operational.
+Don't run this unless all disks and servers are fully operational.
 
-If they are not, then failures will be
-expensive, and things won't get balanced.
+If they are not, then failures will be expensive, and things won't get 
+balanced.
 
 =cut
 

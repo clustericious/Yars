@@ -11,8 +11,8 @@ package Yars::Command::yars_disk_scan;
 
 =head1 DESCRIPTION
 
-Add a cron entry which does a yars_disk_scan periodically
-in order to check the md5s of all the files on disk.
+Add a cron entry which does a yars_disk_scan periodically in order to 
+check the md5s of all the files on disk.
 
 =head1 OPTIONS
 
@@ -22,8 +22,10 @@ Scan all disks
 
 =head2 --lock filename
 
-Use the given filename as an exclusive lock to ensure that multiple scans are not performed concurrently.
-If there is already a scan in process, the scan will not commence, and instead the process will exit with a 0 return value.
+Use the given filename as an exclusive lock to ensure that multiple 
+scans are not performed concurrently. If there is already a scan in 
+process, the scan will not commence, and instead the process will exit 
+with a 0 return value.
 
 =cut
 

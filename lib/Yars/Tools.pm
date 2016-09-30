@@ -27,11 +27,11 @@ use Yars::Util qw( format_tx_error );
 
 =head1 DESCRIPTION
 
-This module is largely used internally by L<Yars>.  Documentation for some of
-its capabilities are provided here for the understanding of how the rest of
-the L<Yars> server works, but they should not be considered to be a public
-interface and they may change in the future, though probably not for a good
-reason.
+This module is largely used internally by L<Yars>.  Documentation for 
+some of its capabilities are provided here for the understanding of how 
+the rest of the L<Yars> server works, but they should not be considered 
+to be a public interface and they may change in the future, though 
+probably not for a good reason.
 
 =head1 FUNCTIONS
 
@@ -129,8 +129,8 @@ sub _dir_is_empty {
 
 =head2 disk_for
 
-Given an md5 digest, calculate the root directory of this file.
-Undef is returned if this file does not belong on the current host.
+Given an md5 digest, calculate the root directory of this file. Undef is 
+returned if this file does not belong on the current host.
 
 =cut
 
@@ -189,9 +189,8 @@ sub _write_state {
 
 =head2 disk_is_up
 
-Given a disk root, return true unless the disk is marked down.
-A disk is down if the state file indicates it, or if it exists
-but is unwriteable.
+Given a disk root, return true unless the disk is marked down. A disk is 
+down if the state file indicates it, or if it exists but is unwriteable.
 
 =cut
 
@@ -205,9 +204,9 @@ sub disk_is_up {
 
 =head2 disk_is_up_verified
 
-This is the same as disk_is_up, but doesn't trust the operating system, and
-tries to write a file to the disk's temp directory and verify that the file
-is not of zero size.
+This is the same as disk_is_up, but doesn't trust the operating system, 
+and tries to write a file to the disk's temp directory and verify that 
+the file is not of zero size.
 
 =cut
 
@@ -370,8 +369,8 @@ sub bucket_map {
 
 =head2 storage_path
 
-Calculate the directory of an md5 on disk.
-Optionally pass a second parameter to force it onto a particular disk.
+Calculate the directory of an md5 on disk. Optionally pass a second 
+parameter to force it onto a particular disk.
 
 =cut
 
@@ -477,9 +476,8 @@ sub server_urls {
 
 =head2 cleanup_tree
 
-Given a directory, traverse upwards until encountering
-a local disk root or a non-empty directory, and remove
-all empty directories.
+Given a directory, traverse upwards until encountering a local disk root 
+or a non-empty directory, and remove all empty directories.
 
 =cut
 
@@ -527,8 +525,8 @@ sub human_size {
 
 =head2 content_is_same
 
-Given a filename and an Asset, return true if the
-content is the same for both.
+Given a filename and an Asset, return true if the content is the same 
+for both.
 
 =cut
 

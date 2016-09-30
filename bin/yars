@@ -10,7 +10,7 @@
 
 =head1 DESCRIPTION
 
-This program starts and stops the Yars server.  For details on how to
+This program starts and stops the Yars server.  For details on how to 
 configure and use Yars, see L<Yars>.
 
 =head1 SEE ALSO
