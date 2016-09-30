@@ -49,58 +49,55 @@ Download a file
 
 Yars is a simple RESTful server for data storage.
 
-Properly configured it provides consistent WRITE availability,
-and eventual READ availability.  Once files are written to
-the storage cluster they are immutable (new files can -- even
-with the same filename) can also be written to the cluster.
+Properly configured it provides consistent WRITE availability, and 
+eventual READ availability.  Once files are written to the storage 
+cluster they are immutable (new files can -- even with the same 
+filename) can also be written to the cluster.
 
-It allows files to be PUT and GET based on their md5 sums
-and filenames, and uses a distributed hash table to store
-the files across any number of hosts and disks.
+It allows files to be PUT and GET based on their md5 sums and filenames, 
+and uses a distributed hash table to store the files across any number 
+of hosts and disks.
 
-Files are assigned to disks and hosts based on their md5s
-in the following manner :
+Files are assigned to disks and hosts based on their md5s in the 
+following manner :
 
-The first N digits of the md5 are considered the "bucket" for
-a file.  e.g. for N=2, 256 buckets are then distributed among
-the disks in proportion to the size of each disk.  The bucket
-distribution is done manually as part of the configuration (with
-the aid of an included tool, L<yars_generate_diskmap>).
+The first N digits of the md5 are considered the "bucket" for a file.  
+e.g. for N=2, 256 buckets are then distributed among the disks in 
+proportion to the size of each disk.  The bucket distribution is done 
+manually as part of the configuration (with the aid of an included tool, 
+L<yars_generate_diskmap>).
 
 The server is controlled with the command line tool L<yars>.
 
-The basic operations of a running yars cluster are supporting
-requests of the form
+The basic operations of a running yars cluster are supporting requests 
+of the form
 
  PUT http://$host/file/$filename
  GET http://$host/file/$md5/$filename
  HEAD http://$host/file/$md5/$filename
  GET http://$host/bucket_map
 
-to store and retrieve files, where C<$host> may be any of the
-hosts in the cluster, C<$md5> is the md5 of the content, and
-C<$filename> is a filename for the content to be stored.  See
-L<Yars::Routes> for documentation of other routes.
+to store and retrieve files, where C<$host> may be any of the hosts in 
+the cluster, C<$md5> is the md5 of the content, and C<$filename> is a 
+filename for the content to be stored.  See L<Yars::Routes> for 
+documentation of other routes.
 
 Failover is handled in the following manner:
 
-If the host to which a file is assigned is not available, then
-the file will be "stashed" on the filesystem for the host
-to which it was sent.  If there is no space there, other
-hosts and disks will be tried until an available one is
-found.  Because of this failover mechanism, the "stash"
-must be checked whenever a GET request is handled.
-A successful GET will return quickly, but an
-unsuccessful one will take longer because all of the stashes
-on all of the servers must be checked before a "404 Not Found"
-is returned.
+If the host to which a file is assigned is not available, then the file 
+will be "stashed" on the filesystem for the host to which it was sent.  
+If there is no space there, other hosts and disks will be tried until an 
+available one is found.  Because of this failover mechanism, the "stash" 
+must be checked whenever a GET request is handled. A successful GET will 
+return quickly, but an unsuccessful one will take longer because all of 
+the stashes on all of the servers must be checked before a "404 Not 
+Found" is returned.
 
-Another tool L<yars_fast_balance> is provided which takes
-files from stashes and returns them to their correct
-locations.
+Another tool L<yars_fast_balance> is provided which takes files from 
+stashes and returns them to their correct locations.
 
-A client L<Yars::Client> is also available (in a separate
-distribution), for interacting with a yars server.
+A client L<Yars::Client> is also available (in a separate distribution), 
+for interacting with a yars server.
 
 =head1 EXAMPLES
 
@@ -108,8 +105,7 @@ distribution), for interacting with a yars server.
 
 This creates a single Yars server using hypnotoad with sixteen buckets.
 
-Create a configuration file in C<~/etc/Yars.conf> with this
-content:
+Create a configuration file in C<~/etc/Yars.conf> with this content:
 
  ---
  
@@ -132,8 +128,8 @@ content:
      - root : <%= home %>/var/data/disk1
        buckets : <%= json [ 0..9, 'a'..'f' ] %>
 
-The configuration file is a L<Mojo::Template> template with
-helpers provided by L<Clustericious::Config::Helpers>.
+The configuration file is a L<Mojo::Template> template with helpers 
+provided by L<Clustericious::Config::Helpers>.
 
 Create the directories needed for the server:
 
@@ -222,11 +218,10 @@ And from Perl:
 
 =head3 set up the URL
 
-When configuring a cluster of several hosts, the C<url> value
-in the configuration must have the correct hostname or IP
-address for each host that the server is running on.  One
-way to handle this would be to have a configuration file for
-each host:
+When configuring a cluster of several hosts, the C<url> value in the 
+configuration must have the correct hostname or IP address for each host 
+that the server is running on.  One way to handle this would be to have 
+a configuration file for each host:
 
  ---
  # ~/etc/Yars.conf on yars1
@@ -236,9 +231,9 @@ each host:
  # ~/etc/Yars.conf on yars2
  url: http://yars2:9001
 
-A less tedious way is to use the C<hostname> or C<hostname_full>
-helper from L<Clustericious::Config::Helpers>.  This allows you
-to use the same configuration for all servers in the cluster:
+A less tedious way is to use the C<hostname> or C<hostname_full> helper 
+from L<Clustericious::Config::Helpers>.  This allows you to use the same 
+configuration for all servers in the cluster:
 
  ---
  # works for yars1, yars2 but not for
@@ -247,10 +242,10 @@ to use the same configuration for all servers in the cluster:
 
 =head3 abstract the webserver configuration
 
-If you have multiple L<Clustericious> services on the same host,
-or if you share configurations between multiple hosts, it may be
-useful to use the <%= extends_config %> helper and put the web
-server configuration in a separate file.  For example:
+If you have multiple L<Clustericious> services on the same host, or if 
+you share configurations between multiple hosts, it may be useful to use 
+the <%= extends_config %> helper and put the web server configuration in 
+a separate file.  For example:
 
  ---
  # ~/etc/Yars.conf
@@ -265,9 +260,8 @@ server configuration in a separate file.  For example:
    listen :
       - <%= $url %>
 
-Now if you were also going to use L<PlugAuth> on the same host
-they could share the same C<hypnotoad.conf> file with different
-parameters:
+Now if you were also going to use L<PlugAuth> on the same host they 
+could share the same C<hypnotoad.conf> file with different parameters:
 
  ---
  # ~/etc/PlugAuth.conf
@@ -341,22 +335,21 @@ which you can now extend from the Yars.conf file:
  % extends_config 'hypnotoad', url => $url, name => 'yars';
  % extends_config 'yars_diskmap';
 
-Also, if for whatever reason you are unable to use the C<hostname>
-or C<hostname_full> helper in your C<Yars.conf> file, it helps to
-keep your diskmap configuration in a separate file that can be shared
-between the different Yars server configuration files.
+Also, if for whatever reason you are unable to use the C<hostname> or 
+C<hostname_full> helper in your C<Yars.conf> file, it helps to keep your 
+diskmap configuration in a separate file that can be shared between the 
+different Yars server configuration files.
 
-You can now run C<yars start> on each host to start the servers.
-L<clad> may be useful for starting "yars start" on multiple hosts
-at once.
+You can now run C<yars start> on each host to start the servers. L<clad> 
+may be useful for starting "yars start" on multiple hosts at once.
 
 =head3 client configuration
 
-If you are using the C<hostname> or C<hostname_full> helpers to
-generate the URL in the serve configuration, then you won't be
-able to share that configuration with client systems.  In addition
-you can specify one or more failover hosts for L<Yars::Client>
-and C<yarsclient> to use when the primary is not available:
+If you are using the C<hostname> or C<hostname_full> helpers to generate 
+the URL in the serve configuration, then you won't be able to share that 
+configuration with client systems.  In addition you can specify one or 
+more failover hosts for L<Yars::Client> and C<yarsclient> to use when 
+the primary is not available:
 
  ---
  # ~/etc/Yars.conf on client systems
@@ -366,8 +359,8 @@ and C<yarsclient> to use when the primary is not available:
 
 =head3 randomizing the server choices
 
-In order to more evenly spread the load over each node in the Yars
-cluster, you can randomize the servers that the client considers the
+In order to more evenly spread the load over each node in the Yars 
+cluster, you can randomize the servers that the client considers the 
 "primary" and the "failover(s)":
 
  ---
@@ -461,15 +454,13 @@ and once again, our C<Yars.conf> file is short and sweet:
  
 =head2 Accelerate by not checking the md5 twice
 
-By default, Yars checks the MD5 of files before serving
-them to the client.  L<Yars::Client> and L<yarsclient> both
-also check the MD5 sum after downloading.  This saves
-bandwidth if automated processes attempt to redownload the
-same file if it is corrupted on the disk of the server.
-The chance of error is likely much higher on the network
-than it is on the disk, and if you prefer to do the check
-just on the client side, then you can use set the
-download_md5_verify to zero.
+By default, Yars checks the MD5 of files before serving them to the 
+client.  L<Yars::Client> and L<yarsclient> both also check the MD5 sum 
+after downloading.  This saves bandwidth if automated processes attempt 
+to redownload the same file if it is corrupted on the disk of the 
+server. The chance of error is likely much higher on the network than it 
+is on the disk, and if you prefer to do the check just on the client 
+side, then you can use set the download_md5_verify to zero.
 
  ---
  % my $port = 9001;
@@ -478,10 +469,10 @@ download_md5_verify to zero.
  % extends_config 'yars_diskmap';
  download_md5_verify: 0
 
-When you download files with other clients like C<curl> or
-C<wget>, the MD5 check will still happen on the server
-side.  You may request this check be skipped by setting
-the C<X-Yars-Skip-Verify> header to any value.
+When you download files with other clients like C<curl> or C<wget>, the 
+MD5 check will still happen on the server side.  You may request this 
+check be skipped by setting the C<X-Yars-Skip-Verify> header to any 
+value.
 
 =cut
 
@@ -658,10 +649,9 @@ CONF2
 
 =head1 ACKNOWLEDGEMENT
 
-Thanks to Brian Duggan (BDUGGAN) for doing most of the initial
-work on Yars, and David Golden (XDG, DAGOLDEN) for describing
-Yars strength as "Write availability and eventual read
-consistency and availability".
+Thanks to Brian Duggan (BDUGGAN) for doing most of the initial work on 
+Yars, and David Golden (XDG, DAGOLDEN) for describing Yars strength as 
+"Write availability and eventual read consistency and availability".
 
 =head1 SEE ALSO
 

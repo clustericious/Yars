@@ -37,58 +37,55 @@ Download a file
 
 Yars is a simple RESTful server for data storage.
 
-Properly configured it provides consistent WRITE availability,
-and eventual READ availability.  Once files are written to
-the storage cluster they are immutable (new files can -- even
-with the same filename) can also be written to the cluster.
+Properly configured it provides consistent WRITE availability, and 
+eventual READ availability.  Once files are written to the storage 
+cluster they are immutable (new files can -- even with the same 
+filename) can also be written to the cluster.
 
-It allows files to be PUT and GET based on their md5 sums
-and filenames, and uses a distributed hash table to store
-the files across any number of hosts and disks.
+It allows files to be PUT and GET based on their md5 sums and filenames, 
+and uses a distributed hash table to store the files across any number 
+of hosts and disks.
 
-Files are assigned to disks and hosts based on their md5s
-in the following manner :
+Files are assigned to disks and hosts based on their md5s in the 
+following manner :
 
-The first N digits of the md5 are considered the "bucket" for
-a file.  e.g. for N=2, 256 buckets are then distributed among
-the disks in proportion to the size of each disk.  The bucket
-distribution is done manually as part of the configuration (with
-the aid of an included tool, [yars\_generate\_diskmap](https://metacpan.org/pod/yars_generate_diskmap)).
+The first N digits of the md5 are considered the "bucket" for a file.  
+e.g. for N=2, 256 buckets are then distributed among the disks in 
+proportion to the size of each disk.  The bucket distribution is done 
+manually as part of the configuration (with the aid of an included tool, 
+[yars\_generate\_diskmap](https://metacpan.org/pod/yars_generate_diskmap)).
 
 The server is controlled with the command line tool [yars](https://metacpan.org/pod/yars).
 
-The basic operations of a running yars cluster are supporting
-requests of the form
+The basic operations of a running yars cluster are supporting requests 
+of the form
 
     PUT http://$host/file/$filename
     GET http://$host/file/$md5/$filename
     HEAD http://$host/file/$md5/$filename
     GET http://$host/bucket_map
 
-to store and retrieve files, where `$host` may be any of the
-hosts in the cluster, `$md5` is the md5 of the content, and
-`$filename` is a filename for the content to be stored.  See
-[Yars::Routes](https://metacpan.org/pod/Yars::Routes) for documentation of other routes.
+to store and retrieve files, where `$host` may be any of the hosts in 
+the cluster, `$md5` is the md5 of the content, and `$filename` is a 
+filename for the content to be stored.  See [Yars::Routes](https://metacpan.org/pod/Yars::Routes) for 
+documentation of other routes.
 
 Failover is handled in the following manner:
 
-If the host to which a file is assigned is not available, then
-the file will be "stashed" on the filesystem for the host
-to which it was sent.  If there is no space there, other
-hosts and disks will be tried until an available one is
-found.  Because of this failover mechanism, the "stash"
-must be checked whenever a GET request is handled.
-A successful GET will return quickly, but an
-unsuccessful one will take longer because all of the stashes
-on all of the servers must be checked before a "404 Not Found"
-is returned.
+If the host to which a file is assigned is not available, then the file 
+will be "stashed" on the filesystem for the host to which it was sent.  
+If there is no space there, other hosts and disks will be tried until an 
+available one is found.  Because of this failover mechanism, the "stash" 
+must be checked whenever a GET request is handled. A successful GET will 
+return quickly, but an unsuccessful one will take longer because all of 
+the stashes on all of the servers must be checked before a "404 Not 
+Found" is returned.
 
-Another tool [yars\_fast\_balance](https://metacpan.org/pod/yars_fast_balance) is provided which takes
-files from stashes and returns them to their correct
-locations.
+Another tool [yars\_fast\_balance](https://metacpan.org/pod/yars_fast_balance) is provided which takes files from 
+stashes and returns them to their correct locations.
 
-A client [Yars::Client](https://metacpan.org/pod/Yars::Client) is also available (in a separate
-distribution), for interacting with a yars server.
+A client [Yars::Client](https://metacpan.org/pod/Yars::Client) is also available (in a separate distribution), 
+for interacting with a yars server.
 
 # EXAMPLES
 
@@ -96,8 +93,7 @@ distribution), for interacting with a yars server.
 
 This creates a single Yars server using hypnotoad with sixteen buckets.
 
-Create a configuration file in `~/etc/Yars.conf` with this
-content:
+Create a configuration file in `~/etc/Yars.conf` with this content:
 
     ---
     
@@ -120,8 +116,8 @@ content:
         - root : <%= home %>/var/data/disk1
           buckets : <%= json [ 0..9, 'a'..'f' ] %>
 
-The configuration file is a [Mojo::Template](https://metacpan.org/pod/Mojo::Template) template with
-helpers provided by [Clustericious::Config::Helpers](https://metacpan.org/pod/Clustericious::Config::Helpers).
+The configuration file is a [Mojo::Template](https://metacpan.org/pod/Mojo::Template) template with helpers 
+provided by [Clustericious::Config::Helpers](https://metacpan.org/pod/Clustericious::Config::Helpers).
 
 Create the directories needed for the server:
 
@@ -210,11 +206,10 @@ And from Perl:
 
 ### set up the URL
 
-When configuring a cluster of several hosts, the `url` value
-in the configuration must have the correct hostname or IP
-address for each host that the server is running on.  One
-way to handle this would be to have a configuration file for
-each host:
+When configuring a cluster of several hosts, the `url` value in the 
+configuration must have the correct hostname or IP address for each host 
+that the server is running on.  One way to handle this would be to have 
+a configuration file for each host:
 
     ---
     # ~/etc/Yars.conf on yars1
@@ -224,9 +219,9 @@ each host:
     # ~/etc/Yars.conf on yars2
     url: http://yars2:9001
 
-A less tedious way is to use the `hostname` or `hostname_full`
-helper from [Clustericious::Config::Helpers](https://metacpan.org/pod/Clustericious::Config::Helpers).  This allows you
-to use the same configuration for all servers in the cluster:
+A less tedious way is to use the `hostname` or `hostname_full` helper 
+from [Clustericious::Config::Helpers](https://metacpan.org/pod/Clustericious::Config::Helpers).  This allows you to use the same 
+configuration for all servers in the cluster:
 
     ---
     # works for yars1, yars2 but not for
@@ -235,10 +230,10 @@ to use the same configuration for all servers in the cluster:
 
 ### abstract the webserver configuration
 
-If you have multiple [Clustericious](https://metacpan.org/pod/Clustericious) services on the same host,
-or if you share configurations between multiple hosts, it may be
-useful to use the <%= extends\_config %> helper and put the web
-server configuration in a separate file.  For example:
+If you have multiple [Clustericious](https://metacpan.org/pod/Clustericious) services on the same host, or if 
+you share configurations between multiple hosts, it may be useful to use 
+the <%= extends\_config %> helper and put the web server configuration in 
+a separate file.  For example:
 
     ---
     # ~/etc/Yars.conf
@@ -253,9 +248,8 @@ server configuration in a separate file.  For example:
       listen :
          - <%= $url %>
 
-Now if you were also going to use [PlugAuth](https://metacpan.org/pod/PlugAuth) on the same host
-they could share the same `hypnotoad.conf` file with different
-parameters:
+Now if you were also going to use [PlugAuth](https://metacpan.org/pod/PlugAuth) on the same host they 
+could share the same `hypnotoad.conf` file with different parameters:
 
     ---
     # ~/etc/PlugAuth.conf
@@ -329,22 +323,21 @@ which you can now extend from the Yars.conf file:
     % extends_config 'hypnotoad', url => $url, name => 'yars';
     % extends_config 'yars_diskmap';
 
-Also, if for whatever reason you are unable to use the `hostname`
-or `hostname_full` helper in your `Yars.conf` file, it helps to
-keep your diskmap configuration in a separate file that can be shared
-between the different Yars server configuration files.
+Also, if for whatever reason you are unable to use the `hostname` or 
+`hostname_full` helper in your `Yars.conf` file, it helps to keep your 
+diskmap configuration in a separate file that can be shared between the 
+different Yars server configuration files.
 
-You can now run `yars start` on each host to start the servers.
-[clad](https://metacpan.org/pod/clad) may be useful for starting "yars start" on multiple hosts
-at once.
+You can now run `yars start` on each host to start the servers. [clad](https://metacpan.org/pod/clad) 
+may be useful for starting "yars start" on multiple hosts at once.
 
 ### client configuration
 
-If you are using the `hostname` or `hostname_full` helpers to
-generate the URL in the serve configuration, then you won't be
-able to share that configuration with client systems.  In addition
-you can specify one or more failover hosts for [Yars::Client](https://metacpan.org/pod/Yars::Client)
-and `yarsclient` to use when the primary is not available:
+If you are using the `hostname` or `hostname_full` helpers to generate 
+the URL in the serve configuration, then you won't be able to share that 
+configuration with client systems.  In addition you can specify one or 
+more failover hosts for [Yars::Client](https://metacpan.org/pod/Yars::Client) and `yarsclient` to use when 
+the primary is not available:
 
     ---
     # ~/etc/Yars.conf on client systems
@@ -354,8 +347,8 @@ and `yarsclient` to use when the primary is not available:
 
 ### randomizing the server choices
 
-In order to more evenly spread the load over each node in the Yars
-cluster, you can randomize the servers that the client considers the
+In order to more evenly spread the load over each node in the Yars 
+cluster, you can randomize the servers that the client considers the 
 "primary" and the "failover(s)":
 
     ---
@@ -449,15 +442,13 @@ and once again, our `Yars.conf` file is short and sweet:
 
 ## Accelerate by not checking the md5 twice
 
-By default, Yars checks the MD5 of files before serving
-them to the client.  [Yars::Client](https://metacpan.org/pod/Yars::Client) and [yarsclient](https://metacpan.org/pod/yarsclient) both
-also check the MD5 sum after downloading.  This saves
-bandwidth if automated processes attempt to redownload the
-same file if it is corrupted on the disk of the server.
-The chance of error is likely much higher on the network
-than it is on the disk, and if you prefer to do the check
-just on the client side, then you can use set the
-download\_md5\_verify to zero.
+By default, Yars checks the MD5 of files before serving them to the 
+client.  [Yars::Client](https://metacpan.org/pod/Yars::Client) and [yarsclient](https://metacpan.org/pod/yarsclient) both also check the MD5 sum 
+after downloading.  This saves bandwidth if automated processes attempt 
+to redownload the same file if it is corrupted on the disk of the 
+server. The chance of error is likely much higher on the network than it 
+is on the disk, and if you prefer to do the check just on the client 
+side, then you can use set the download\_md5\_verify to zero.
 
     ---
     % my $port = 9001;
@@ -466,17 +457,16 @@ download\_md5\_verify to zero.
     % extends_config 'yars_diskmap';
     download_md5_verify: 0
 
-When you download files with other clients like `curl` or
-`wget`, the MD5 check will still happen on the server
-side.  You may request this check be skipped by setting
-the `X-Yars-Skip-Verify` header to any value.
+When you download files with other clients like `curl` or `wget`, the 
+MD5 check will still happen on the server side.  You may request this 
+check be skipped by setting the `X-Yars-Skip-Verify` header to any 
+value.
 
 # ACKNOWLEDGEMENT
 
-Thanks to Brian Duggan (BDUGGAN) for doing most of the initial
-work on Yars, and David Golden (XDG, DAGOLDEN) for describing
-Yars strength as "Write availability and eventual read
-consistency and availability".
+Thanks to Brian Duggan (BDUGGAN) for doing most of the initial work on 
+Yars, and David Golden (XDG, DAGOLDEN) for describing Yars strength as 
+"Write availability and eventual read consistency and availability".
 
 # SEE ALSO
 
