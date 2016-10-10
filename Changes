@@ -1,6 +1,8 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+
+1.23      2016-10-10 11:09:34 -0400
   - Fix bug related to rendering exceptions
 
 1.22      2016-04-22 13:52:41 -0400
