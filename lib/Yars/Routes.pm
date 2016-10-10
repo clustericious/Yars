@@ -240,7 +240,7 @@ put '/file/#filename/:md5' => { md5 => 'calculate' } => sub {
     if ($c->req->headers->header('X-Yars-Stash')) {
         DEBUG "Stashing a file that is not ours : $digest $filename";
         _stash_locally($c, $filename, $digest, $asset) and return;
-        return $c->render->exception("Cannot stash $filename locally");
+        return $c->reply->exception("Cannot stash $filename locally");
     }
 
     DEBUG "Received NoStash for $filename" if $c->req->headers->header('X-Yars-NoStash');
@@ -440,7 +440,7 @@ sub _del {
         DEBUG "This is our file, we will delete it.";
         my $dir  = $c->tools->storage_path( $md5 );
         if (-r "$dir/$filename") {
-            unlink "$dir/$filename" or return $c->render->exception($!);
+            unlink "$dir/$filename" or return $c->reply->exception($!);
             $c->tools->cleanup_tree($dir);
             return $c->render(status => 200, text =>'ok');
         }
@@ -451,7 +451,7 @@ sub _del {
     }
 
     if (my $dir = $c->tools->local_stashed_dir($filename,$md5)) {
-        unlink "$dir/$filename" or return $c->render->exception($!);
+        unlink "$dir/$filename" or return $c->reply->exception($!);
         $c->tools->cleanup_tree($dir);
         return $c->render(status => 200, text =>'ok');
     }
@@ -464,7 +464,7 @@ sub _del {
         my $error = $tx->error;
         my ($msg,$code) = ($error->{message}, $error->{code});
         return $c->render(status => $code, text => $msg) if $code;
-        return $c->render->exception("Error deleting from $server ".format_tx_error($tx->error));
+        return $c->reply->exception("Error deleting from $server ".format_tx_error($tx->error));
     }
 };
 
@@ -529,7 +529,7 @@ post '/disk/status' => sub {
     my $c = shift;
     my $got = $c->parse_autodata;
     my $root = $got->{root} || $got->{disk};
-    my $state = $got->{state} or return $c->render->exception("no state found in request");
+    my $state = $got->{state} or return $c->reply->exception("no state found in request");
     my $server = $got->{server};
     if ($server && $server ne $c->tools->server_url) {
         unless ($c->tools->server_exists($server)) {

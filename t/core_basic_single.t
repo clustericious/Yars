@@ -2,7 +2,7 @@ use strict;
 use warnings;
 use Test::Clustericious::Cluster 0.28;
 use Test::Clustericious::Config;
-use Test::More tests => 7;
+use Test::More;
 
 my $cluster = Test::Clustericious::Cluster->new;
 $cluster->create_cluster_ok(qw( Yars ));
@@ -13,6 +13,14 @@ $t->get_ok($cluster->url)
   ->status_is(200)
   ->content_like(qr/welcome/i)
   ->content_type_like(qr{^text/plain(;.*)?$});
+
+$t->post_ok("@{[ $cluster->url ]}/disk/status")
+  ->status_is(500)
+  ->content_is("ERROR: no state found in request\n");
+
+note $t->tx->res->to_string;
+
+done_testing;
 
 __DATA__
 
