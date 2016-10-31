@@ -1,6 +1,8 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+
+1.24      2016-10-31 14:28:18 -0400
   - Added yars_balance command.  Intended as a replacement
     for yars_fast_balance, which will likely be removed in
     a future version.
