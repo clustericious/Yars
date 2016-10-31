@@ -1,6 +1,9 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+  - Added yars_balance command.  Intended as a replacement
+    for yars_fast_balance, which will likely be removed in
+    a future version.
 
 1.23      2016-10-10 11:09:34 -0400
   - Fix bug related to rendering exceptions

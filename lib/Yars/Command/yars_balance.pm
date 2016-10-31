@@ -24,6 +24,13 @@ Rebalance files in the yars cluster so that all stashed files are returned
 to the correct server.  This was originally done using the L<yars_fast_balance>
 command, which is buggy and not as fast as this one.
 
+=head1 OPTIONS
+
+=head2 --threads | -t
+
+The number of threads to run in parallel.  Only one thread per disk will execute
+at a  time.
+
 =cut
 
 sub _recurse 
@@ -56,10 +63,115 @@ sub _recurse
   }
 }
 
+sub _rebalance_dir
+{
+  my($yars, $client, $disk, $server) = @_;
+
+  my $root = dir( $disk->{root} );
+  foreach my $dir (sort grep { $_->basename =~ /^[a-f0-9]{1,2}$/ } $root->children)
+  {
+    my $expected_dir = $yars->tools->disk_for($dir->basename);
+        
+    # If disk_for returns a value, then it means the file belongs on the current
+    # server.  If it returns undef it should be uploaded to a different server.
+    # so we do either a filesystem level move, or a http remote move for each
+    # file in the stashed directory.
+        
+    if(defined $expected_dir)
+    {
+      $expected_dir = dir( $expected_dir );
+          
+      # if the expected dir is where it is stored, then it is already in the right place.
+      next if $expected_dir eq $dir->parent;
+
+      _recurse $dir, sub {
+        my($from) = @_;
+        say 'LCL ', $from->basename;
+            
+        # compute the md5 to ensure that the file isn't corrupt
+        my $md5 = digest_file_hex("$from", "MD5");
+        my @md5 = ($md5 =~ /(..)/g);
+            
+        # verify that the file itself is in the right place
+        my $expected_file = $root->subdir(@md5, $from->basename);
+        if("$expected_file" ne "$from")
+        {
+          warn "file: $from (md5 $md5) is stored at $from instead of $expected_file.  May be corrupt.";
+          return;
+        }
+
+        # temporary filename to copy to first
+        my(undef,$tmp) = $expected_dir->subdir('tmp')->tempfile( "balanceXXXXXX", SUFFIX => '.tmp' );
+        $tmp = file($tmp);
+        $tmp->parent->mkpath(0,0700);
+            
+        # final filename to move file once the transfer to the new
+        # partition is complete.
+        my $to = $expected_dir->subdir(@md5, $from->basename);
+            
+        $from->copy_to($tmp) or do {
+          warn "error copying $from => $tmp $!";
+          unlink "$tmp";
+          return;
+        };
+            
+        # verify that the copied file still has the same MD5 in its
+        # new location.
+        my $md5_verify = digest_file_hex("$tmp", "MD5");
+        if($md5 ne $md5_verify)
+        {
+          warn "file: $tmp does not match original md5.  May be corrupt.";
+          return;
+        }
+            
+        $to->parent->mkpath(0,0700);
+        $tmp->move_to($to) or do {
+          warn "error moving $tmp => $to $!";
+          return;
+        };
+            
+        unlink "$from";
+      };
+    }
+    else
+    {
+      _recurse $dir, sub {
+        my($file) = @_;
+        say 'RMT ', $file->basename;
+        $client->upload('--nostash' => 1, "$file") or do {
+          warn "unable to upload $file @{[ $client->errorstring ]}";
+          return;
+        };
+          
+        # we did a bucket map check above, but doublecheck the header returned
+        # to us for the server doesn't match the old server location.  If
+        # there is a server restart between the original check and here it
+        # could otherwise cause problems.
+        my $new_location = Mojo::URL->new($client->res->headers->location);
+        my $old_location = Mojo::URL->new($yars->config->url);
+        $old_location->path($new_location->path);
+        if("$new_location" eq "$old_location")
+        {
+          die "uploaded to the same server, probably configuration mismatch!";
+        }
+          
+        unlink "$file" or do {
+          warn "unable to unlink $file $!";
+          return;
+        };
+      };
+    }
+  }
+}
+
 sub main
 {
-  local @_ = @ARGV;
+  my $class = shift;
+  local @ARGV = @_;
+  my $threads = 1;
+  
   GetOptions(
+    'threads|t=i' => \$threads,
     'help|h' => sub { pod2usage({ -verbose => 2 }) },
     'version' => sub {
       say 'Yars version ', ($Yars::Command::yars_fast_balance::VERSION // 'dev');
@@ -91,6 +203,8 @@ sub main
     }
   };
 
+  my @work_list;
+
   foreach my $server ($yars->config->servers)
   {
     # only rebalance disks that we are responsible for...
@@ -98,104 +212,32 @@ sub main
     next unless $yars->config->url eq $server->{url};
     foreach my $disk (@{ $server->{disks} })
     {
-      my $root = dir( $disk->{root} );
-      foreach my $dir (sort grep { $_->basename =~ /^[a-f0-9]{1,2}$/ } $root->children)
-      {
-        my $expected_dir = $yars->tools->disk_for($dir->basename);
-        
-        # If disk_for returns a value, then it means the file belongs on the current
-        # server.  If it returns undef it should be uploaded to a different server.
-        # so we do either a filesystem level move, or a http remote move for each
-        # file in the stashed directory.
-        
-        if(defined $expected_dir)
-        {
-          $expected_dir = dir( $expected_dir );
-          
-          # if the expected dir is where it is stored, then it is already in the right place.
-          next if $expected_dir eq $dir->parent;
-
-          _recurse $dir, sub {
-            my($from) = @_;
-            say 'LCL ', $from->basename;
-            
-            # compute the md5 to ensure that the file isn't corrupt
-            my $md5 = digest_file_hex("$from", "MD5");
-            my @md5 = ($md5 =~ /(..)/g);
-            
-            # verify that the file itself is in the right place
-            my $expected_file = $root->subdir(@md5, $from->basename);
-            if("$expected_file" ne "$from")
-            {
-              warn "file: $from (md5 $md5) is stored at $from instead of $expected_file.  May be corrupt.";
-              return;
-            }
-
-            # temporary filename to copy to first
-            my(undef,$tmp) = $expected_dir->subdir('tmp')->tempfile( "balanceXXXXXX", SUFFIX => '.tmp' );
-            $tmp = file($tmp);
-            $tmp->parent->mkpath(0,0700);
-            
-            # final filename to move file once the transfer to the new
-            # partition is complete.
-            my $to = $expected_dir->subdir(@md5, $from->basename);
-            
-            $from->copy_to($tmp) or do {
-              warn "error copying $from => $tmp $!";
-              unlink "$tmp";
-              return;
-            };
-            
-            # verify that the copied file still has the same MD5 in its
-            # new location.
-            my $md5_verify = digest_file_hex("$tmp", "MD5");
-            if($md5 ne $md5_verify)
-            {
-              warn "file: $tmp does not match original md5.  May be corrupt.";
-              return;
-            }
-            
-            $to->parent->mkpath(0,0700);
-            $tmp->move_to($to) or do {
-              warn "error moving $tmp => $to $!";
-              return;
-            };
-            
-            unlink "$from";
-            
-          };
-        }
-        else
-        {
-          _recurse $dir, sub {
-            my($file) = @_;
-            say 'RMT ', $file->basename;
-            $client->upload('--nostash' => 1, "$file") or do {
-              warn "unable to upload $file @{[ $client->errorstring ]}";
-              return;
-            };
-          
-            # we did a bucket map check above, but doublecheck the header returned
-            # to us for the server doesn't match the old server location.  If
-            # there is a server restart between the original check and here it
-            # could otherwise cause problems.
-            my $new_location = Mojo::URL->new($client->res->headers->location);
-            my $old_location = Mojo::URL->new($yars->config->url);
-            $old_location->path($new_location->path);
-            if("$new_location" eq "$old_location")
-            {
-              die "uploaded to the same server, probably configuration mismatch!";
-            }
-          
-            unlink "$file" or do {
-              warn "unable to unlink $file $!";
-              return;
-            };
-          };
-        }
-      }
+      push @work_list, [$yars,$client,$disk,$server];
     }
   }
+
+  if($threads > 1)
+  {
+    say "running with $threads threads";
+    if(eval { require Parallel::ForkManager; 1 })
+    {
+      my $pm = Parallel::ForkManager->new($threads);
+      foreach my $work (@work_list)
+      {
+        $pm->start;
+        _rebalance_dir(@$work);
+        $pm->finish;
+      }
+      $pm->wait_all_children;
+      return;
+    }
+    else
+    {
+      warn "Unable to fork without Parallel::ForkManager";
+    }
+  }
+
+  _rebalance_dir(@$_) for @work_list;
 }
 
 1;

@@ -42,7 +42,7 @@ use Pod::Usage qw( pod2usage );
 use Fcntl ':flock';
 
 sub main {
-    #my $class = shift;
+    my $class = shift;
     my $status = 0;
     my $conf = Clustericious::Config->new("Yars");
     my $opt_all = 0;

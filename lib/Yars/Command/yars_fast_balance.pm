@@ -140,7 +140,8 @@ sub check_disk {
 }
 
 sub main {
-    local @_ = @ARGV;
+    my $class = shift;
+    local @ARGV = @_;
     GetOptions(
         'help|h'  => sub { pod2usage({ -verbose => 2}) },
         'version' => sub {
