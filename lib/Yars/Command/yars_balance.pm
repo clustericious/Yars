@@ -9,6 +9,7 @@ use Path::Class qw( dir file );
 use Getopt::Long qw( GetOptions );
 use Pod::Usage qw( pod2usage );
 use Digest::file qw( digest_file_hex );
+use Mojo::URL;
 
 # PODNAME: yars_balance
 # ABSTRACT: Fix all files
@@ -181,32 +182,41 @@ sub main
   
   my $yars = Yars->new;
   my $client = Yars::Client->new;
-
-  do {
-    # doublecheck that the local bucket map and the
-    # server bucketmap match.  Otherwise we could
-    # migrate a file to the same server, and then
-    # delete it, thus loosing the file!  Not good.
-    my $my_bucket_map = $yars->tools->bucket_map;
-    my $server_bucket_map = $client->bucket_map;
-    
-    foreach my $key (keys %$my_bucket_map)
-    {
-      if($my_bucket_map->{$key} ne delete $server_bucket_map->{$key})
-      {
-        die "client/server mismatch on bucket $key";
-      }
-    }
-    foreach my $key (keys %$server_bucket_map)
-    {
-      die "client/server mismatch on bucket $key";
-    }
-  };
-
   my @work_list;
 
   foreach my $server ($yars->config->servers)
   {
+
+    # doublecheck that the local bucket map and the
+    # server bucketmaps match.  Otherwise we could
+    # migrate a file to the same server, and then
+    # delete it, thus loosing the file!  Not good.
+    my $bucket_map_url = Mojo::URL->new($server->{url});
+    $bucket_map_url->path('/bucket_map');
+    my $tx = $client->ua->get($bucket_map_url);
+    if(my $res = $tx->success)
+    {
+      my %server_bucket_map = %{ $res->json };
+      my %my_bucket_map = %{ $yars->tools->bucket_map };
+      
+      foreach my $key (keys %my_bucket_map)
+      {
+        my $other = (delete $server_bucket_map{$key})//'';
+        if($my_bucket_map{$key} ne $other)
+        {
+          die "client/server mismatch on bucket $key";
+        }
+      }
+      foreach my $key (keys %server_bucket_map)
+      {
+        die "client/server mismatch on bucket $key";
+      }
+    }
+    else
+    {
+      die "unable to get bucket map from ", $server->{url};
+    }
+  
     # only rebalance disks that we are responsible for...
     # even if perhaps those disks are available to us...
     next unless $yars->config->url eq $server->{url};
