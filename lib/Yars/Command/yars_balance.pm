@@ -5,9 +5,10 @@ use warnings;
 use 5.010;
 use Yars;
 use Yars::Client;
-use Path::Class qw( dir );
+use Path::Class qw( dir file );
 use Getopt::Long qw( GetOptions );
 use Pod::Usage qw( pod2usage );
+use Digest::file qw( digest_file_hex );
 
 # PODNAME: yars_balance
 # ABSTRACT: Fix all files
@@ -19,7 +20,9 @@ use Pod::Usage qw( pod2usage );
 
 =head1 DESCRIPTION
 
-Possible future replacement for L<yars_fast_balance>.
+Reblance files in the yars cluster so that all stashed files are returned
+to the correct server.  This was originally done using the L<yars_fast_balance>
+command, which is buggy and not as fast as this one.
 
 =cut
 
@@ -98,33 +101,98 @@ sub main
       my $root = dir( $disk->{root} );
       foreach my $dir (sort grep { $_->basename =~ /^[a-f0-9]{1,2}$/ } $root->children)
       {
-        my $expected = $yars->tools->disk_for($dir->basename);
-        next if defined($expected) && $expected eq $dir->parent; 
-        _recurse $dir, sub {
-          my($file) = @_;
-          say $file->basename;
-          $client->upload('--nostash' => 1, "$file") or do {
-            warn "unable to upload $file @{[ $client->errorstring ]}";
-            return;
-          };
+        my $expected_dir = $yars->tools->disk_for($dir->basename);
+        
+        # If disk_for returns a value, then it means the file belongs on the current
+        # server.  If it returns undef it should be uploaded to a different server.
+        # so we do either a filesystem level move, or a http remote move for each
+        # file in the stashed directory.
+        
+        if(defined $expected_dir)
+        {
+          $expected_dir = dir( $expected_dir );
           
-          # we did a bucket map check above, but doublecheck the header returned
-          # to us for the server doesn't match the old server location.  If
-          # there is a server restart between the original check and here it
-          # could otherwise cause problems.
-          my $new_location = Mojo::URL->new($client->res->headers->location);
-          my $old_location = Mojo::URL->new($yars->config->url);
-          $old_location->path($new_location->path);
-          if("$new_location" eq "$old_location")
-          {
-            die "uploaded to the same server, probably configuration mismatch!";
-          }
-          
-          unlink "$file" or do {
-            warn "unable to unlink $file $!";
-            return;
+          # if the expected dir is where it is stored, then it is already in the right place.
+          next if $expected_dir eq $dir->parent;
+
+          _recurse $dir, sub {
+            my($from) = @_;
+            say 'LCL ', $from->basename;
+            
+            # compute the md5 to ensure that the file isn't corrupt
+            my $md5 = digest_file_hex("$from", "MD5");
+            my @md5 = ($md5 =~ /(..)/g);
+            
+            # verify that the file itself is in the right place
+            my $expected_file = $root->subdir(@md5, $from->basename);
+            if("$expected_file" ne "$from")
+            {
+              warn "file: $from (md5 $md5) is stored at $from instead of $expected_file.  May be corrupt.";
+              return;
+            }
+
+            # temporary filename to copy to first
+            my(undef,$tmp) = $expected_dir->subdir('tmp')->tempfile( "balanceXXXXXX", SUFFIX => '.tmp' );
+            $tmp = file($tmp);
+            $tmp->parent->mkpath(0,0700);
+            
+            # final filename to move file once the transfer to the new
+            # partition is complete.
+            my $to = $expected_dir->subdir(@md5, $from->basename);
+            
+            $from->copy_to($tmp) or do {
+              warn "error copying $from => $tmp $!";
+              unlink "$tmp";
+              return;
+            };
+            
+            # verify that the copied file still has the same MD5 in its
+            # new location.
+            my $md5_verify = digest_file_hex("$tmp", "MD5");
+            if($md5 ne $md5_verify)
+            {
+              warn "file: $tmp does not match original md5.  May be corrupt.";
+              return;
+            }
+            
+            $to->parent->mkpath(0,0700);
+            $tmp->move_to($to) or do {
+              warn "error moving $tmp => $to $!";
+              return;
+            };
+            
+            unlink "$from";
+            
           };
-        };
+        }
+        else
+        {
+          _recurse $dir, sub {
+            my($file) = @_;
+            say 'RMT ', $file->basename;
+            $client->upload('--nostash' => 1, "$file") or do {
+              warn "unable to upload $file @{[ $client->errorstring ]}";
+              return;
+            };
+          
+            # we did a bucket map check above, but doublecheck the header returned
+            # to us for the server doesn't match the old server location.  If
+            # there is a server restart between the original check and here it
+            # could otherwise cause problems.
+            my $new_location = Mojo::URL->new($client->res->headers->location);
+            my $old_location = Mojo::URL->new($yars->config->url);
+            $old_location->path($new_location->path);
+            if("$new_location" eq "$old_location")
+            {
+              die "uploaded to the same server, probably configuration mismatch!";
+            }
+          
+            unlink "$file" or do {
+              warn "unable to unlink $file $!";
+              return;
+            };
+          };
+        }
       }
     }
   }
