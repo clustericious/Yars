@@ -2,6 +2,11 @@ Revision history for {{$dist->name}}
 
 {{$NEXT}}
 
+1.25      2016-10-31 15:50:18 -0400
+  - Tweak on the new yars_balance command.  All bucket maps
+    are verified to match the local copy, not just the default
+    node.
+
 1.24      2016-10-31 14:28:18 -0400
   - Added yars_balance command.  Intended as a replacement
     for yars_fast_balance, which will likely be removed in
