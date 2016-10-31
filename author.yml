@@ -44,6 +44,7 @@ pod_spelling_system:
     - BDUGGAN
     - DAGOLDEN
     - XDG
+    - Rebalance
 
 pod_coverage:
   # format is "Class#method" or "Class", regex allowed

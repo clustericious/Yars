@@ -20,7 +20,7 @@ use Digest::file qw( digest_file_hex );
 
 =head1 DESCRIPTION
 
-Reblance files in the yars cluster so that all stashed files are returned
+Rebalance files in the yars cluster so that all stashed files are returned
 to the correct server.  This was originally done using the L<yars_fast_balance>
 command, which is buggy and not as fast as this one.
 
