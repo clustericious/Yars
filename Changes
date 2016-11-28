@@ -1,6 +1,7 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+  - Remove dependency on Log::Log4perl::CommandLine
 
 1.25      2016-10-31 15:50:18 -0400
   - Tweak on the new yars_balance command.  All bucket maps

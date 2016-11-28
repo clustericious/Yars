@@ -33,7 +33,7 @@ use strict;
 use warnings;
 use 5.010;
 use Clustericious::Config;
-use Log::Log4perl::CommandLine qw/:all/;
+use Clustericious::Log::CommandLine qw/:all/;
 use Clustericious::Log;
 use File::Find::Rule;
 use Digest::file qw/digest_file_hex/;

@@ -25,7 +25,7 @@ use warnings;
 use 5.010;
 use Yars::Client;
 use Log::Log4perl ();
-use Log::Log4perl::CommandLine ':all', ':loginit' => { level => $Log::Log4perl::INFO };
+use Clustericious::Log::CommandLine ':all', ':loginit' => { level => $Log::Log4perl::INFO };
 use Clustericious::Log;
 use Clustericious::Config;
 use Hash::MoreUtils qw/safe_reverse/;
