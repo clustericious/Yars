@@ -236,6 +236,7 @@ sub download {
         $self->tx($tx);
         my $res = $tx->success or do {
             my $error = $tx->error;
+            $tx->closed;
             if ($error->{code}) {
                 ERROR "Yars download : $error->{code} $error->{message}";
                 last;
