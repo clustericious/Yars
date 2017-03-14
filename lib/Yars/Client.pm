@@ -461,7 +461,7 @@ sub upload {
         }
     }
     $self->res($tx->res);
-    return '' if !$code || !$tx->res->is_status_class(200);
+    return '' if !$code || !$tx->res->is_success;
 
     DEBUG "Response : ".$tx->res->code." ".$tx->res->message;
     return 'ok';
