@@ -1,6 +1,7 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+  - Added --backup option to yars_balance
 
 1.27      2017-03-14 11:00:06 -0400
   - More mojolicious deprecations
