@@ -7,7 +7,7 @@ install:
   - cpanm -n Filesys::Df
 
 script:
-  - dzil test -v
+  - dzil -I. test -v
 
 perl:
   - "5.26"
