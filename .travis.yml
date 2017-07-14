@@ -2,8 +2,8 @@ language: perl
 sudo: false
 
 install:
-  - dzil authordeps --missing | cpanm -n
-  - dzil listdeps --missing | cpanm -n
+  - dzil -I. authordeps --missing | cpanm -n
+  - dzil -I. listdeps --missing | cpanm -n
   - cpanm -n Filesys::Df
 
 script:
