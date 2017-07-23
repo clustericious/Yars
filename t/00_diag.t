@@ -20,7 +20,6 @@ $modules{$_} = $_ for qw(
   Digest::file
   EV
   File::Find::Rule
-  File::HomeDir
   Hash::MoreUtils
   IO::Socket::INET
   IO::Socket::IP

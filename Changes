@@ -1,6 +1,7 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+  - Remove dependency on File::HomeDir
 
 1.28      2017-06-27 10:23:15 -0400
   - Added --backup option to yars_balance

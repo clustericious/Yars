@@ -16,11 +16,11 @@ use JSON::MaybeXS ();
 # TODO: rm dep on stat
 use File::stat qw/stat/;
 use Mojo::ByteStream qw/b/;
-use File::HomeDir;
 use File::Spec;
 use Mojo::UserAgent;
 use File::Spec;
 use Yars::Util qw( format_tx_error );
+use File::Glob qw( bsd_glob );
 
 # ABSTRACT: various utility functions dealing with servers, hosts, etc
 # VERSION
@@ -101,7 +101,7 @@ sub refresh_config {
         }
     }
   }
-  my $default_dir = $self->{default_dir} = File::HomeDir->my_home . "/var/run/yars";
+  my $default_dir = $self->{default_dir} = bsd_glob("~/var/run/yars");
   
   my $state_file = $self->{state_file} = $config->state_file(default => "$default_dir/state.txt");
   -e $state_file or do {

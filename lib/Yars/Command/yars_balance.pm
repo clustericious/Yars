@@ -36,7 +36,7 @@ at a  time.
 
 After copying files to the correct bucket (either as a local file copy, or as
 a Yars file transfer), rename the original file to a backup directory, instead of
-unlinking it.  This is particularlly useful when adding new untested disks to
+unlinking it.  This is particularly useful when adding new untested disks to
 a yars cluster.
 
 =cut
