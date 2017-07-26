@@ -1,6 +1,7 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+  - Remove dependency on List::MoreUtils
 
 1.29      2017-07-22 20:13:50 -0400
   - Remove dependency on File::HomeDir
