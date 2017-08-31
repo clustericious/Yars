@@ -1,6 +1,7 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+  - Migrate to EUMM
 
 1.30      2017-07-26 04:23:51 -0400
   - Remove dependency on List::MoreUtils
