@@ -1,6 +1,8 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+
+1.31      2017-08-31 10:45:18 -0400
   - Migrate to EUMM
 
 1.30      2017-07-26 04:23:51 -0400
