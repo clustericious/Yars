@@ -1,4 +1,4 @@
-# Yars [![Build Status](https://secure.travis-ci.org/clustericious/Yars.png)](http://travis-ci.org/clustericious/Yars) [![Build status](https://ci.appveyor.com/api/projects/status/oj1jd3beain4qgy9/branch/master?svg=true)](https://ci.appveyor.com/project/clustericious/Yars/branch/master)
+# Yars [![Build Status](https://secure.travis-ci.org/clustericious/Yars.png)](http://travis-ci.org/clustericious/Yars)
 
 Yet Another RESTful-Archive Service
 
