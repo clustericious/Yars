@@ -35,6 +35,11 @@ Download a file
 
 # DESCRIPTION
 
+**NOTE**: Development for this tool is winding down, and [Yars](https://metacpan.org/pod/Yars) will
+probably be deprecated within the next couple of years.  Please contact
+me ASAP if you depend on this tool.  Please see
+[https://github.com/clustericious/Yars/issues/31](https://github.com/clustericious/Yars/issues/31) for details.
+
 Yars is a simple RESTful server for data storage.
 
 Properly configured it provides consistent WRITE availability, and 

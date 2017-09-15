@@ -47,6 +47,11 @@ Download a file
 
 =head1 DESCRIPTION
 
+B<NOTE>: Development for this tool is winding down, and L<Yars> will
+probably be deprecated within the next couple of years.  Please contact
+me ASAP if you depend on this tool.  Please see
+L<https://github.com/clustericious/Yars/issues/31> for details.
+
 Yars is a simple RESTful server for data storage.
 
 Properly configured it provides consistent WRITE availability, and 
