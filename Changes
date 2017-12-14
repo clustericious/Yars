@@ -1,6 +1,8 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+
+1.32      2017-12-14 11:58:21 -0500
   - Yars is officially deprecated and may be removed from CPAN,
     but not before 31 December 2018.  Please see 
     https://github.com/clustericious/Yars/issues/31
