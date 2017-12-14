@@ -4,6 +4,7 @@ Revision history for {{$dist->name}}
   - Yars is officially deprecated and may be removed from CPAN,
     but not before 31 December 2018.  Please see 
     https://github.com/clustericious/Yars/issues/31
+  - Update diagnostics for yars_balance to add additional information
 
 1.31      2017-08-31 10:45:18 -0400
   - Migrate to EUMM

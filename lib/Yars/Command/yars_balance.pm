@@ -82,12 +82,15 @@ sub _rebalance_dir
         my($filename, $md5) = @_;
         my $dir = $root->subdir('balance-backup', @$md5);
         $dir->mkpath;
-        my $to = $dir->file($filename->basename);
+        my $basename = $filename->basename;
+        my $to = $dir->file($basename);
+        say "MVX @$md5[0] $basename";
         rename "$filename", "$to"
           or warn "unable to rename $filename => $to $!";
       }
     : sub {
-      my($filename) = @_;
+      my($filename, $md5) = @_;
+      say "RMX @$md5[0] @{[ $filename->basename ]}";
       unlink "$filename"
         or warn "error removing $filename";
     };
@@ -127,11 +130,12 @@ sub _rebalance_dir
 
       _recurse $dir, sub {
         my($from) = @_;
-        say 'LCL ', $from->basename;
         
         my($md5, @md5) = $compute_md5_as_list->($from);
         return unless $md5;
            
+        say "LCL $md5[0] @{[ $from->basename ]}";
+
         # temporary filename to copy to first
         my(undef,$tmp) = $expected_dir->subdir('tmp')->tempfile( "balanceXXXXXX", SUFFIX => '.tmp' );
         $tmp = file($tmp);
@@ -169,10 +173,11 @@ sub _rebalance_dir
     {
       _recurse $dir, sub {
         my($file) = @_;
-        say 'RMT ', $file->basename;
 
         my($md5,@md5) = $compute_md5_as_list->($file);
         return unless $md5;
+
+        say "RMT $md5[0] @{[ $file->basename ]}";
 
         $client->upload('--nostash' => 1, "$file") or do {
           warn "unable to upload $file @{[ $client->errorstring ]}";
