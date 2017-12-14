@@ -39,7 +39,14 @@ a Yars file transfer), rename the original file to a backup directory, instead o
 unlinking it.  This is particularly useful when adding new untested disks to
 a yars cluster.
 
+=head2 --delay | -d
+
+Delay deletes or renames to avoid race conditions with GETs.  Note that this
+introduces a race condition with DELETEs.
+
 =cut
+
+our @end;
 
 sub _recurse 
 {
@@ -94,6 +101,45 @@ sub _rebalance_dir
       unlink "$filename"
         or warn "error removing $filename";
     };
+  
+  if($opt->{delay})
+  {
+    my $original_cleanup_file = $cleanup_file;
+    my @list;
+    
+    my $cleanup_old = sub {
+      my $now = time;
+      my @new;
+      foreach my $item (@list)
+      {
+        my($filename, $md5, $time) = @$item;
+        if($now > $time + 5)
+        {
+          $original_cleanup_file->($filename, $md5);
+        }
+        else
+        {
+          push @new, $item;
+        }
+      }
+      @list = @new;
+    };
+    
+    $cleanup_file = sub {
+      my($filename, $md5) = @_;
+      $cleanup_old->();
+      push @list, [ $filename, $md5, time ];
+    };
+    
+    push @end, sub {
+      while(@list)
+      {
+        say '...';
+        sleep 1;
+        $cleanup_old->();
+      }
+    };
+  }
   
   my $compute_md5_as_list = sub {
     my($filename) = @_;
@@ -207,11 +253,13 @@ sub main
   my $class = shift;
   local @ARGV = @_;
   my $threads = 1;
-  my $backup = 0;
+  my $backup  = 0;
+  my $delay   = 0;
   
   GetOptions(
     'threads|t=i' => \$threads,
-    'backup|b' => \$backup,
+    'backup|b'    => \$backup,
+    'delay|d'     => \$delay,
     'help|h' => sub { pod2usage({ -verbose => 2 }) },
     'version' => sub {
       say 'Yars version ', ($Yars::Command::yars_fast_balance::VERSION // 'dev');
@@ -261,9 +309,16 @@ sub main
     next unless $yars->config->url eq $server->{url};
     foreach my $disk (@{ $server->{disks} })
     {
-      push @work_list, [$yars,$client,$disk,$server, { backup => $backup } ];
+      push @work_list, [$yars,$client,$disk,$server, { backup => $backup, delay => $delay } ];
     }
   }
+
+  @end = ();
+
+  local $SIG{'INT'} = sub {
+    $_->() for @end;
+    exit;
+  };
 
   if($threads > 1)
   {
@@ -286,7 +341,12 @@ sub main
     }
   }
 
-  _rebalance_dir(@$_) for @work_list;
+  foreach my $work (@work_list)
+  {
+    _rebalance_dir(@$work);
+    $_->() for @end;
+    @end = ();
+  }
 }
 
 1;
