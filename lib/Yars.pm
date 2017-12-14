@@ -11,7 +11,7 @@ use File::Path qw/mkpath/;
 use Log::Log4perl qw(:easy);
 use Number::Bytes::Human qw( format_bytes parse_bytes );
 
-# ABSTRACT: Yet Another RESTful-Archive Service
+# ABSTRACT: (Deprecated) Yet Another RESTful-Archive Service
 # VERSION
 
 =head1 SYNOPSIS
@@ -47,10 +47,12 @@ Download a file
 
 =head1 DESCRIPTION
 
-B<NOTE>: Development for this tool is winding down, and L<Yars> will
-probably be deprecated within the next couple of years.  Please contact
-me ASAP if you depend on this tool.  Please see
+B<NOTE>: Development for this tool is winding down, and L<Yars> is
+deprecated.  Please contact me ASAP if you depend on this tool.
+Please see and/or comment on
 L<https://github.com/clustericious/Yars/issues/31> for details.
+Yars as a distribution may be removed from CPAN, but not before
+December 31, 2018.
 
 Yars is a simple RESTful server for data storage.
 

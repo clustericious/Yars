@@ -1,6 +1,6 @@
 # Yars [![Build Status](https://secure.travis-ci.org/clustericious/Yars.png)](http://travis-ci.org/clustericious/Yars)
 
-Yet Another RESTful-Archive Service
+(Deprecated) Yet Another RESTful-Archive Service
 
 # SYNOPSIS
 
@@ -35,10 +35,12 @@ Download a file
 
 # DESCRIPTION
 
-**NOTE**: Development for this tool is winding down, and [Yars](https://metacpan.org/pod/Yars) will
-probably be deprecated within the next couple of years.  Please contact
-me ASAP if you depend on this tool.  Please see
+**NOTE**: Development for this tool is winding down, and [Yars](https://metacpan.org/pod/Yars) is
+deprecated.  Please contact me ASAP if you depend on this tool.
+Please see and/or comment on
 [https://github.com/clustericious/Yars/issues/31](https://github.com/clustericious/Yars/issues/31) for details.
+Yars as a distribution may be removed from CPAN, but not before
+December 31, 2018.
 
 Yars is a simple RESTful server for data storage.
 
