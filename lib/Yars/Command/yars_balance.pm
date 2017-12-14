@@ -120,6 +120,7 @@ sub _rebalance_dir
     if(defined $expected_dir)
     {
       $expected_dir = dir( $expected_dir );
+      $expected_dir->subdir('tmp')->mkpath(0,0700);
           
       # if the expected dir is where it is stored, then it is already in the right place.
       next if $expected_dir eq $dir->parent;
