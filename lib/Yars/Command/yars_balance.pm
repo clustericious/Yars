@@ -113,8 +113,8 @@ sub _rebalance_dir
         while(1)
         {
           my($load) = split /\s+/, file('/proc/loadavg')->slurp;
-          return $load < $max_load;
-          say "PAS pausing for high load: $load < $max_load";
+          return if $load < $max_load;
+          say "PAS pausing for high load: $load > $max_load";
           sleep 60;
         }
       }
