@@ -44,6 +44,11 @@ a yars cluster.
 Delay deletes or renames to avoid race conditions with GETs.  Note that this
 introduces a race condition with DELETEs.
 
+=head2 --load | -l number
+
+Pause balance when load average exceeds I<number>.  Only implemented on systems
+that provide C</proc/loadavg>, such as Linux.
+
 =cut
 
 our @end;
@@ -101,6 +106,21 @@ sub _rebalance_dir
       unlink "$filename"
         or warn "error removing $filename";
     };
+  
+  my $max_load = $opt->{load};
+  my $cooldown = $max_load
+    ? sub {
+        while(1)
+        {
+          my($load) = split /\s+/, file('/proc/loadavg')->slurp;
+          return $load < $max_load;
+          say "PAS pausing for high load: $load < $max_load";
+          sleep 60;
+        }
+      }
+    : sub {
+        # do nothing
+      };
   
   if($opt->{delay})
   {
@@ -181,6 +201,7 @@ sub _rebalance_dir
         return unless $md5;
            
         say "LCL $md5[0] @{[ $from->basename ]}";
+        $cooldown->();
 
         # temporary filename to copy to first
         my(undef,$tmp) = $expected_dir->subdir('tmp')->tempfile( "balanceXXXXXX", SUFFIX => '.tmp' );
@@ -224,6 +245,7 @@ sub _rebalance_dir
         return unless $md5;
 
         say "RMT $md5[0] @{[ $file->basename ]}";
+        $cooldown->();
 
         $client->upload('--nostash' => 1, "$file") or do {
           warn "unable to upload $file @{[ $client->errorstring ]}";
@@ -255,17 +277,24 @@ sub main
   my $threads = 1;
   my $backup  = 0;
   my $delay   = 0;
+  my $load    = 0;
   
   GetOptions(
     'threads|t=i' => \$threads,
     'backup|b'    => \$backup,
     'delay|d'     => \$delay,
+    'load|l=i'      => \$load,
     'help|h' => sub { pod2usage({ -verbose => 2 }) },
     'version' => sub {
       say 'Yars version ', ($Yars::Command::yars_fast_balance::VERSION // 'dev');
       exit 1;
     },
   ) || pod2usage(1);
+  
+  if($load && ! -e '/proc/loadavg')
+  {
+    die "--load | -l is unsupported on systems without a /proc filesystem";
+  }
   
   my $yars = Yars->new;
   my $client = Yars::Client->new;
@@ -309,7 +338,7 @@ sub main
     next unless $yars->config->url eq $server->{url};
     foreach my $disk (@{ $server->{disks} })
     {
-      push @work_list, [$yars,$client,$disk,$server, { backup => $backup, delay => $delay } ];
+      push @work_list, [$yars,$client,$disk,$server, { backup => $backup, delay => $delay, load => $load } ];
     }
   }
 

@@ -1,6 +1,7 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+  - Add --load to yars_balance
 
 1.32      2017-12-14 11:58:21 -0500
   - Yars is officially deprecated and may be removed from CPAN,
