@@ -285,6 +285,10 @@ sub download {
             };
         } else {
             $res->content->asset->move_to($out_file);
+            chmod(
+              0644 & (0666 ^ umask),
+              $out_file,
+            );
         }
         my $verify = digest_file_hex($out_file,'MD5');
         $md5 ||= _b642hex($res->headers->header("Content-MD5"));

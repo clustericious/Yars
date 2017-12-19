@@ -1,6 +1,8 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+  - Fix bug where large files on the same filesystem as TEMP
+    could be stored as 0600 permissions, ignoring umask
 
 1.33      2017-12-15 12:19:26 -0500
   - Add --load to yars_balance
