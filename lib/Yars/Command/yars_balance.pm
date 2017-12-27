@@ -114,7 +114,7 @@ sub _rebalance_dir
         {
           my($load) = split /\s+/, file('/proc/loadavg')->slurp;
           return if $load < $max_load;
-          say "PAS pausing for high load: $load > $max_load";
+          say "PAS    pausing for high load: $load > $max_load";
           sleep 60;
         }
       }
@@ -154,7 +154,7 @@ sub _rebalance_dir
     push @end, sub {
       while(@list)
       {
-        say '...';
+        say 'NOP';
         sleep 1;
         $cleanup_old->();
       }
@@ -351,7 +351,7 @@ sub main
 
   if($threads > 1)
   {
-    say "running with $threads threads";
+    say "INF    running with $threads threads";
     if(eval { require Parallel::ForkManager; 1 })
     {
       my $pm = Parallel::ForkManager->new($threads);
